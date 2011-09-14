@@ -28,6 +28,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
 import android.util.Log;
@@ -67,6 +68,10 @@ public class MapMyTracksInterfaceApi {
 		client.getCredentialsProvider().setCredentials(
 				new AuthScope(MY_MAP_WEBSITE_URL, 80),
 				new UsernamePasswordCredentials(username, password));
+		HttpParams params = client.getParams();
+		HttpConnectionParams.setConnectionTimeout(params, 30000);
+		HttpConnectionParams.setSoTimeout(params, 30000);
+		
 		httpPost = new HttpPost(URI_POST);
 		
 		serverTimeParamsMap = new ReusableNameValuePairMap();

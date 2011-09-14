@@ -114,6 +114,7 @@ public class UploaderThread {
 					DefSettings.getPassword(state)
 					);
 			
+			isRunning = true;
 			Sample sample = null;
 			try {
 				grabData(INITIAL_DATA_WAIT, pointsToUpload, sensorDataToUpload);
@@ -136,6 +137,8 @@ public class UploaderThread {
 						//	try again after a short time
 						//Thread.sleep(30000L);	don't use sleep, instead
 						//						allow for the user to stop, ie. use the stop semaphore
+						Log.d(Constants.TAG, "Error while starting MapMyTracks Activity", e);
+						serviceMsgHandler.onSystemMessage("DNS Error while trying to start MapMyTracks Activity, retrying shortly");
 						try {
 							synchronized (stopSemaphore) {
 								stopSemaphore.wait(30000L);	//	30s
@@ -145,7 +148,7 @@ public class UploaderThread {
 					}
 				}
 				
-				if (activityId!=null) {
+				if (isRunning && activityId!=null) {
 					serviceMsgHandler.onSystemMessage("MapMyTracks Activity Started");
 					
 					pointsToUpload.clear();
@@ -159,7 +162,6 @@ public class UploaderThread {
 							helpers[i] = new ActivityUploaderHelper(i, this, null);
 						}
 					}
-					isRunning = true;
 					for (int i=0; i<NUM_HELPER_THREADS; ++i) {
 						helpers[i].start();
 					}
@@ -184,6 +186,7 @@ public class UploaderThread {
 			}
 			
 			if (isRunning) {
+				Log.d(Constants.TAG, "UploaderThread: waiting for stop signal");
 				try {
 					synchronized (stopSemaphore) {
 						stopSemaphore.wait();
@@ -206,6 +209,7 @@ public class UploaderThread {
 			
 			//	post stop activity request
 			if (activityId!=null) {
+				Log.d(Constants.TAG, "UploaderThread: posting activity stop");
 				try {
 					mapMyTracksInterfaceApi.stopActivity();
 					serviceMsgHandler.onSystemMessage("MapMyTracks Activity Stopped");
