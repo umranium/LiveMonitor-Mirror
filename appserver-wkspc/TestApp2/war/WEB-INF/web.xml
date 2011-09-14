@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns="http://java.sun.com/xml/ns/javaee"
+xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
+	<servlet>
+		<servlet-name>Receive</servlet-name>
+		<servlet-class>au.csiro.umran.test.servlets.ReceiveServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>View</servlet-name>
+		<servlet-class>au.csiro.umran.test.servlets.ViewServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>Disconnected</servlet-name>
+		<servlet-class>au.csiro.umran.test.servlets.DisconnectedServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>Connected</servlet-name>
+		<servlet-class>au.csiro.umran.test.servlets.ConnectedServlet</servlet-class>
+	</servlet>
+	
+	<servlet-mapping>
+		<servlet-name>Receive</servlet-name>
+		<url-pattern>/receive</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>View</servlet-name>
+		<url-pattern>/view</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Disconnected</servlet-name>
+		<url-pattern>/_ah/channel/disconnected/</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Connected</servlet-name>
+		<url-pattern>/_ah/channel/connected/</url-pattern>
+	</servlet-mapping>
+	
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
+
+    <security-constraint>
+        <web-resource-collection>
+            <url-pattern>/view</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>*</role-name>
+        </auth-constraint>
+    </security-constraint>
+    
+</web-app>

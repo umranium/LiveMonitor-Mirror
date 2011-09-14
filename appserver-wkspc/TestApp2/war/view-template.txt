@@ -1,0 +1,78 @@
+<html>
+  <head>
+	<script src='/_ah/channel/jsapi'></script>
+    <script type='text/javascript'>
+      
+      displaySysMsg = function(m) {
+      	var elem = document.getElementById('sys-msgs');
+      	elem.innerHTML = m+'<br/>'+elem.innerHTML;
+      }
+      
+      onOpened = function() {
+        displaySysMsg('socket open');
+      }
+
+      onMessage = function(m) {
+        displaySysMsg('socket received message');
+        
+        newState = JSON.parse(m.data);
+        var msg = '<div><table border="1">';
+        for(var propertyName in newState) {
+		  msg += '<tr><td>'+propertyName+'</td><td>'+newState[propertyName]+'</td></tr>';
+		}
+		msg += '</table></div>';
+		
+      	var elem = document.getElementById('message-area');
+      	elem.innerHTML = elem.innerHTML + msg;
+      }
+      
+      onError = function() {
+      	displaySysMsg('socket error');
+      }
+      
+      onClose = function() {
+      	displaySysMsg('socket closed');
+      }
+      
+      openChannel = function() {
+        var token = '{{ token }}';
+        var channel = new goog.appengine.Channel(token);
+        var handler = {
+          'onopen': onOpened,
+          'onmessage': onMessage,
+          'onerror': onError,
+          'onclose': onClose
+        };
+        var socket = channel.open(handler);
+        socket.onopen = onOpened;
+        socket.onmessage = onMessage;
+        socket.onerror = onError;
+        socket.onclose = onClose;
+      }
+
+      initialize = function() {
+        openChannel();
+        displaySysMsg('socket connecting..');
+      }
+    </script>
+  </head>
+  <body  onload="initialize();">
+  
+    <div style="text-align:right">
+    	<a href='{{ logout_url }}'>Sign out as {{ user_name }}</a>
+    </div>
+    
+    <div>
+		<b>System Messages:</b>
+		<div style="background:white;height:45%;width:95%;overflow:scroll;border-style:solid;border-width:1px" id='sys-msgs'>
+		</div>
+    <div>
+    
+    <div>
+		<b>Data Messages:</b>
+		<div style="background:white;height:45%;width:95%;overflow:scroll;border-style:solid;border-width:1px" id='message-area'>
+		</div>
+    <div>
+    
+  </body>
+</html>

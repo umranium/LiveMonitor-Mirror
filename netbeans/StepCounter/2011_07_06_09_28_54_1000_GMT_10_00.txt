@@ -1,0 +1,565 @@
+Processing Walking
+0,1309908534279,0.56700516
+1,1309908534279,0.56700516
+2,1309908534279,0.56700516
+3,1309908534280,0.95836353
+4,1309908534280,0.95836353
+5,1309908534280,0.95836353
+6,1309908534282,1.7410803
+7,1309908534306,10.350965
+8,1309908534332,1.0102129
+9,1309908534356,-3.4555583
+10,1309908534381,-6.736146
+11,1309908534407,-4.969942
+12,1309908534431,1.5948744
+13,1309908534456,10.317407
+14,1309908534481,1.747407
+15,1309908534508,-2.5375938
+16,1309908534531,-6.794064
+17,1309908534556,-1.7027764
+18,1309908534581,2.7451925
+19,1309908534607,5.7137814
+20,1309908534631,1.1665373
+21,1309908534656,-5.8375626
+22,1309908534682,-5.092203
+23,1309908534706,-4.7727637
+24,1309908534731,7.080909
+25,1309908534757,3.9157286
+26,1309908534781,0.86586094
+27,1309908534806,-5.357349
+28,1309908534832,-4.3582764
+29,1309908534857,-1.235652
+30,1309908534881,5.372902
+31,1309908534906,8.554797
+32,1309908534931,-3.295332
+33,1309908534957,-5.079438
+34,1309908534981,-5.7237473
+35,1309908535006,2.60281
+36,1309908535032,4.3515253
+37,1309908535056,3.8625498
+38,1309908535081,-2.1097755
+39,1309908535106,-4.985339
+40,1309908535131,-3.1963234
+41,1309908535156,0.04188633
+42,1309908535181,2.572648
+43,1309908535206,2.3362179
+44,1309908535232,1.0509462
+45,1309908535256,-0.44769955
+46,1309908535281,0.109586716
+47,1309908535306,0.37790966
+48,1309908535331,-1.4639912
+49,1309908535357,0.48515415
+50,1309908535381,2.036211
+51,1309908535406,0.4276476
+52,1309908535431,-0.62253857
+53,1309908535457,-1.537425
+54,1309908535481,-3.0305004
+55,1309908535506,-3.7770386
+56,1309908535531,0.6012602
+57,1309908535557,1.0805397
+58,1309908535581,1.0851374
+59,1309908535606,1.0935249
+60,1309908535631,-0.055410385
+61,1309908535657,0.18532276
+62,1309908535681,1.6511621
+63,1309908535706,-0.22697926
+64,1309908535732,-0.6389637
+65,1309908535756,-1.0993233
+66,1309908535781,-1.8474116
+67,1309908535806,-0.27099228
+68,1309908535832,0.42792416
+69,1309908535857,0.80047035
+70,1309908535881,-1.0548267
+71,1309908535906,-1.9481177
+72,1309908535931,0.14277744
+73,1309908535957,0.0015659332
+74,1309908535981,-0.22811604
+75,1309908536006,0.13979626
+76,1309908536031,-0.9438124
+77,1309908536057,-0.62026596
+78,1309908536081,0.9784193
+79,1309908536106,0.24654293
+80,1309908536133,-0.8554516
+81,1309908536156,-1.9195852
+82,1309908536181,-1.2989225
+83,1309908536207,-0.9647188
+84,1309908536231,1.5262928
+85,1309908536256,0.91237164
+86,1309908536282,0.14891434
+87,1309908536306,-2.2522392
+88,1309908536332,-0.9645214
+89,1309908536357,1.3430414
+90,1309908536381,1.5747175
+91,1309908536406,1.6862669
+92,1309908536431,-2.6971416
+93,1309908536457,-0.87849903
+94,1309908536481,0.72840977
+95,1309908536506,1.0508776
+96,1309908536532,-0.30826283
+97,1309908536556,-1.616056
+98,1309908536581,-2.1379905
+99,1309908536606,0.29356956
+100,1309908536632,1.1463175
+101,1309908536656,0.5466051
+102,1309908536681,-0.5978203
+103,1309908536706,-2.2799091
+104,1309908536732,-0.25324726
+105,1309908536756,1.0038633
+106,1309908536781,0.44234562
+107,1309908536807,0.5650339
+108,1309908536831,-0.64807606
+109,1309908536856,-2.3245535
+110,1309908536881,0.48956203
+111,1309908536908,1.8445063
+112,1309908536931,0.34436703
+113,1309908536956,-0.86123943
+114,1309908536981,-1.7481251
+115,1309908537007,-0.3550787
+116,1309908537031,0.47451115
+117,1309908537056,1.1971111
+118,1309908537082,-0.17280483
+119,1309908537106,-0.75991154
+120,1309908537131,-1.3364553
+121,1309908537156,0.34536457
+122,1309908537182,1.7596483
+123,1309908537206,0.49335194
+124,1309908537232,-1.0413475
+125,1309908537257,-2.5301685
+126,1309908537281,0.35372066
+127,1309908537306,1.74226
+128,1309908537331,0.36531353
+129,1309908537357,-0.5095968
+130,1309908537381,-1.0737505
+131,1309908537406,-1.0278158
+132,1309908537433,0.028596878
+133,1309908537456,1.303977
+134,1309908537481,0.43832588
+135,1309908537507,-0.90803623
+136,1309908537531,-2.1729355
+137,1309908537556,0.40367794
+138,1309908537582,0.9987345
+139,1309908537606,0.91333485
+140,1309908537631,-1.0904531
+141,1309908537656,-2.0552406
+142,1309908537681,-2.1642551
+143,1309908537707,0.27060986
+144,1309908537731,2.0768251
+145,1309908537756,0.8369074
+146,1309908537782,0.30435848
+147,1309908537807,0.032330513
+148,1309908537831,0.8218832
+149,1309908537856,1.2020388
+150,1309908537881,1.3616791
+151,1309908537907,0.7081423
+152,1309908537931,0.21552753
+153,1309908537956,-1.5519409
+154,1309908537982,-2.7104993
+155,1309908538007,-3.5864549
+156,1309908538031,-1.7429028
+157,1309908538056,-0.8552656
+158,1309908538081,6.402808
+159,1309908538107,2.7322035
+160,1309908538131,-0.41582394
+161,1309908538156,-6.2440186
+162,1309908538181,-4.372571
+163,1309908538207,3.0910044
+164,1309908538231,9.522567
+165,1309908538256,2.9614763
+166,1309908538282,-3.5278492
+167,1309908538306,-4.956636
+168,1309908538331,-2.250761
+169,1309908538356,5.26941
+170,1309908538382,4.4694586
+171,1309908538406,-0.6695566
+172,1309908538431,-5.6980853
+173,1309908538456,-5.628156
+174,1309908538482,-0.21433926
+175,1309908538506,3.3832169
+176,1309908538531,6.7148542
+177,1309908538557,1.2527037
+178,1309908538581,-3.851934
+179,1309908538606,-5.158767
+180,1309908538632,-0.6752434
+181,1309908538657,5.2451763
+182,1309908538681,5.6233206
+183,1309908538706,3.3668184
+184,1309908538732,-3.1923995
+185,1309908538756,-6.003493
+186,1309908538781,-4.2270207
+187,1309908538806,1.9379072
+188,1309908538890,6.864089
+189,1309908538890,6.864089
+190,1309908538890,6.864089
+191,1309908538908,2.3416843
+192,1309908538931,-3.4677267
+193,1309908538957,2.5260801
+194,1309908538981,5.7088995
+195,1309908539006,2.971034
+196,1309908539031,-2.7221012
+197,1309908539058,-5.568668
+198,1309908539081,-5.0097456
+199,1309908539106,1.1405411
+200,1309908539132,5.3888197
+201,1309908539156,3.335414
+202,1309908539182,-4.5063887
+203,1309908539206,-5.684674
+204,1309908539231,-5.9744663
+205,1309908539258,0.17078304
+206,1309908539281,3.4314508
+207,1309908539306,6.214032
+208,1309908539332,-0.7128382
+209,1309908539356,-3.681497
+210,1309908539381,-3.867021
+211,1309908539406,-0.4286995
+212,1309908539432,2.553752
+213,1309908539458,3.899376
+214,1309908539482,0.6096163
+215,1309908539507,-4.017107
+216,1309908539531,-3.0024548
+217,1309908539556,-2.5139189
+218,1309908539582,3.1894436
+219,1309908539606,2.8704548
+220,1309908539631,0.8418722
+221,1309908539656,-3.6569939
+222,1309908539682,-3.2983222
+223,1309908539706,-0.4250002
+224,1309908539731,2.0049086
+225,1309908539757,4.935998
+226,1309908539781,0.77525043
+227,1309908539806,-5.9765043
+228,1309908539832,-6.3661385
+229,1309908539856,-6.5681715
+230,1309908539881,5.8935785
+231,1309908539906,4.298752
+232,1309908539932,2.1199512
+233,1309908539956,-5.212632
+234,1309908539982,-4.469885
+235,1309908540007,-1.3215704
+236,1309908540031,-1.3215704
+237,1309908540056,7.26278
+238,1309908540081,8.913615
+239,1309908540107,-3.9226623
+240,1309908540132,-3.0950127
+241,1309908540156,2.3280401
+242,1309908540181,7.7275953
+243,1309908540206,4.4381285
+244,1309908540232,-2.0970058
+245,1309908540256,-6.2037334
+246,1309908540281,-4.982628
+247,1309908540306,0.73271084
+248,1309908540331,5.325639
+249,1309908540356,3.9857311
+250,1309908540381,-0.7154207
+251,1309908540407,-6.622602
+252,1309908540431,-4.5076914
+253,1309908540456,-3.4894013
+254,1309908540481,7.8753347
+255,1309908540507,3.686451
+Finding Upper-band Group Highest Peaks
+		Upper Band Peak: 7, t=0.027
+	First Peak of Group: 7, t=0.027
+		Upper Band Peak: 13, t=0.177
+	First Peak of Group: 13, t=0.177
+		Upper Band Peak: 19, t=0.328
+	First Peak of Group: 19, t=0.328
+		Upper Band Peak: 24, t=0.452
+	First Peak of Group: 24, t=0.452
+		Upper Band Peak: 31, t=0.627
+	First Peak of Group: 31, t=0.627
+		Upper Band Peak: 36, t=0.753
+	First Peak of Group: 36, t=0.753
+		Upper Band Peak: 42, t=0.902
+	First Peak of Group: 42, t=0.902
+		Upper Band Peak: 50, t=1.102
+	First Peak of Group: 50, t=1.102
+		Upper Band Peak: 62, t=1.402
+	First Peak of Group: 62, t=1.402
+		Upper Band Peak: 84, t=1.952
+	First Peak of Group: 84, t=1.952
+		Upper Band Peak: 91, t=2.127
+	First Peak of Group: 91, t=2.127
+		Upper Band Peak: 100, t=2.353
+	First Peak of Group: 100, t=2.353
+		Upper Band Peak: 111, t=2.629
+	First Peak of Group: 111, t=2.629
+		Upper Band Peak: 117, t=2.777
+	First Peak of Group: 117, t=2.777
+		Upper Band Peak: 122, t=2.903
+	First Peak of Group: 122, t=2.903
+		Upper Band Peak: 127, t=3.027
+	First Peak of Group: 127, t=3.027
+		Upper Band Peak: 133, t=3.177
+	First Peak of Group: 133, t=3.177
+		Upper Band Peak: 144, t=3.452
+	First Peak of Group: 144, t=3.452
+		Upper Band Peak: 150, t=3.602
+	First Peak of Group: 150, t=3.602
+		Upper Band Peak: 158, t=3.802
+	First Peak of Group: 158, t=3.802
+		Upper Band Peak: 164, t=3.952
+	First Peak of Group: 164, t=3.952
+		Upper Band Peak: 169, t=4.077
+	First Peak of Group: 169, t=4.077
+		Upper Band Peak: 176, t=4.252
+	First Peak of Group: 176, t=4.252
+		Upper Band Peak: 182, t=4.402
+	First Peak of Group: 182, t=4.402
+		Upper Band Peak: 188, t=4.611
+	First Peak of Group: 188, t=4.611
+		Upper Band Peak: 194, t=4.702
+	First Peak of Group: 194, t=4.702
+		Upper Band Peak: 200, t=4.853
+	First Peak of Group: 200, t=4.853
+		Upper Band Peak: 207, t=5.027
+	First Peak of Group: 207, t=5.027
+		Upper Band Peak: 213, t=5.179
+	First Peak of Group: 213, t=5.179
+		Upper Band Peak: 218, t=5.303
+	First Peak of Group: 218, t=5.303
+		Upper Band Peak: 225, t=5.478
+	First Peak of Group: 225, t=5.478
+		Upper Band Peak: 230, t=5.602
+	First Peak of Group: 230, t=5.602
+		Upper Band Peak: 238, t=5.802
+	First Peak of Group: 238, t=5.802
+		Upper Band Peak: 242, t=5.902
+	First Peak of Group: 242, t=5.902
+		Upper Band Peak: 248, t=6.052
+	First Peak of Group: 248, t=6.052
+		Upper Band Peak: 254, t=6.202
+	First Peak of Group: 254, t=6.202
+Total Peaks Found: 36
+Removing peaks that are too close
+Highest Peak = 7, t=0.027
+	Filtering Rightwards
+		Current Peak = 7, t=0.027
+			Removing all peaks too close on the right
+				Processing 13, t=0.177
+					Removing 13, t=0.177 (too close)
+				Processing 19, t=0.328
+					Removing 19, t=0.328 (too close)
+				Processing 24, t=0.452
+					New highest peak 24, t=0.452
+				Processing 31, t=0.627
+					Removing 24, t=0.452 (new peak found)
+					New highest peak 31, t=0.627
+				Processing 36, t=0.753
+					Reached peak that is too far
+		Current Peak = 31, t=0.627
+			Removing all peaks too close on the left
+			Removing all peaks too close on the right
+				Processing 36, t=0.753
+					Removing 36, t=0.753 (too close)
+				Processing 42, t=0.902
+					Removing 42, t=0.902 (too close)
+				Processing 50, t=1.102
+					New highest peak 50, t=1.102
+				Processing 62, t=1.402
+					Reached peak that is too far
+		Current Peak = 50, t=1.102
+			Removing all peaks too close on the left
+			Removing all peaks too close on the right
+				Processing 62, t=1.402
+					Removing 62, t=1.402 (too close)
+				Processing 84, t=1.952
+					Reached peak that is too far
+		Current Peak = 84, t=1.952
+			Removing all peaks too close on the left
+			Removing all peaks too close on the right
+				Processing 91, t=2.127
+					Removing 91, t=2.127 (too close)
+				Processing 100, t=2.353
+					New highest peak 100, t=2.353
+				Processing 111, t=2.629
+					Removing 100, t=2.353 (new peak found)
+					New highest peak 111, t=2.629
+				Processing 117, t=2.777
+					Reached peak that is too far
+		Current Peak = 111, t=2.629
+			Removing all peaks too close on the left
+			Removing all peaks too close on the right
+				Processing 117, t=2.777
+					Removing 117, t=2.777 (too close)
+				Processing 122, t=2.903
+					Removing 122, t=2.903 (too close)
+				Processing 127, t=3.027
+					Removing 127, t=3.027 (too close)
+				Processing 133, t=3.177
+					New highest peak 133, t=3.177
+				Processing 144, t=3.452
+					Reached peak that is too far
+		Current Peak = 133, t=3.177
+			Removing all peaks too close on the left
+			Removing all peaks too close on the right
+				Processing 144, t=3.452
+					Removing 144, t=3.452 (too close)
+				Processing 150, t=3.602
+					New highest peak 150, t=3.602
+				Processing 158, t=3.802
+					Removing 150, t=3.602 (new peak found)
+					New highest peak 158, t=3.802
+				Processing 164, t=3.952
+					Reached peak that is too far
+		Current Peak = 158, t=3.802
+			Removing all peaks too close on the left
+			Removing all peaks too close on the right
+				Processing 164, t=3.952
+					Removing 164, t=3.952 (too close)
+				Processing 169, t=4.077
+					Removing 169, t=4.077 (too close)
+				Processing 176, t=4.252
+					New highest peak 176, t=4.252
+				Processing 182, t=4.402
+					Removing 182, t=4.402 (is not peak)
+				Processing 188, t=4.611
+					Reached peak that is too far
+		Current Peak = 176, t=4.252
+			Removing all peaks too close on the left
+			Removing all peaks too close on the right
+		Current Peak = 188, t=4.611
+			Removing all peaks too close on the left
+			Removing all peaks too close on the right
+				Processing 194, t=4.702
+					Removing 194, t=4.702 (too close)
+				Processing 200, t=4.853
+					Removing 200, t=4.853 (too close)
+				Processing 207, t=5.027
+					New highest peak 207, t=5.027
+				Processing 213, t=5.179
+					Removing 213, t=5.179 (is not peak)
+				Processing 218, t=5.303
+					Removing 218, t=5.303 (is not peak)
+				Processing 225, t=5.478
+					Reached peak that is too far
+		Current Peak = 207, t=5.027
+			Removing all peaks too close on the left
+			Removing all peaks too close on the right
+		Current Peak = 225, t=5.478
+			Removing all peaks too close on the left
+			Removing all peaks too close on the right
+				Processing 230, t=5.602
+					Removing 230, t=5.602 (too close)
+				Processing 238, t=5.802
+					Removing 238, t=5.802 (too close)
+				Processing 242, t=5.902
+					New highest peak 242, t=5.902
+				Processing 248, t=6.052
+					Removing 248, t=6.052 (is not peak)
+				Processing 254, t=6.202
+					Reached peak that is too far
+		Current Peak = 242, t=5.902
+			Removing all peaks too close on the left
+			Removing all peaks too close on the right
+		Current Peak = 254, t=6.202
+			Removing all peaks too close on the left
+			Removing all peaks too close on the right
+	Filtering Leftwards
+		Current Peak = 7, t=0.027
+			Removing all peaks too close on the left
+Peaks after filtering:
+	7, t=0.027
+	31, t=0.627
+	50, t=1.102
+	84, t=1.952
+	111, t=2.629
+	133, t=3.177
+	158, t=3.802
+	176, t=4.252
+	188, t=4.611
+	207, t=5.027
+	225, t=5.478
+	242, t=5.902
+	254, t=6.202
+Peaks Found=13
+Peak[0]: 7, t=0.027
+	Next Peak 31, t=0.627
+		zero-corsisngs=8
+	Integrating from 5, t=0.001..33, t=0.678
+		prob first minima=7, t=0.027
+		prob maxima=10, t=0.102
+		prob last minima=13, t=0.177
+		prob maxima=16, t=0.252
+		error: last minima already found
+	Found Height=NaN
+Peak[1]: 31, t=0.627
+	Next Peak 50, t=1.102
+		zero-corsisngs=8
+	Integrating from 29, t=0.578..52, t=1.152
+		prob first minima=30, t=0.602
+		prob maxima=33, t=0.678
+		prob last minima=36, t=0.753
+		prob maxima=39, t=0.827
+		error: last minima already found
+	Found Height=NaN
+Peak[2]: 50, t=1.102
+	Next Peak 84, t=1.952
+		Step-duration (850ms) not within required limits [400ms..714ms]!
+Peak[3]: 84, t=1.952
+	Next Peak 111, t=2.629
+		zero-corsisngs=10
+		Zero crossings (10) out of required range [2..8]
+Peak[4]: 111, t=2.629
+	Next Peak 133, t=3.177
+		zero-corsisngs=8
+	Integrating from 109, t=2.577..135, t=3.228
+		prob first minima=109, t=2.577
+		prob maxima=115, t=2.728
+		prob last minima=116, t=2.752
+		prob maxima=120, t=2.852
+		error: last minima already found
+	Found Height=NaN
+Peak[5]: 133, t=3.177
+	Next Peak 158, t=3.802
+		zero-corsisngs=6
+	Integrating from 131, t=3.127..160, t=3.852
+		prob first minima=131, t=3.127
+		prob maxima=136, t=3.252
+		prob last minima=138, t=3.303
+		prob maxima=141, t=3.377
+		error: last minima already found
+	Found Height=NaN
+Peak[6]: 158, t=3.802
+	Next Peak 176, t=4.252
+		zero-corsisngs=6
+	Integrating from 156, t=3.752..178, t=4.302
+		prob first minima=159, t=3.828
+		prob maxima=161, t=3.877
+		prob last minima=164, t=3.952
+		prob maxima=167, t=4.027
+		error: last minima already found
+	Found Height=NaN
+Peak[7]: 176, t=4.252
+	Next Peak 188, t=4.611
+		Step-duration (359ms) not within required limits [400ms..714ms]!
+Peak[8]: 188, t=4.611
+	Next Peak 207, t=5.027
+		zero-corsisngs=6
+			Found delay=84
+		Range from 186, t=4.502..209, t=5.077 has timing problems
+Peak[9]: 207, t=5.027
+	Next Peak 225, t=5.478
+		zero-corsisngs=6
+	Integrating from 205, t=4.979..227, t=5.527
+		prob first minima=206, t=5.002
+		prob maxima=210, t=5.102
+		prob last minima=212, t=5.153
+		prob maxima=216, t=5.252
+		error: last minima already found
+	Found Height=NaN
+Peak[10]: 225, t=5.478
+	Next Peak 242, t=5.902
+		zero-corsisngs=6
+	Integrating from 223, t=5.427..244, t=5.953
+		prob first minima=223, t=5.427
+		prob maxima=228, t=5.553
+		prob last minima=238, t=5.802
+		prob maxima=240, t=5.853
+		error: last minima already found
+	Found Height=NaN
+Peak[11]: 242, t=5.902
+	Next Peak 254, t=6.202
+		Step-duration (300ms) not within required limits [400ms..714ms]!
+Peak[12]: 254, t=6.202
+	Next Peak null
+Final Height Found = 0.0
+Final Speed  Found = 0.0
