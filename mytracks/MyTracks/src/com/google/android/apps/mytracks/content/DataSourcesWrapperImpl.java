@@ -89,13 +89,11 @@ class DataSourcesWrapperImpl implements DataSourcesWrapper {
   @Override
   public void registerSensorListener(SensorEventListener listener,
       Sensor sensor, int sensorDelay) {
-    Log.d("umran", "registering for "+sensor.getName()+" listener: "+listener.hashCode());
     sensorManager.registerListener(listener, sensor, sensorDelay);
   }
 
   @Override
   public void unregisterSensorListener(SensorEventListener listener) {
-    Log.d("umran", "unregistering listener: "+listener.hashCode());
     sensorManager.unregisterListener(listener);
   }
 
