@@ -19,6 +19,7 @@ import au.csiro.livemonitor.common.Constants;
 import au.csiro.livemonitor.service.InternalServiceMessageHandler;
 import au.csiro.livemonitor.service.Sample;
 import au.csiro.livemonitor.service.SamplingQueue;
+import au.csiro.livemonitor.service.utils.CustomThreadUncaughtExceptionHandler;
 
 import com.google.android.apps.mytracks.content.Sensor;
 import com.google.android.apps.mytracks.content.Sensor.SensorState;
@@ -137,6 +138,7 @@ public class MonitoringThread {
 
         public void onServiceConnected(ComponentName arg0, IBinder arg1) {
         	mytracks = ITrackRecordingService.Stub.asInterface(arg1);
+        	
         	serviceMsgHandler.onSystemMessage("Connected to MyTracks");
         	try {
 				if (mytracks.isRecording()) {
@@ -151,7 +153,7 @@ public class MonitoringThread {
 					mytracks.startNewTrack();
 					serviceMsgHandler.onSystemMessage("Requesting MyTracks to Start Recording.");
 				}
-			} catch (RemoteException e) {
+			} catch (Exception e) {
 				Log.e(Constants.TAG, "Error", e);
 			}
         }
@@ -183,6 +185,9 @@ public class MonitoringThread {
 		}
 	}
 	
+	/**
+	 * Never invoke this directly, always schedule through the timer
+	 */
 	private class MonitorTimerTask extends TimerTask {
 		
 		private boolean firstMyTracksRecording = true;
@@ -259,11 +264,7 @@ public class MonitoringThread {
 					}
 					
 				}
-			} catch (RemoteException e) {
-				Log.e(Constants.TAG, "Error", e);
-			} catch (InvalidProtocolBufferException e) {
-				Log.e(Constants.TAG, "Error", e);
-			} catch (InterruptedException e) {
+			} catch (Exception e) {
 				Log.e(Constants.TAG, "Error", e);
 			} finally {
 				if (sample!=null) {

@@ -178,6 +178,13 @@ public class LiveMonitorService extends Service {
 		this.uploaderThread = new UploaderThread(
 				this, serviceMsgHandler, samplingQueue);
 		this.foregroundUtil = new ServiceForegroundUtil(this, Main.class, Constants.FOREGROUND_NOTIFICATION_ID);
+		if (this.foregroundUtil.isForeground()) {
+			try {
+				this.startRecording();
+			} catch (Exception e) {
+				Log.e(Constants.TAG, "Unable to restart recording", e);
+			}
+		}
 	}
 	
 	@Override

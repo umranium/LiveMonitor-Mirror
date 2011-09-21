@@ -22,7 +22,6 @@ import com.dsi.ant.AntInterface;
 import com.dsi.ant.AntInterfaceIntent;
 import com.dsi.ant.AntMesg;
 import com.dsi.ant.exception.AntInterfaceException;
-import com.google.android.apps.mytracks.Constants;
 import com.google.android.apps.mytracks.content.Sensor;
 import com.google.android.apps.mytracks.content.Sensor.SensorDataSet;
 import com.google.android.apps.mytracks.services.sensors.SensorManager;
@@ -126,7 +125,7 @@ public abstract class AntSensorManager extends SensorManager {
       try {
         serviceConnected();
       } catch (AntException e) {
-        Log.e(Constants.TAG, "Error setting up ANT after service connection", e);
+        Log.e(TAG, "Error setting up ANT after service connection", e);
         Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
       }
     }
@@ -155,7 +154,7 @@ public abstract class AntSensorManager extends SensorManager {
     try {
       initAntInterface();
     } catch (AntException e) {
-      Log.e(Constants.TAG, "Error initializing ANT interface", e);
+      Log.e(TAG, "Error initializing ANT interface", e);
       Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
     }
   }
@@ -199,13 +198,18 @@ public abstract class AntSensorManager extends SensorManager {
    */
   @Override
   protected final void setupChannel() {
-    Log.i(Constants.TAG, "MyTracks request to set up ANT Channel");
+    Log.i(TAG, "MyTracks request to set up ANT Channel");
     
     setSensorState(Sensor.SensorState.CONNECTING);
     
-    if (antReceiver==null ||
-        (!antConnected && System.currentTimeMillis()-timeStartedWaitingForConnection>DURATION_WAIT_FOR_CONNECTION)) {
-      if (antReceiver==null) {
+    //  If either the antReceiver wasn't previously obtained,
+    //  or if ANT service isn't connected and we've waited long enough,
+    //  then clean and reinitialize the ANT interface
+    if (antReceiver == null ||
+        (!antConnected &&
+        (System.currentTimeMillis() - timeStartedWaitingForConnection) 
+           > DURATION_WAIT_FOR_CONNECTION )) {
+      if (antReceiver == null) {
         Log.d(TAG, "no ant receiver interface found");
       } else {
         Log.d(TAG, "ant receiver interface found, but connection not established over an extended period");
@@ -215,16 +219,20 @@ public abstract class AntSensorManager extends SensorManager {
       try {
         initAntInterface();
       } catch (AntException e) {
-        Log.e(Constants.TAG, "Error resetting ANT interface", e);
+        Log.e(TAG, "Error resetting ANT interface", e);
         Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
       }
       pendingAntReset = true;
     } else {
-      if (antReceiver!=null && antConnected) {
+      // If the antReceiver is available, and we're already connected to the
+      // ANT service, then directly reset the ANT channel
+      if (antReceiver != null && antConnected) {
         Log.d(TAG, "ant receiver interface found, service connected, resetting channel");
         pendingAntReset = false;
         resetChannel();
       } else {
+        //  Otherwise, signal that we have to reset the channel once
+        //  the antReceiver is available, and service is connected
         pendingAntReset = true;
         Log.d(TAG, "ant receiver interface found, but waiting for connection");
       }
@@ -267,7 +275,7 @@ public abstract class AntSensorManager extends SensorManager {
   {
     Log.i(TAG, "Destroying AntSensorManager");
     
-    if (antReceiver!=null) {
+    if (antReceiver != null) {
       try {
         antReceiver.releaseInterface();
       } catch (AntInterfaceException e) {
@@ -305,17 +313,19 @@ public abstract class AntSensorManager extends SensorManager {
     Log.d(TAG, "ANT service connected");
     antConnected = true;
     
-    //  sometimes, this method is invoked before the AntInterface.getInstance(..) returns
-    //      since we need the ANT receiver interface, we return without doing anything
-    //      the initAntInterface() function will then invoke this method to initialize
-    if (antReceiver==null) {
-      Log.w(TAG, "WARNING: ANT service connected, but AntReceiver interface not assigned!!!");
+    //  Sometimes, this serviceConnected() method is invoked before the 
+    //  AntInterface.getInstance(..) returns. Since we need the ANT receiver
+    //  interface, we return without doing anything. The initAntInterface()
+    //  function will then invoke this method to initialize.
+    if (antReceiver == null) {
+      Log.w(TAG, "WARNING: ANT service connected, " +
+              "but AntReceiver interface not assigned!!!");
       return;
     }
 
-    //  initialization after the service is connected, and the ANT receiver interface has been obtained
+    //  Initialization after the service is connected, and the ANT receiver
+    //  interface has been obtained
     if (!antServiceInitialized) {
-      antServiceInitialized = true;
       Log.i(TAG, "Initializing Ant Service");
       
       try {
@@ -323,7 +333,7 @@ public abstract class AntSensorManager extends SensorManager {
           Log.e(TAG, "failed to claim ANT interface");
           return;
         }
-  
+        
         if (!antReceiver.isEnabled()) {
           // Make sure not to call AntInterface.enable() again, if it has been
           // already called before
@@ -340,12 +350,16 @@ public abstract class AntSensorManager extends SensorManager {
         } else {
           Log.i(TAG, "Radio already enabled");
         }
+        
+        antServiceInitialized = true;
       } catch (AntInterfaceException e) {
         throw new AntException("Failed to enable ANT", e);
       }
     }
 
-    if (pendingAntReset) {
+    //  Reset the ANT channel, if there is a pending ANT channel reset,
+    //  and the ANT service has been initialized successfully. 
+    if (antServiceInitialized && pendingAntReset) {
       pendingAntReset = false;
       resetChannel();
     }

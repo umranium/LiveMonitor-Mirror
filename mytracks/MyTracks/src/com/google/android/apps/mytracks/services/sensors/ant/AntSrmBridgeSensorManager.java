@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 Google Inc.
+ * Copyright 2011 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -36,9 +36,8 @@ import java.util.Set;
 /**
  * A sensor manager to the PC7 SRM ANT+ bridge.
  * 
- *  Original code from Sandor Dornbush
- *  Modified by Umran Abdulla.
- *  
+ * @author Sandor Dornbush
+ * @author Umran Abdulla
  */
 public class AntSrmBridgeSensorManager extends AntSensorManager {
 
@@ -67,7 +66,7 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
   public AntSrmBridgeSensorManager(Context context) {
     super(context);
     
-    Log.i(Constants.TAG, "new ANT SRM Bridge Sensor Manager created");
+    Log.i(TAG, "new ANT SRM Bridge Sensor Manager created");
 
     deviceNumber = WILDCARD;
 
@@ -76,7 +75,8 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
         Constants.SETTINGS_NAME, 0);
     if (prefs != null) {
       deviceNumber =
-        (short) prefs.getInt(context.getString(R.string.ant_srm_bridge_sensor_id_key), 0);
+        (short) prefs.getInt(context.getString(
+            R.string.ant_srm_bridge_sensor_id_key), 0);
     }
     Log.i(TAG, "Will pair with device: " + deviceNumber);
   }
@@ -88,7 +88,7 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
       return true;
     }
     
-    Log.i(Constants.TAG, "Received ANT msg: "+antMesgToStr(messageId)+"("+messageId+")");
+    Log.d(TAG, "Received ANT msg: "+antMesgToStr(messageId)+"("+messageId+")");
 
     int channel = messageData[0] & AntDefine.CHANNEL_NUMBER_MASK;
     switch (channel) {
@@ -105,12 +105,12 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
   private String antMesgToStr(byte msg) {
     Field[] fields = AntMesg.class.getDeclaredFields();
     Set<String> fieldSet = new HashSet<String>();
-    for (Field f:fields) {
+    for (Field f : fields) {
       try {
-        if (f.getType()==Byte.TYPE &&
-            (f.getModifiers() & Modifier.STATIC)!=0 &&
+        if (f.getType() == Byte.TYPE &&
+            (f.getModifiers() & Modifier.STATIC) != 0 &&
             f.getName().matches("MESG_.*_ID") &&
-            f.getByte(null)==msg) {
+            f.getByte(null) == msg) {
           fieldSet.add(f.getName());
         }
       } catch (IllegalArgumentException e) {
@@ -125,10 +125,10 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
     Set<String> fieldSet = new HashSet<String>();
     for (Field f:fields) {
       try {
-        if (f.getType()==Byte.TYPE &&
+        if (f.getType() == Byte.TYPE &&
             (f.getModifiers() & Modifier.STATIC)!=0 &&
             f.getName().matches("EVENT.*") &&
-            f.getByte(null)==event) {
+            f.getByte(null) == event) {
           fieldSet.add(f.getName());
         }
       } catch (IllegalArgumentException e) {
@@ -171,18 +171,8 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
 
     setSensorState(Sensor.SensorState.CONNECTED);
     
-//    int bpm = (int) antMessage[8] & 0xFF;
-//    Sensor.SensorData.Builder b = Sensor.SensorData.newBuilder()
-//      .setValue(bpm)
-//      .setState(Sensor.SensorState.SENDING);
-//    sensorData =
-//      Sensor.SensorDataSet.newBuilder()
-//      .setCreationTime(System.currentTimeMillis())
-//      .setHeartRate(b)
-//      .build();
-  
     int messageType = antMessage[INDEX_MESSAGE_TYPE] & 0xFF;
-    Log.d(Constants.TAG, "message-type="+messageType);
+    Log.d(TAG, "message-type="+messageType);
     
     switch (messageType) {
       case MSG_INITIAL:
@@ -196,10 +186,12 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
   private void parseDataMsg(byte[] msg)
   {
       int messageId = msg[INDEX_MESSAGE_ID] & 0xFF;
-      Log.d(Constants.TAG, "message-id="+messageId);
+      Log.d(TAG, "message-id="+messageId);
       
-      int powerVal = (((msg[INDEX_MESSAGE_POWER] & 0xFF) << 8) | (msg[INDEX_MESSAGE_POWER+1] & 0xFF));
-      int speedVal = (((msg[INDEX_MESSAGE_SPEED] & 0xFF) << 8) | (msg[INDEX_MESSAGE_SPEED+1] & 0xFF));
+      int powerVal = (((msg[INDEX_MESSAGE_POWER] & 0xFF) << 8) |
+          (msg[INDEX_MESSAGE_POWER+1] & 0xFF));
+      int speedVal = (((msg[INDEX_MESSAGE_SPEED] & 0xFF) << 8) |
+          (msg[INDEX_MESSAGE_SPEED+1] & 0xFF));
       int cadenceVal = (msg[INDEX_MESSAGE_CADENCE] & 0xFF);
       int bpmVal = (msg[INDEX_MESSAGE_BPM] & 0xFF);
       long time = System.currentTimeMillis();
@@ -209,6 +201,8 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
             .setValue(powerVal)
             .setState(Sensor.SensorState.SENDING);
     
+      // Although speed is available from the SRM Bridge, MyTracks doesn't
+      // use the value, and computes speed from the GPS location data.
 //      Sensor.SensorData.Builder speed = 
 //        Sensor.SensorData.newBuilder()
 //            .setValue(speedVal)
@@ -231,26 +225,28 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
             .setCadence(cadence)
             .setHeartRate(bpm)
             .build();
-      
-      //Log.d("DATA", String.format("power=%4d, speed=%.1f, cadence=%4d, bpm=%4d", powerVal, (float)speedVal/10.0f, cadenceVal, bpmVal));
   }
   
   void handleChannelId(byte[] rawMessage) {
     AntChannelIdMessage message = new AntChannelIdMessage(rawMessage);
     deviceNumber = message.getDeviceNumber();
-    Log.i(TAG, "Found device id: " + deviceNumber);
+    Log.d(TAG, "Found device id: " + deviceNumber);
 
     SharedPreferences prefs = context.getSharedPreferences(
         Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = prefs.edit();
-    editor.putInt(context.getString(R.string.ant_srm_bridge_sensor_id_key), deviceNumber);
+    editor.putInt(context.getString(R.string.ant_srm_bridge_sensor_id_key),
+        deviceNumber);
     editor.commit();
   }
 
   private void handleMessageResponse(byte[] rawMessage) {
-    AntChannelResponseMessage message = new AntChannelResponseMessage(rawMessage);
-    Log.i(Constants.TAG, "Received ANT Response: "+antMesgToStr(message.getMessageId())+"("+message.getMessageId()+")" +
-    		", Code: "+antEventToStr(message.getMessageCode())+"("+message.getMessageCode()+")");
+    AntChannelResponseMessage message = 
+        new AntChannelResponseMessage(rawMessage);
+    Log.d(TAG, "Received ANT Response: "+antMesgToStr(message.getMessageId()) +
+        "("+message.getMessageId()+")" +
+        ", Code: "+antEventToStr(message.getMessageCode()) + 
+        "("+message.getMessageCode()+")");
     switch (message.getMessageId()) {
       case AntMesg.MESG_EVENT_ID:
         if (message.getMessageCode() == AntDefine.EVENT_RX_SEARCH_TIMEOUT) {
@@ -261,7 +257,6 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
           } catch (AntInterfaceException e) {
             Log.e(TAG, "ANT error unassigning channel", e);
           }
-          //setSensorState(Sensor.SensorState.DISCONNECTED);
         }
         break;
 
@@ -273,7 +268,7 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
   }
 
   @Override protected void setupAntSensorChannels() {
-    Log.i(Constants.TAG, "Setting up ANT sensor channels");
+    Log.i(TAG, "Setting up ANT sensor channels");
     setupAntSensorChannel(
         NETWORK_NUMBER,
         CHANNEL_NUMBER,

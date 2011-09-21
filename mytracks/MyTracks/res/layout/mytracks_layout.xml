@@ -26,8 +26,8 @@ limitations under the License.
     android:enabled="true"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:apiKey="0TXoRmxTinrZKQ9JSazj-9A34XX6_lXsRvTpXWA"/>
-    <!-- corresponding certificate md5: 81:DF:A2:63:53:C7:6B:1E:6C:24:62:D4:91:1C:36:3A -->
+    android:apiKey="09ZRhbVxJx3lEWybs0n0dP_DFJX7hsn2CA_jVaA"/>
+    <!-- corresponding certificate md5: E4:CD:D8:DB:22:00:97:68:DE:52:4F:E4:E4:23:F0:23 -->
   <LinearLayout android:id="@+id/messagepane"
     android:orientation="horizontal"
     android:layout_width="fill_parent"

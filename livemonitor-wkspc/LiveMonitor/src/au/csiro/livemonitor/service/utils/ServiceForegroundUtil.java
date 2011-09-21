@@ -2,8 +2,10 @@ package au.csiro.livemonitor.service.utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -36,7 +38,7 @@ public class ServiceForegroundUtil {
 		this.notificationId = notificationId;
 		this.service = service;
 		this.mainActivity = mainActivity;
-		this.isForeground = false;
+		this.isForeground = isServiceForeground(service);
 	}
 	
 	private void createNotification(int icon, String ticker) {
@@ -67,6 +69,7 @@ public class ServiceForegroundUtil {
 			updateNotification(title, text);
 			service.startForeground(notificationId, notification);
 			this.isForeground = true;
+			Log.d(Constants.TAG, "Service now in foreground mode");
 		}
 	}
 	
@@ -80,5 +83,18 @@ public class ServiceForegroundUtil {
 	{
 		return this.isForeground;
 	}
-	
+
+	private static boolean isServiceForeground(Service service){
+        boolean serviceForeground = false;
+        ActivityManager am = (ActivityManager)service.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningServiceInfo> serviceList = am.getRunningServices(50);
+        for (ActivityManager.RunningServiceInfo runningServiceInfo : serviceList) {
+            if(runningServiceInfo.service.getClassName().equals(service.getClass().getName())){
+            	Log.d(Constants.TAG, "running:"+runningServiceInfo.service.getClassName()+" fg="+runningServiceInfo.foreground);
+                serviceForeground = runningServiceInfo.foreground;
+                break;
+            }
+        }
+        return serviceForeground;
+    }	
 }

@@ -57,7 +57,6 @@ public class SensorManagerFactory {
       return new AntDirectSensorManager(context);
     } else if (sensor.equals(context.getString(R.string.srm_ant_bridge_sensor_type))) {
       return new AntSrmBridgeSensorManager(context);
-//      return new AntSRMSensorManager(context);
     } else if (sensor.equals(context.getString(R.string.zephyr_sensor_type))) {
       return new ZephyrSensorManager(context);
     } else if (sensor.equals(context.getString(R.string.polar_sensor_type))) {

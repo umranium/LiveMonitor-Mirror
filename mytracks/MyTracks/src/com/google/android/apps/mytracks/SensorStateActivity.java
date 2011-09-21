@@ -79,7 +79,7 @@ public class SensorStateActivity extends Activity {
   
 
   /**
-   * A temporary sensor manager, when none is available
+   * A temporary sensor manager, when none is available.
    */
   SensorManager tempSensorManager = null;
   
@@ -106,7 +106,6 @@ public class SensorStateActivity extends Activity {
 
     setContentView(R.layout.sensor_state);
 
-    // TODO: Allow reading from sensors even if service is not running.
     serviceConnection = new TrackRecordingServiceConnection(this, stateUpdater);
     serviceConnection.bindIfRunning();
     updateState();
@@ -116,7 +115,7 @@ public class SensorStateActivity extends Activity {
   protected void onResume() {
     super.onResume();
     
-    isVisible = true;   // UI is now visible
+    isVisible = true;
 
     serviceConnection.bindIfRunning();
 
@@ -126,12 +125,12 @@ public class SensorStateActivity extends Activity {
 
   @Override
   protected void onPause() {
-    isVisible = false;  // UI is not visible anymore, avoid updating
+    isVisible = false;
     
     timer.cancel();
     timer.purge();
     timer = null;
-    if (tempSensorManager!=null) {
+    if (tempSensorManager != null) {
       tempSensorManager.shutdown();
       tempSensorManager = null;
     }
@@ -144,85 +143,103 @@ public class SensorStateActivity extends Activity {
     super.onDestroy();
   }
 
-  /**
-   * 
-   */
   protected void updateState() {
-    Log.d(Constants.TAG, "Updating SensorStateActivity");
+    Log.d(TAG, "Updating SensorStateActivity");
     
-    //  variables to hold the sensor state and data set
+    ITrackRecordingService service = serviceConnection.getServiceIfBound();
+    
+    //  Check if service is available, and recording.
+    boolean isRecording = false;
+    if (service != null) {
+      try {
+        isRecording = service.isRecording();
+      } catch (RemoteException e) {
+        Log.e(TAG, "Unable to determine if service is recording.", e);
+      }
+    }
+    
+    //  If either service isn't available, or not recording.
+    if (!isRecording) {
+      updateFromTempSensorManager();
+    } else {
+      updateFromSysSensorManager();
+    }
+  }
+  
+  private void updateFromTempSensorManager()
+  {
+    //  Use variables to hold the sensor state and data set.
+    Sensor.SensorState currentState = null;
+    Sensor.SensorDataSet currentDataSet = null;
+    
+    // If no temp sensor manager is present, create one, and start it.
+    if (tempSensorManager == null) {
+      tempSensorManager = SensorManagerFactory.getSensorManager(this);
+      if (tempSensorManager != null)
+        tempSensorManager.onStartTrack();
+    }
+    
+    //  If a temp sensor manager is available, use states from temp sensor
+    //  manager.
+    if (tempSensorManager != null) {
+      currentState = tempSensorManager.getSensorState();
+      currentDataSet = tempSensorManager.getSensorDataSet();
+    }
+
+    // Update the sensor state, and sensor data, using the variables.
+    if (currentState == null) {
+      updateSensorState(Sensor.SensorState.NONE);
+    } else {
+      updateSensorState(currentState);
+    }
+    updateSensorData(currentDataSet);
+  }
+  
+  private void updateFromSysSensorManager()
+  {
+    //  Use variables to hold the sensor state and data set.
     Sensor.SensorState currentState = null;
     Sensor.SensorDataSet currentDataSet = null;
     
     ITrackRecordingService service = serviceConnection.getServiceIfBound();
     
-    //  check if service is available, and recording
-    boolean isRecording = false;
-    if (service!=null) {
+    //  If a temp sensor manager is present, shut it down, 
+    //  probably recording just started.
+    if (tempSensorManager != null) {
+      tempSensorManager.shutdown();
+      tempSensorManager = null;
+    }
+
+    // Get sensor details from the service.
+    if (service == null) {
+      Log.d(TAG, "Could not get track recording service.");
+    } else {
       try {
-        isRecording = service.isRecording();
+        byte[] buff = service.getSensorData();
+        if (buff != null) {
+          currentDataSet = Sensor.SensorDataSet.parseFrom(buff);
+        }
       } catch (RemoteException e) {
+        Log.e(TAG, "Could not read sensor data.", e);
+      } catch (InvalidProtocolBufferException e) {
+        Log.e(TAG, "Could not read sensor data.", e);
+      }
+      
+      try {
+        currentState = Sensor.SensorState.valueOf(service.getSensorState());
+      } catch (RemoteException e) {
+        Log.e(TAG, "Could not read sensor state.", e);
+        currentState = Sensor.SensorState.NONE;
       }
     }
-    
-    //  if either service isn't available, or not recording
-    if (!isRecording) {
-      
-      //    if no temp sensor manager is present, create one, and start it
-      if (tempSensorManager==null) {
-        tempSensorManager = SensorManagerFactory.getSensorManager(this);
-        if (tempSensorManager!=null)
-          tempSensorManager.onStartTrack();
-      }
-      
-      //    if a temp sensor manager is available, use states from temp sensor manager
-      if (tempSensorManager!=null) {
-        currentState = tempSensorManager.getSensorState();
-        currentDataSet = tempSensorManager.getSensorDataSet();
-      }
-    } else {    // if recording
-      
-      //    if a temp sensor manager is present, shut it down, 
-      //        probably recording just started
-      if (tempSensorManager==null) {
-        tempSensorManager.shutdown();
-        tempSensorManager = null;
-      }
 
-      //    get sensor details from the service
-      if (service == null) {
-        Log.d(Constants.TAG, "Could not get track recording service.");
-      } else {
-        Sensor.SensorDataSet sds = null;
-        try {
-          byte[] buff = service.getSensorData();
-          if (buff != null) {
-            sds = Sensor.SensorDataSet.parseFrom(buff);
-          }
-        } catch (RemoteException e) {
-          Log.e(Constants.TAG, "Could not read sensor data.", e);
-        } catch (InvalidProtocolBufferException e) {
-          Log.e(Constants.TAG, "Could not read sensor data.", e);
-        }
-        currentDataSet = sds;
-        
-        try {
-          int i = service.getSensorState();
-          currentState = Sensor.SensorState.valueOf(i);
-        } catch (RemoteException e) {
-          Log.e(Constants.TAG, "Could not read sensor state.", e);
-          currentState = Sensor.SensorState.NONE;
-        }
-      }
-      
-    }
-
-    if (currentState==null)
+    // Update the sensor state, and sensor data, using the variables.
+    if (currentState == null) {
       updateSensorState(Sensor.SensorState.NONE);
-    else
+    } else {
       updateSensorState(currentState);
+    }
     updateSensorData(currentDataSet);
-    
   }
 
   private void updateSensorState(Sensor.SensorState state) {
@@ -298,7 +315,4 @@ public class SensorStateActivity extends Activity {
               this));
     }
   }
-  
-  
-  
 }

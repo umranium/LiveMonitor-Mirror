@@ -15,13 +15,13 @@
  */
 package com.google.android.apps.mytracks.services.sensors;
 
-import com.google.android.apps.mytracks.Constants;
-import com.google.android.apps.mytracks.content.Sensor;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.util.Log;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import com.google.android.apps.mytracks.Constants;
+import com.google.android.apps.mytracks.content.Sensor;
 
 /**
  * Manage the connection to a sensor.
@@ -61,7 +61,8 @@ public abstract class SensorManager {
           }
           break;
         case DISCONNECTED:
-          Log.i(Constants.TAG,"Re-registering disconnected SensoManager.");
+          Log.i(Constants.TAG,
+              "Re-registering disconnected SensoManager.");
           setupChannel();
           break;
       }
@@ -93,7 +94,7 @@ public abstract class SensorManager {
    * sensor hardware.
    */
   protected abstract void setupChannel();
-  
+
   public void shutdown() {
     timer.cancel();
     onDestroy();
