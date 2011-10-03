@@ -16,7 +16,15 @@
 
 package com.google.android.apps.mytracks.services.tasks;
 
+import static com.google.android.apps.mytracks.Constants.TAG;
+
 import android.content.Context;
+import android.media.AudioManager;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
+import android.util.Log;
+
+import java.util.HashMap;
 
 
 /**
@@ -26,47 +34,47 @@ import android.content.Context;
  * @author Sandor Dornbush
  */
 public class FroyoStatusAnnouncerTask extends StatusAnnouncerTask {
-//  private final static HashMap<String, String> SPEECH_PARAMS = new HashMap<String, String>();
-//  static {
-//    SPEECH_PARAMS.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "not_used");
-//  }
-//
-//  private final AudioManager audioManager;
-//  private final OnUtteranceCompletedListener utteranceListener =
-//      new OnUtteranceCompletedListener() {
-//        @Override
-//        public void onUtteranceCompleted(String utteranceId) {
-//          int result = audioManager.abandonAudioFocus(null);
-//          if (result == AudioManager.AUDIOFOCUS_REQUEST_FAILED) {
-//            Log.w(TAG, "FroyoStatusAnnouncerTask: Failed to relinquish audio focus");
-//          }
-//        }
-//      };
+  private final static HashMap<String, String> SPEECH_PARAMS = new HashMap<String, String>();
+  static {
+    SPEECH_PARAMS.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "not_used");
+  }
+
+  private final AudioManager audioManager;
+  private final OnUtteranceCompletedListener utteranceListener =
+      new OnUtteranceCompletedListener() {
+        @Override
+        public void onUtteranceCompleted(String utteranceId) {
+          int result = audioManager.abandonAudioFocus(null);
+          if (result == AudioManager.AUDIOFOCUS_REQUEST_FAILED) {
+            Log.w(TAG, "FroyoStatusAnnouncerTask: Failed to relinquish audio focus");
+          }
+        }
+      };
 
   public FroyoStatusAnnouncerTask(Context context) {
     super(context);
 
-//    audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+    audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
   }
 
-//  @Override
-//  protected void onTtsReady() {
-//    super.onTtsReady();
-//
-//    tts.setOnUtteranceCompletedListener(utteranceListener);
-//  }
-//
-//  @Override
-//  protected synchronized void speakAnnouncement(String announcement) {
-//    int result = audioManager.requestAudioFocus(null,
-//          TextToSpeech.Engine.DEFAULT_STREAM,
-//          AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
-//    if (result == AudioManager.AUDIOFOCUS_REQUEST_FAILED) {
-//      Log.w(TAG, "FroyoStatusAnnouncerTask: Request for audio focus failed.");
-//    }
-//
-//    // We don't care about the utterance id.
-//    // It is supplied here to force onUtteranceCompleted to be called.
-//    tts.speak(announcement, TextToSpeech.QUEUE_FLUSH, SPEECH_PARAMS);
-//  }
+  @Override
+  protected void onTtsReady() {
+    super.onTtsReady();
+
+    tts.setOnUtteranceCompletedListener(utteranceListener);
+  }
+
+  @Override
+  protected synchronized void speakAnnouncement(String announcement) {
+    int result = audioManager.requestAudioFocus(null,
+          TextToSpeech.Engine.DEFAULT_STREAM,
+          AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
+    if (result == AudioManager.AUDIOFOCUS_REQUEST_FAILED) {
+      Log.w(TAG, "FroyoStatusAnnouncerTask: Request for audio focus failed.");
+    }
+
+    // We don't care about the utterance id.
+    // It is supplied here to force onUtteranceCompleted to be called.
+    tts.speak(announcement, TextToSpeech.QUEUE_FLUSH, SPEECH_PARAMS);
+  }
 }

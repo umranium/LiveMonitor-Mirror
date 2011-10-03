@@ -17,6 +17,7 @@ package com.google.android.apps.mytracks.io.backup;
 
 import com.google.android.apps.mytracks.util.ApiFeatures;
 
+import android.app.backup.BackupManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -35,20 +36,20 @@ public abstract class BackupPreferencesListener
   /**
    * Real implementation of the listener, which calls the {@link BackupManager}.
    */
-//  private static class BackupPreferencesListenerImpl
-//      extends BackupPreferencesListener {
-//    private final BackupManager backupManager;
-//
-//    public BackupPreferencesListenerImpl(Context context) {
-//      this.backupManager = new BackupManager(context);
-//    }
-//
-//    @Override
-//    public void onSharedPreferenceChanged(
-//        SharedPreferences sharedPreferences, String key) {
-//      backupManager.dataChanged();
-//    }
-//  }
+  private static class BackupPreferencesListenerImpl
+      extends BackupPreferencesListener {
+    private final BackupManager backupManager;
+
+    public BackupPreferencesListenerImpl(Context context) {
+      this.backupManager = new BackupManager(context);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(
+        SharedPreferences sharedPreferences, String key) {
+      backupManager.dataChanged();
+    }
+  }
 
   /**
    * Dummy implementation of the listener which does nothing.
@@ -67,10 +68,9 @@ public abstract class BackupPreferencesListener
    */
   public static BackupPreferencesListener create(
       Context context, ApiFeatures apiFeatures) {
-//    if (apiFeatures.hasBackup()) {
-//      return new BackupPreferencesListenerImpl(context);
-//    } else
-    {
+    if (apiFeatures.hasBackup()) {
+      return new BackupPreferencesListenerImpl(context);
+    } else {
       return new DummyBackupPreferencesListener();
     }
   }
