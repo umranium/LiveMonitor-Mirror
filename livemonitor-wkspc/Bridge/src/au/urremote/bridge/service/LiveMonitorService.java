@@ -179,7 +179,7 @@ public class LiveMonitorService extends Service {
 			uploaderThread.begin();
 			isRecording = true;
 			startService();
-			serviceMsgHandler.onSystemMessage("Recording Started.");
+			serviceMsgHandler.onSystemMessage("********** Recording Started. **********");
 		} catch (Exception e) {
 			serviceMsgHandler.onSystemMessage("Error:"+e.getMessage());
 			throw e;
@@ -198,7 +198,7 @@ public class LiveMonitorService extends Service {
 		uploaderThread.quit();
 		isRecording = false;
 		
-		serviceMsgHandler.onSystemMessage("Recording Stopped.");
+		serviceMsgHandler.onSystemMessage("********** Recording Stopped. **********");
 		
 		if (isUiActive)
 			stopService();
@@ -212,6 +212,7 @@ public class LiveMonitorService extends Service {
 	private void stopService() {
 		if (foregroundUtil.isForeground()) {
 			foregroundUtil.cancelForeground();
+			updateHandlers.onSystemStop();
 		}
 		
 		this.stopSelf();
@@ -260,6 +261,7 @@ public class LiveMonitorService extends Service {
 			NOTIFICATION_TITLE,
 			NOTIFICATION_TEXT
 		);
+		updateHandlers.onSystemStart();		
 	}
 
 }

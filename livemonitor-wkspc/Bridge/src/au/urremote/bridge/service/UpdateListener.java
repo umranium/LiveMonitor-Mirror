@@ -5,7 +5,11 @@ import android.app.Activity;
 public interface UpdateListener {
 	
 	public Activity getActivity();
+	
 	public void lauchMyTracks();
 	public void updateSystemMessages();
+	
+	public void onSystemStart();
+	public void onSystemStop();
 
 }

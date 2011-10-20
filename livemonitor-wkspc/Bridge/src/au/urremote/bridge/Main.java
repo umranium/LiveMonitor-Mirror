@@ -217,7 +217,11 @@ public class Main extends Activity {
     	if (binder!=null) {
     		binder.setUiActive(isUiActive);
     		updateListener.updateSystemMessages();
+    	} else {
+    		this.btnStart.setEnabled(true);
+    		this.btnStart.setEnabled(true);
     	}
+    	
     }
     
     @Override
@@ -297,11 +301,24 @@ public class Main extends Activity {
 		public void updateSystemMessages() {
 			systemMessagesUpdater.update();
 			if (binder!=null) {
+	        	btnStart.setEnabled(!binder.isStarted());
+	         	btnStop.setEnabled(binder.isStarted());
+	         	
 				if (binder.isStarted() && !binder.isRecording()) {
 					binder.stopService();
 				}
 			}
 		}
+		
+		@Override
+		public void onSystemStart() {
+			updateSystemMessages();
+		}
+		
+		@Override
+		public void onSystemStop() {
+			updateSystemMessages();
+		};
 	}; 
     
     
