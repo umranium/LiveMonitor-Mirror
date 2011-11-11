@@ -43,45 +43,6 @@ public class BluetoothSensorManager extends SensorManager {
   // Local Bluetooth adapter
   private static final BluetoothAdapter bluetoothAdapter = getDefaultBluetoothAdapter();
   
-  // Code for assigning the local bluetooth adapter
-  private static BluetoothAdapter getDefaultBluetoothAdapter() {
-    // Check if the calling thread is the main application thread,
-    // if it is, do it directly.
-    if (Thread.currentThread().equals(Looper.getMainLooper().getThread())) {
-      return BluetoothAdapter.getDefaultAdapter();
-    } else {
-      // If the calling thread, isn't the main application thread,
-      // then get the main application thread to return the default adapter.
-      final ArrayList<BluetoothAdapter> adapters = new ArrayList<BluetoothAdapter>(1);
-      final Object mutex = new Object();
-      
-      Handler handler = new Handler(Looper.getMainLooper());
-      handler.post(new Runnable() {
-        @Override
-        public void run() {
-          adapters.add(BluetoothAdapter.getDefaultAdapter());
-          synchronized (mutex) {
-            mutex.notify();
-          }
-        }
-      });
-      
-      while (adapters.isEmpty()) {
-        synchronized (mutex) {
-          try {
-            mutex.wait(1000L);
-          } catch (InterruptedException e) {
-            Log.e(TAG, "Interrupted while waiting for default bluetooth adapter", e);
-          }
-        }
-      }
-      
-      if (adapters.get(0)==null)
-        Log.w(TAG, "No bluetooth adapter found!");
-      return adapters.get(0);
-    }
-  }
-
   // Member object for the sensor threads and connections.
   private BluetoothConnectionManager connectionManager = null;
 
@@ -113,6 +74,50 @@ public class BluetoothSensorManager extends SensorManager {
     connectionManager = new BluetoothConnectionManager(messageHandler, parser);
   }
 
+  /**
+   * Code for assigning the local bluetooth adapter
+   * 
+   * @return The default bluetooth adapter, if one is available, NULL if it isn't.
+   */
+  private static BluetoothAdapter getDefaultBluetoothAdapter() {
+    // Check if the calling thread is the main application thread,
+    // if it is, do it directly.
+    if (Thread.currentThread().equals(Looper.getMainLooper().getThread())) {
+      return BluetoothAdapter.getDefaultAdapter();
+    }
+    
+    // If the calling thread, isn't the main application thread,
+    // then get the main application thread to return the default adapter.
+    final ArrayList<BluetoothAdapter> adapters = new ArrayList<BluetoothAdapter>(1);
+    final Object mutex = new Object();
+    
+    Handler handler = new Handler(Looper.getMainLooper());
+    handler.post(new Runnable() {
+      @Override
+      public void run() {
+        adapters.add(BluetoothAdapter.getDefaultAdapter());
+        synchronized (mutex) {
+          mutex.notify();
+        }
+      }
+    });
+    
+    while (adapters.isEmpty()) {
+      synchronized (mutex) {
+        try {
+          mutex.wait(1000L);
+        } catch (InterruptedException e) {
+          Log.e(TAG, "Interrupted while waiting for default bluetooth adapter", e);
+        }
+      }
+    }
+    
+    if (adapters.get(0) == null) {
+      Log.w(TAG, "No bluetooth adapter found!");
+    }
+    return adapters.get(0);
+  }
+  
   public boolean isEnabled() {
     return bluetoothAdapter != null && bluetoothAdapter.isEnabled();
   }

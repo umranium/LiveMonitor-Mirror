@@ -26,7 +26,8 @@ limitations under the License.
     android:enabled="true"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:apiKey="09ZRhbVxJx3lEWybs0n0dP_DFJX7hsn2CA_jVaA"/>
+    android:apiKey="0TXoRmxTinrZKQ9JSazj-9A34XX6_lXsRvTpXWA"/>
+    <!-- corresponding certificate md5: 81:DF:A2:63:53:C7:6B:1E:6C:24:62:D4:91:1C:36:3A -->
   <LinearLayout android:id="@+id/messagepane"
     android:orientation="horizontal"
     android:layout_width="fill_parent"
@@ -40,7 +41,7 @@ limitations under the License.
       android:layout_height="wrap_content"
       android:textSize="16dip"
       android:textColor="#fff"
-      android:text="@string/wait_for_fix"
+      android:text="@string/status_wait_for_gps_fix"
       android:layout_weight="0"/>
     </LinearLayout>
     <LinearLayout android:id="@+id/busypane"

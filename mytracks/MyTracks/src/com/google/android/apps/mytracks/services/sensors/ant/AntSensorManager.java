@@ -22,6 +22,7 @@ import com.dsi.ant.AntInterface;
 import com.dsi.ant.AntInterfaceIntent;
 import com.dsi.ant.AntMesg;
 import com.dsi.ant.exception.AntInterfaceException;
+import com.dsi.ant.exception.AntServiceNotConnectedException;
 import com.google.android.apps.mytracks.content.Sensor;
 import com.google.android.apps.mytracks.content.Sensor.SensorDataSet;
 import com.google.android.apps.mytracks.services.sensors.SensorManager;
@@ -31,7 +32,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
-import android.widget.Toast;
 
 /**
  * This is the common superclass for ANT-based sensors.  It handles tasks which
@@ -64,14 +64,8 @@ public abstract class AntSensorManager extends SensorManager {
 
   // Pairing
   protected static final short WILDCARD = 0;
-  
-  private static final long DURATION_WAIT_FOR_CONNECTION = 5000L;   // 5s 
 
   private AntInterface antReceiver;
-
-  // Flag to know if the ANT App was interrupted
-  // TODO: This code path is not used but probably should be.
-  private boolean antInterrupted;
 
   /**
    * The data from the sensors.
@@ -79,11 +73,6 @@ public abstract class AntSensorManager extends SensorManager {
   protected SensorDataSet sensorData;
 
   protected Context context;
-  
-  private boolean antConnected = false;
-  private long timeStartedWaitingForConnection = -1;
-  private boolean antServiceInitialized = false;
-  private boolean pendingAntReset = false;
 
   private static final boolean DEBUGGING = false;
 
@@ -122,58 +111,30 @@ public abstract class AntSensorManager extends SensorManager {
   private AntInterface.ServiceListener antServiceListener = new AntInterface.ServiceListener() {
     @Override
     public void onServiceConnected() {
-      try {
-        serviceConnected();
-      } catch (AntException e) {
-        Log.e(TAG, "Error setting up ANT after service connection", e);
-        Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
-      }
+      serviceConnected();
     }
 
     @Override
     public void onServiceDisconnected() {
       Log.d(TAG, "ANT interface reports disconnection");
-      antConnected = false;
-      antServiceInitialized = false;
     }
   };
 
   public AntSensorManager(Context context) {
     this.context = context;
-
-    // We handle this unpleasantly because the UI should've checked for ANT
-    // support before it even instantiated this class.
-    if (!AntInterface.hasAntSupport(context)) {
-      throw new IllegalStateException("device does not have ANT support");
-    }
-
+    
     // We register for ANT intents early because we want to have a record of
     // the status intents in the log as we start up.
     registerForAntIntents();
-    
-    try {
-      initAntInterface();
-    } catch (AntException e) {
-      Log.e(TAG, "Error initializing ANT interface", e);
-      Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
-    }
+
   }
 
   @Override
   public void onDestroy() {
-    try {
-      context.unregisterReceiver(statusReceiver);
-    } catch (IllegalArgumentException e) {
-      Log.w(TAG, "Failed to unregister ANT status receiver", e);
-    }
-
-    try {
-      context.unregisterReceiver(dataReceiver);
-    } catch (IllegalArgumentException e) {
-      Log.w(TAG, "Failed to unregister ANT data receiver", e);
-    }
-
+    Log.i(TAG, "destroying AntSensorManager");
+    
     cleanAntInterface();
+    unregisterForAntIntents();
   }
 
   @Override
@@ -198,75 +159,28 @@ public abstract class AntSensorManager extends SensorManager {
    */
   @Override
   protected final void setupChannel() {
-    Log.i(TAG, "MyTracks request to set up ANT Channel");
-    
-    setSensorState(Sensor.SensorState.CONNECTING);
-    
-    //  If either the antReceiver wasn't previously obtained,
-    //  or if ANT service isn't connected and we've waited long enough,
-    //  then clean and reinitialize the ANT interface
-    if (antReceiver == null ||
-        (!antConnected &&
-        (System.currentTimeMillis() - timeStartedWaitingForConnection) 
-           > DURATION_WAIT_FOR_CONNECTION )) {
-      if (antReceiver == null) {
-        Log.d(TAG, "no ant receiver interface found");
-      } else {
-        Log.d(TAG, "ant receiver interface found, but connection not established over an extended period");
-      }
-      
-      cleanAntInterface();
-      try {
-        initAntInterface();
-      } catch (AntException e) {
-        Log.e(TAG, "Error resetting ANT interface", e);
-        Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
-      }
-      pendingAntReset = true;
-    } else {
-      // If the antReceiver is available, and we're already connected to the
-      // ANT service, then directly reset the ANT channel
-      if (antReceiver != null && antConnected) {
-        Log.d(TAG, "ant receiver interface found, service connected, resetting channel");
-        pendingAntReset = false;
-        resetChannel();
-      } else {
-        //  Otherwise, signal that we have to reset the channel once
-        //  the antReceiver is available, and service is connected
-        pendingAntReset = true;
-        Log.d(TAG, "ant receiver interface found, but waiting for connection");
-      }
-    }
-    
+    setup();
   }
   
-  /**
-   * Initializes the ANT+ receiver interface by registering a
-   * service listener.
-   * 
-   * If the the service is connected by the time the method returns
-   * (which sometimes happens), the {@link #serviceConnected()} method is called. 
-   * 
-   * @throws AntException
-   */
-  private void initAntInterface() throws AntException
-  {
-    Log.i(TAG, "Initializing AntSensorManager");
+  private synchronized void setup() {
+    // We handle this unpleasantly because the UI should've checked for ANT
+    // support before it even instantiated this class.
+    if (!AntInterface.hasAntSupport(context)) {
+      throw new IllegalStateException("device does not have ANT support");
+    }
+    
+    cleanAntInterface();
     
     antReceiver = AntInterface.getInstance(context, antServiceListener);
+
     if (antReceiver == null) {
-      throw new AntException("Failed to get ANT Receiver");
+      Log.e(TAG, "Failed to get ANT Receiver");
+      return;
     }
-    timeStartedWaitingForConnection = System.currentTimeMillis();
-    
-    Log.i(TAG, "got ANT Receiver");
-    
-    if (antConnected) {
-      serviceConnected();
-    }
-    
+
+    setSensorState(Sensor.SensorState.CONNECTING);
   }
-  
+
   /**
    * Cleans up the ANT+ receiver interface, by releasing the interface
    * and destroying it.
@@ -278,6 +192,8 @@ public abstract class AntSensorManager extends SensorManager {
     if (antReceiver != null) {
       try {
         antReceiver.releaseInterface();
+      } catch (AntServiceNotConnectedException e) {
+        Log.i(TAG, "ANT service not connected", e);
       } catch (AntInterfaceException e) {
         Log.e(TAG, "failed to release ANT interface", e);
       }
@@ -285,13 +201,36 @@ public abstract class AntSensorManager extends SensorManager {
       antReceiver.destroy();
       
       antReceiver = null;
-      antConnected = false;
     }
   }
   
-  private void resetChannel() {
+  /**
+   * This method is invoked via the ServiceListener when we're connected to
+   * the ANT service.  If we're just starting up, this is our first opportunity
+   * to initiate any ANT commands.
+   */
+  private synchronized void serviceConnected() {
+    Log.d(TAG, "ANT service connected");
+
     try {
-      Log.i(TAG, "Resetting ANT Channel");
+      if (!antReceiver.claimInterface()) {
+        Log.e(TAG, "failed to claim ANT interface");
+        return;
+      }
+
+      if (!antReceiver.isEnabled()) {
+        // Make sure not to call AntInterface.enable() again, if it has been
+        // already called before
+        Log.i(TAG, "Powering on Radio");
+        antReceiver.enable();
+      } else {
+        Log.i(TAG, "Radio already enabled");
+      }
+    } catch (AntInterfaceException e) {
+      Log.e(TAG, "failed to enable ANT", e);
+    }
+
+    try {
       // We expect this call to throw an exception due to a bug in the ANT
       // Radio Service.  It won't actually fail, though, as we'll get the
       // startup message (see {@link AntStartupMessage}) one normally expects
@@ -302,73 +241,11 @@ public abstract class AntSensorManager extends SensorManager {
       Log.e(TAG, "failed to reset ANT (expected exception)", e);
     }
   }
-  
-  /**
-   * This method is invoked via the ServiceListener when we're connected to
-   * the ANT service.  If we're just starting up, this is our first opportunity
-   * to initiate any ANT commands.
-   * @throws AntException 
-   */
-  private synchronized void serviceConnected() throws AntException {
-    Log.d(TAG, "ANT service connected");
-    antConnected = true;
-    
-    //  Sometimes, this serviceConnected() method is invoked before the 
-    //  AntInterface.getInstance(..) returns. Since we need the ANT receiver
-    //  interface, we return without doing anything. The initAntInterface()
-    //  function will then invoke this method to initialize.
-    if (antReceiver == null) {
-      Log.w(TAG, "WARNING: ANT service connected, " +
-              "but AntReceiver interface not assigned!!!");
-      return;
-    }
-
-    //  Initialization after the service is connected, and the ANT receiver
-    //  interface has been obtained
-    if (!antServiceInitialized) {
-      Log.i(TAG, "Initializing Ant Service");
-      
-      try {
-        if (!antReceiver.claimInterface()) {
-          Log.e(TAG, "failed to claim ANT interface");
-          return;
-        }
-        
-        if (!antReceiver.isEnabled()) {
-          // Make sure not to call AntInterface.enable() again, if it has been
-          // already called before
-          if (antInterrupted == false) {
-            Log.i(TAG, "Powering on Radio");
-            try {
-              antReceiver.enable();
-            } catch (Exception e) {
-              Log.e(TAG, "Error while enabling ANT Receiver", e);
-            }
-          } else {
-            Log.i(TAG, "Radio on, but interrupted");
-          }
-        } else {
-          Log.i(TAG, "Radio already enabled");
-        }
-        
-        antServiceInitialized = true;
-      } catch (AntInterfaceException e) {
-        throw new AntException("Failed to enable ANT", e);
-      }
-    }
-
-    //  Reset the ANT channel, if there is a pending ANT channel reset,
-    //  and the ANT service has been initialized successfully. 
-    if (antServiceInitialized && pendingAntReset) {
-      pendingAntReset = false;
-      resetChannel();
-    }
-  }
 
   /**
    * Process a raw ANT message.
    * @param antMessage the ANT message, including the size and message ID bytes
-   * @deprecated Use {@link #handleMessage(int, byte[])} instead.
+   * @deprecated Use {@link #handleMessage(byte, byte[])} instead.
    */
   protected void handleMessage(byte[] antMessage) {
     int len = antMessage[0];
@@ -465,6 +342,23 @@ public abstract class AntSensorManager extends SensorManager {
     dataIntentFilter.addAction(AntInterfaceIntent.ANT_RX_MESSAGE_ACTION);
     context.registerReceiver(dataReceiver, dataIntentFilter);
   }
+  
+  private void unregisterForAntIntents()
+  {
+    Log.i(TAG, "Unregistering ANT Intents.");
+    
+    try {
+      context.unregisterReceiver(statusReceiver);
+    } catch (IllegalArgumentException e) {
+      Log.w(TAG, "Failed to unregister ANT status receiver", e);
+    }
+
+    try {
+      context.unregisterReceiver(dataReceiver);
+    } catch (IllegalArgumentException e) {
+      Log.w(TAG, "Failed to unregister ANT data receiver", e);
+    }
+  }  
 
   private String messageToString(byte[] message) {
     StringBuilder out = new StringBuilder();

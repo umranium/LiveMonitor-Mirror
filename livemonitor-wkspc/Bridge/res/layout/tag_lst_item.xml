@@ -3,7 +3,6 @@
     android:layout_height="fill_parent" android:layout_width="fill_parent">
     <TextView
     	android:padding="4dp"
-    	android:textSize="15sp"
     	android:layout_alignParentLeft="true"
     	android:text="Text"
     	android:layout_height="wrap_content"
@@ -11,14 +10,13 @@
     	android:layout_alignLeft="@+id/btn_del_tag"
     	android:layout_centerVertical="true"
     	android:layout_width="wrap_content"
-    	android:id="@+id/txt_tag_list_item">
+    	android:id="@+id/txt_tag_list_item" android:textSize="16sp">
 	</TextView>
     <Button
-    	android:layout_width="wrap_content"
     	android:id="@+id/btn_del_tag"
     	android:layout_alignParentRight="true"
     	android:text="Del"
     	android:layout_height="wrap_content"
-    	android:layout_centerVertical="true">
+    	android:layout_centerVertical="true" android:layout_width="80dp">
     </Button>
 </RelativeLayout>

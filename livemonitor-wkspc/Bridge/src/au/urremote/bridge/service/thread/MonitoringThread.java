@@ -1,7 +1,6 @@
 package au.urremote.bridge.service.thread;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -21,26 +20,26 @@ import au.urremote.bridge.common.Constants;
 import au.urremote.bridge.service.InternalServiceMessageHandler;
 import au.urremote.bridge.service.Sample;
 import au.urremote.bridge.service.SamplingQueue;
-import au.urremote.bridge.service.filters.median.FilterOut;
-import au.urremote.bridge.service.filters.median.MedianFilter;
+import au.urremote.bridge.service.utils.CustomThreadUncaughtExceptionHandler;
 
+import com.google.android.apps.mytracks.content.MyTracksProviderUtils;
 import com.google.android.apps.mytracks.content.Sensor;
 import com.google.android.apps.mytracks.content.Sensor.SensorState;
 import com.google.android.apps.mytracks.services.ITrackRecordingService;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 public class MonitoringThread {
 	
 	private InternalServiceMessageHandler serviceMsgHandler; 
 	private Context context;
 	private ITrackRecordingService mytracks;
+	private MyTracksProviderUtils myTracksProviderUtils;
 	private Timer timer;
 	private MonitorTimerTask monitorTimerTask;
 	private SamplingQueue samplingQueue;
 	private boolean requestedTrackRecording = false;
 	private LocationManager locationManager;
 	private boolean locationListenerRegistered = false;
-	private boolean gpsProviderFound = false;
-	private Location prevRecordedLocation = null;
 	private Location latestLocation = null;
 	
 	private LocationListener locationListener = new LocationListener() {
@@ -63,21 +62,20 @@ public class MonitoringThread {
 	
 	public MonitoringThread(
 			Context context,
-			InternalServiceMessageHandler serviceMsgHandler,
+			InternalServiceMessageHandler criticalErrorHandler,
 			SamplingQueue samplingQueue)
 	{
 		this.context = context;
-		this.serviceMsgHandler = serviceMsgHandler;
+		this.serviceMsgHandler = criticalErrorHandler;
 		this.samplingQueue = samplingQueue;
 		this.timer = new Timer("monitoring-timer");
 		
 		this.locationManager = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
 		this.locationListenerRegistered = false;
 		
-		if (hasGPS())
-			this.gpsProviderFound = true;
+		this.myTracksProviderUtils = MyTracksProviderUtils.Factory.get(context);
 		
-		//registerLocationListener();
+		registerLocationListener();
 	}
 	
 	public void registerLocationListener() {
@@ -92,13 +90,15 @@ public class MonitoringThread {
 				locationListener
 				);
 		
-//		this.locationManager.requestLocationUpdates(
-//			LocationManager.NETWORK_PROVIDER,
-//			0,
-//			0,
-//			locationListener
-//		);
-		
+		if (Constants.IS_TESTING) {
+			//	can't get a GPS fix in-doors!
+			this.locationManager.requestLocationUpdates(
+				LocationManager.NETWORK_PROVIDER,
+				0,
+				0,
+				locationListener
+			);
+		}
 	}
 	
 	public void unregisterLocationListener() {
@@ -120,13 +120,11 @@ public class MonitoringThread {
 	
 	public void begin() throws Exception {
 		serviceMsgHandler.onSystemMessage("Connecting to MyTracks...");
-		registerLocationListener();
 		connectToMyTracks();
-		
+
     	if (monitorTimerTask!=null) {
     		monitorTimerTask.cancel();
     	}
-    	prevRecordedLocation = null;
     	monitorTimerTask = new MonitorTimerTask();
 		timer.schedule(monitorTimerTask, Constants.MONITORING_INTERVAL, Constants.MONITORING_INTERVAL);
 	}
@@ -163,8 +161,8 @@ public class MonitoringThread {
 //							"Please start MyTracks Recording.", 
 //							Toast.LENGTH_LONG).show();
 //					serviceMsgHandler.requestLaunchMyTracks();
-					requestedTrackRecording = true;
 					mytracksService.startNewTrack();
+					requestedTrackRecording = true;
 					serviceMsgHandler.onSystemMessage("Requesting MyTracks to Start Recording.");
 				}
 			} catch (Exception e) {
@@ -211,50 +209,12 @@ public class MonitoringThread {
 		private boolean firstLocation = true;
 		private int previousState = -1;
 		private int locationIndex = 0;
-		private MedianFilter medianFilter;
-		
 		private ArrayList<Sensor.SensorDataSet> bufferdSensorData = new ArrayList<Sensor.SensorDataSet>(10);
+		private Location lastUploadedLoc = null;
 		
 		@Override
 		public void run() {
-//			if (!gpsProviderFound) {
-//				if (!hasGPS()) {
-//					serviceMsgHandler.showToast("Please enable GPS", Toast.LENGTH_SHORT);
-//					serviceMsgHandler.vibrate();
-//					if (!serviceMsgHandler.isUiActive()) {
-//						serviceMsgHandler.makeErrorSound();
-//					}
-//				} else {
-//					gpsProviderFound = true;
-//				}
-//			}
-			this.medianFilter = new MedianFilter(5, new FilterOut() {
-				@Override
-				public void receive(Location location) {
-					Sample sample = null;
-					try {
-						sample = samplingQueue.takeEmptyInstance();
-						sample.location = location;
-						if (!bufferdSensorData.isEmpty()) {
-							sample.sensorData.clear();
-							sample.sensorData.addAll(bufferdSensorData);
-							bufferdSensorData.clear();
-						}
-						samplingQueue.returnFilledInstance(sample);
-						sample = null;
-						Log.d(Constants.TAG, "MonitoringThread: filled sample sent");
-					} catch (Exception e) {
-						Log.e(Constants.TAG, "Error", e);
-					} finally {
-						if (sample!=null) {
-							try {
-								samplingQueue.returnEmptyInstance(sample);
-							} catch (InterruptedException e) {
-							}
-						}
-					}
-				}
-			});
+			CustomThreadUncaughtExceptionHandler.setInterceptHandler(Thread.currentThread());
 			
 			Sample sample = null;
 			try {
@@ -280,8 +240,8 @@ public class MonitoringThread {
 						}
 					}
 					
-					
-					Location location = latestLocation;
+					long locId = myTracksProviderUtils.getLastLocationId(mytracks.getRecordingTrackId());
+					Location location = (locId>=0)?(myTracksProviderUtils.getLocation(locId)):null;//latestLocation;
 					//Log.d(Constants.TAG, "mytracks.isRecording()="+mytracks.isRecording()+" location="+((location!=null)?"available":"not available"));
 					
 					if (firstMyTracksRecording && mytracks.isRecording()) {
@@ -301,20 +261,36 @@ public class MonitoringThread {
 						wasMyTracksRecording = false;
 					}
 					
-//					if (location!=null) {
-//						++locationIndex;
-//					}
+					if (location!=null) {
+						++locationIndex;
+					}
 					
 					if (mytracks.isRecording() && location!=null) {
-						Log.d(Constants.TAG, "MonitoringThread: location sent to median filter");
-						medianFilter.add(location);
 						
-						//if ((locationIndex % 3)==0)
-//						if (prevRecordedLocation==null || prevRecordedLocation.distanceTo(location)>Constants.MINIMUM_RECORDING_DISTANCE)
-//						{							
-//							locationIndex = 0;
-//							prevRecordedLocation = location;
-//						}
+						if ((locationIndex % 3) == 0) {
+							Location newLoc = new Location(location);
+							if (lastUploadedLoc!=null) {
+								double dist = lastUploadedLoc.distanceTo(newLoc);
+								double time = (double)(newLoc.getTime() - lastUploadedLoc.getTime()) / 1000.0; 
+								double newSpeed =  dist / time;
+								Log.d("Diff", "dist="+dist+" time="+time+" calc="+newSpeed+
+										" GPS-last="+(lastUploadedLoc.hasSpeed()?lastUploadedLoc.getSpeed():null)+
+										" GPS-current="+(newLoc.hasSpeed()?newLoc.getSpeed():null)
+										);
+							}
+							
+							sample = samplingQueue.takeEmptyInstance();
+							sample.location = new Location(newLoc);
+							//sample.location.setTime(System.currentTimeMillis());
+							sample.sensorData.addAll(bufferdSensorData);
+							bufferdSensorData.clear();
+							samplingQueue.returnFilledInstance(sample);
+							sample = null;
+							
+							lastUploadedLoc = newLoc;
+							Log.d(Constants.TAG, "MonitoringThread: filled sample sent");
+						}
+						
 					}
 					
 				}
@@ -330,19 +306,6 @@ public class MonitoringThread {
 			}
 		}
 		
-	}
-	
-	protected boolean hasGPS()
-	{
-		return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-//		List<String> providers = locationManager.getAllProviders();
-//		for (String provider:providers) {
-//			if (provider.contains(LocationManager.GPS_PROVIDER)) {
-//				Log.d(Constants.TAG, "GPS found");
-//				return true;
-//			}
-//		}
-//		return false;
 	}
 	
 	/**

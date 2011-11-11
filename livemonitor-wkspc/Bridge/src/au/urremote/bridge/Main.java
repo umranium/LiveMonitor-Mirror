@@ -17,6 +17,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -24,13 +25,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,6 +47,7 @@ import au.urremote.bridge.service.ILiveMonitorBinder;
 import au.urremote.bridge.service.LiveMonitorService;
 import au.urremote.bridge.service.SystemMessage;
 import au.urremote.bridge.service.UpdateListener;
+import au.urremote.bridge.service.utils.CustomThreadUncaughtExceptionHandler;
 
 public class Main extends Activity {
 
@@ -73,6 +78,8 @@ public class Main extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 		Log.d(Constants.TAG, this.getClass().getSimpleName()+":onCreate()");
+		
+		CustomThreadUncaughtExceptionHandler.setInterceptHandler(Thread.currentThread());
         
         this.locationManager = (LocationManager)this.getSystemService(LOCATION_SERVICE);
         
@@ -90,6 +97,11 @@ public class Main extends Activity {
         lstStatusAdapter = new ArrayAdapter<ScrollerMessage>(this, R.layout.status_list_item);
         lstStatus.setAdapter(lstStatusAdapter);
         systemMessagesUpdater = new ScrollerUpdater(lstStatusAdapter);
+        
+    	LinearLayout layoutDevelWarning = (LinearLayout)this.findViewById(R.id.layout_devel_warning);
+        if (!Constants.IS_TESTING) {
+        	layoutDevelWarning.setVisibility(View.GONE);
+        }
         
         btnStart.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -121,8 +133,25 @@ public class Main extends Activity {
 				Log.d(Constants.TAG, "btnStop clicked");
 				if (binder!=null) {
 					try {
-						if (binder.isRecording())
-							binder.stopRecording();
+						if (binder.isRecording()) {
+							int dataCount = binder.getPendingUploadCount(); 
+							if (dataCount>0) {
+								AlertDialog.Builder bldr = new AlertDialog.Builder(Main.this);
+								bldr.setTitle("Pending upload data");
+								bldr.setMessage("Are you sure you wish to stop before data is uploaded?\n" +
+										dataCount+" seconds of data will be lost.");
+								bldr.setCancelable(true);
+								bldr.setPositiveButton("Stop anyway!", new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+										binder.stopRecording();
+										dialog.dismiss();
+									}
+								});
+							} else {
+								binder.stopRecording();
+							}
+						}
 						else
 							Log.d(Constants.TAG, "Service is not recording");
 					} catch (Exception e) {
@@ -318,7 +347,8 @@ public class Main extends Activity {
 		@Override
 		public void onSystemStop() {
 			updateSystemMessages();
-		};
+		}
+		
 	}; 
     
     

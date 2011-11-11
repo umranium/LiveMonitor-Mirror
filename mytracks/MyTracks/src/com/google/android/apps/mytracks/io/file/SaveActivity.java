@@ -139,6 +139,7 @@ public class SaveActivity extends Activity {
     shareIntent.setType(format.getMimeType());
     Uri u = Uri.fromFile(new File(writer.getAbsolutePath()));
     shareIntent.putExtra(Intent.EXTRA_STREAM, u);
+    shareIntent.putExtra(getString(R.string.track_id_broadcast_extra), trackId);
     startActivity(Intent.createChooser(shareIntent,
         getResources().getText(R.string.share_track).toString()));
   }
@@ -168,7 +169,7 @@ public class SaveActivity extends Activity {
 
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setMessage(writer.getErrorMessage());
-    builder.setNeutralButton(R.string.ok, new OnClickListener() {
+    builder.setPositiveButton(R.string.ok, new OnClickListener() {
       @Override
       public void onClick(DialogInterface dialog, int arg1) {
         dialog.dismiss();

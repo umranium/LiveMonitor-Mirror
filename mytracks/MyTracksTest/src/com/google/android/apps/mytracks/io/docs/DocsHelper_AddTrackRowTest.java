@@ -28,6 +28,8 @@ import android.test.mock.MockContext;
 import android.test.mock.MockResources;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
 
 import junit.framework.TestCase;
 
@@ -38,7 +40,8 @@ import junit.framework.TestCase;
  */
 public class DocsHelper_AddTrackRowTest extends TestCase {
   private static final long TIME = 1288721514000L;
-
+  private static final DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);  
+  
   private static class StringWritingDocsHelper extends DocsHelper {
     String writtenSheetUri = null;
     String writtenData = null;
@@ -50,18 +53,22 @@ public class DocsHelper_AddTrackRowTest extends TestCase {
       writtenData = postText;
     }
   }
-
+  
   public void testAddTrackRow_imperial() throws Exception {
-    StringWritingDocsHelper docsHelper = new StringWritingDocsHelper();
+    StringWritingDocsHelper docsHelper = new StringWritingDocsHelper() {
+      @Override
+      protected String getDisplayDate(Context context, long time) {
+        return DATE_FORMAT.format(new Date(TIME));
+      }
+    };
     addTrackRow(docsHelper, false);
-
+ 
     String expectedData =
       "<entry xmlns='http://www.w3.org/2005/Atom' "
       + "xmlns:gsx='http://schemas.google.com/spreadsheets/2006/extended'>"
       + "<gsx:name><![CDATA[trackName]]></gsx:name>"
       + "<gsx:description><![CDATA[trackDescription]]></gsx:description>"
-      // We format the date here because we can't guarantee/force the timezone
-      + "<gsx:date><![CDATA[" + String.format("%tc", TIME) + "]]></gsx:date>"
+      + "<gsx:date><![CDATA[" + DATE_FORMAT.format(new Date(TIME)) + "]]></gsx:date>"
       + "<gsx:totaltime><![CDATA[0:00:05]]></gsx:totaltime>"
       + "<gsx:movingtime><![CDATA[0:00:04]]></gsx:movingtime>"
       + "<gsx:distance><![CDATA[12.43]]></gsx:distance>"
@@ -76,18 +83,23 @@ public class DocsHelper_AddTrackRowTest extends TestCase {
       + "<gsx:maxelevation><![CDATA[1,804]]></gsx:maxelevation>"
       + "<gsx:elevationunit><![CDATA[feet]]></gsx:elevationunit>"
       + "<gsx:map>"
-      + "<![CDATA[http://maps.google.com/maps/ms?msa=0&msid=trackMapId]]>"
+      + "<![CDATA[https://maps.google.com/maps/ms?msa=0&msid=trackMapId]]>"
       + "</gsx:map>"
       + "</entry>";
 
     assertEquals(
-        "http://spreadsheets.google.com/feeds/list/ssid/wsid/private/full",
+        "https://spreadsheets.google.com/feeds/list/ssid/wsid/private/full",
         docsHelper.writtenSheetUri);
     assertEquals(expectedData, docsHelper.writtenData);
   }
 
   public void testAddTrackRow_metric() throws Exception {
-    StringWritingDocsHelper docsHelper = new StringWritingDocsHelper();
+    StringWritingDocsHelper docsHelper = new StringWritingDocsHelper() {
+      @Override
+      protected String getDisplayDate(Context context, long time) {
+        return DATE_FORMAT.format(new Date(TIME));
+      }
+    };
     addTrackRow(docsHelper, true);
 
     // The imperial test verifies that the tags come out in the proper order,

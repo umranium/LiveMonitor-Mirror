@@ -84,7 +84,7 @@ public class TrackDataHub {
 
     /**
      * Listen to sampled-out points.
-     * Listening to this without listening to {@link #SAMPLED_POINT_UPDATES}
+     * Listening to this without listening to {@link #POINT_UPDATES}
      * makes no sense and may yield unexpected results.
      */
     SAMPLED_OUT_POINT_UPDATES,
@@ -195,15 +195,12 @@ public class TrackDataHub {
   private int lastSamplingFrequency;
   private DoubleBufferedLocationFactory locationFactory;
 
-  private static TrackDataHub startedInstance;
-
+  private boolean started = false;
+  
   /**
    * Builds a new {@link TrackDataHub} instance.
    */
   public synchronized static TrackDataHub newInstance(Context context) {
-    // Ensure our singleton is never bound to an activity, to avoid memory leaks.
-    context = context.getApplicationContext();
-
     SharedPreferences preferences = context.getSharedPreferences(Constants.SETTINGS_NAME, 0);
     MyTracksProviderUtils providerUtils = MyTracksProviderUtils.Factory.get(context);
     return new TrackDataHub(context,
@@ -240,11 +237,11 @@ public class TrackDataHub {
    */
   public void start() {
     Log.i(TAG, "TrackDataHub.start");
-    if (startedInstance != null) {
+    if (isStarted()) {
       Log.w(TAG, "Already started, ignoring");
       return;
     }
-    startedInstance = this;
+    started = true;
 
     listenerHandlerThread = new HandlerThread("trackDataContentThread");
     listenerHandlerThread.start();
@@ -267,20 +264,6 @@ public class TrackDataHub {
   }
 
   /**
-   * If there's an instance for which {@link start} has been called, returns it.
-   *
-   * @return the started instance
-   * @throws IllegalStateException if there isn't a started instance
-   */
-  public static TrackDataHub getStartedInstance() {
-    if (startedInstance == null) {
-      throw new IllegalStateException("Data hub not started");
-    }
-
-    return startedInstance;
-  }
-
-  /**
    * Stops listening to data sources and reporting the data to external
    * listeners.
    */
@@ -290,12 +273,12 @@ public class TrackDataHub {
       Log.w(TAG, "Not started, ignoring");
       return;
     }
-
+    
     // Unregister internal listeners even if there are external listeners registered.
     dataSourceManager.unregisterAllListeners();
     listenerHandlerThread.getLooper().quit();
 
-    startedInstance = null;
+    started = false;
 
     dataSources = null;
     dataSourceManager = null;
@@ -304,12 +287,13 @@ public class TrackDataHub {
   }
 
   private boolean isStarted() {
-    return startedInstance != null;
+    return started;
   }
 
   @Override
   protected void finalize() throws Throwable {
-    if (isStarted() || listenerHandlerThread.isAlive()) {
+    if (isStarted() ||
+        (listenerHandlerThread != null && listenerHandlerThread.isAlive())) {
       Log.e(TAG, "Forgot to stop() TrackDataHub");
     }
 
@@ -401,8 +385,8 @@ public class TrackDataHub {
 
   /**
    * Loads the given track and makes it the currently-selected one.
-   * It is ok to call this method before {@link start}, and in that case
-   * the data will only be passed to listeners when {@link start} is called.
+   * It is ok to call this method before {@link #start}, and in that case
+   * the data will only be passed to listeners when {@link #start} is called.
    *
    * @param trackId the ID of the track to load
    */
@@ -414,7 +398,7 @@ public class TrackDataHub {
 
     // Save the selection to memory and flush.
     selectedTrackId = trackId;
-    ApiFeatures.getInstance().getApiPlatformAdapter().applyPreferenceChanges(
+    ApiFeatures.getInstance().getApiAdapter().applyPreferenceChanges(
         preferences.edit().putLong(SELECTED_TRACK_KEY, trackId));
 
     // Force it to reload data from the beginning.
@@ -817,7 +801,7 @@ public class TrackDataHub {
   /**
    * Notifies that a new track has been selected..
    *
-   * @param track the new selected track
+   * @param trackId the new selected track
    * @param listeners the listeners to notify
    */
   private void notifySelectedTrackChanged(long trackId,

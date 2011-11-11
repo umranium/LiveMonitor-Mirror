@@ -23,6 +23,7 @@ import com.google.android.apps.mytracks.services.sensors.ant.AntUtils;
 import com.google.android.apps.mytracks.services.tasks.StatusAnnouncerFactory;
 import com.google.android.apps.mytracks.util.ApiFeatures;
 import com.google.android.apps.mytracks.util.BluetoothDeviceUtils;
+import com.google.android.apps.mytracks.util.UnitConversions;
 import com.google.android.maps.mytracks.R;
 
 import android.app.AlertDialog;
@@ -32,11 +33,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
+import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceCategory;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.provider.Settings;
@@ -90,7 +93,7 @@ public class SettingsActivity extends PreferenceActivity {
     preferenceManager.setSharedPreferencesMode(0);
 
     // Set up automatic preferences backup
-    backupListener = BackupPreferencesListener.create(this, apiFeatures);
+    backupListener = apiFeatures.getApiAdapter().getBackupPreferencesListener(this);
     preferences = preferenceManager.getSharedPreferences();
     preferences.registerOnSharedPreferenceChangeListener(backupListener);
 
@@ -128,7 +131,8 @@ public class SettingsActivity extends PreferenceActivity {
     updatePreferenceUnits(metricUnitsPreference.isChecked());
 
     customizeSensorOptionsPreferences();
-
+    customizeTrackColorModePreferences();
+    
     // Hook up action for resetting all settings
     Preference resetPreference = findPreference(getString(R.string.reset_key));
     resetPreference.setOnPreferenceClickListener(new OnPreferenceClickListener() {
@@ -136,6 +140,33 @@ public class SettingsActivity extends PreferenceActivity {
       public boolean onPreferenceClick(Preference arg0) {
         onResetPreferencesClick();
         return true;
+      }
+    });
+    
+    // Add a confirmation dialog for the "Allow access" preference.
+    final CheckBoxPreference allowAccessPreference = (CheckBoxPreference) findPreference(
+        getString(R.string.allow_access_key));
+    allowAccessPreference.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+      @Override
+      public boolean onPreferenceChange(Preference preference, Object newValue) {
+        if ((Boolean) newValue) {
+          AlertDialog dialog = new AlertDialog.Builder(SettingsActivity.this)
+              .setCancelable(true)
+              .setTitle(getString(R.string.settings_allow_access))
+              .setMessage(getString(R.string.settings_allow_access_dialog_message))
+              .setPositiveButton(android.R.string.ok, new OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int button) {
+                  allowAccessPreference.setChecked(true);
+                }
+              })
+              .setNegativeButton(android.R.string.cancel, null)
+              .create();
+          dialog.show();
+          return false;
+        } else {
+          return true;
+        }
       }
     });
   }
@@ -203,6 +234,29 @@ public class SettingsActivity extends PreferenceActivity {
       sensorOptionsScreen.removePreference(findPreference(getString(R.string.ant_options_key)));
     }
   }
+  
+  private void customizeTrackColorModePreferences() {
+    ListPreference trackColorModePreference =
+        (ListPreference) findPreference(getString(R.string.track_color_mode_key));
+    trackColorModePreference.setOnPreferenceChangeListener(
+        new OnPreferenceChangeListener() {
+          @Override
+          public boolean onPreferenceChange(Preference preference,
+              Object newValue) {
+            updateTrackColorModeSettings((String) newValue);
+            return true;
+          }
+        });
+    updateTrackColorModeSettings(trackColorModePreference.getValue());
+    
+    setTrackColorModePreferenceListeners();
+    
+    PreferenceCategory speedOptionsCategory =
+        (PreferenceCategory) findPreference(getString(R.string.track_color_mode_fixed_speed_options_key));
+
+    speedOptionsCategory.removePreference(findPreference(getString(R.string.track_color_mode_fixed_speed_slow_key)));
+    speedOptionsCategory.removePreference(findPreference(getString(R.string.track_color_mode_fixed_speed_medium_key)));
+  }
 
   @Override
   protected void onResume() {
@@ -269,8 +323,8 @@ public class SettingsActivity extends PreferenceActivity {
 
   private void updateSensorSettings(String sensorType) {
     boolean usesBluetooth =
-        getString(R.string.zephyr_sensor_type).equals(sensorType)
-        || getString(R.string.polar_sensor_type).equals(sensorType);
+        getString(R.string.sensor_type_value_zephyr).equals(sensorType)
+        || getString(R.string.sensor_type_value_polar).equals(sensorType);
     findPreference(
         getString(R.string.bluetooth_sensor_key)).setEnabled(usesBluetooth);
     findPreference(
@@ -282,12 +336,24 @@ public class SettingsActivity extends PreferenceActivity {
     Preference antSrm = findPreference(getString(R.string.ant_srm_bridge_sensor_id_key));
     if (antHrm != null && antSrm != null) {
       antHrm
-          .setEnabled(getString(R.string.ant_sensor_type).equals(sensorType));
+          .setEnabled(getString(R.string.sensor_type_value_ant).equals(sensorType));
       antSrm
-          .setEnabled(getString(R.string.srm_ant_bridge_sensor_type).equals(sensorType));
+          .setEnabled(getString(R.string.sensor_type_value_srm_ant_bridge).equals(sensorType));
     }
   }
 
+  private void updateTrackColorModeSettings(String trackColorMode) {
+    boolean usesFixedSpeed = trackColorMode.equals(getString(R.string.track_color_mode_value_fixed));
+    boolean usesDynamicSpeed = trackColorMode.equals(getString(R.string.track_color_mode_value_dynamic));
+    
+    findPreference(
+        getString(R.string.track_color_mode_fixed_speed_slow_display_key)).setEnabled(usesFixedSpeed);
+    findPreference(
+        getString(R.string.track_color_mode_fixed_speed_medium_display_key)).setEnabled(usesFixedSpeed);
+    findPreference(
+        getString(R.string.track_color_mode_dynamic_speed_variation_key)).setEnabled(usesDynamicSpeed);
+  }
+  
   /**
    * Updates all the preferences which give options with distance units to use
    * the proper unit the user has selected.
@@ -415,5 +481,84 @@ public class SettingsActivity extends PreferenceActivity {
         });
       }
     }.start();
+  }
+  
+  /** 
+   * Set the given edit text preference text.
+   * If the units are not metric convert the value before displaying.  
+   */
+  private void viewTrackColorModeSettings(EditTextPreference preference, int id) {
+    CheckBoxPreference metricUnitsPreference = (CheckBoxPreference) findPreference(
+        getString(R.string.metric_units_key));
+    if(metricUnitsPreference.isChecked()) {
+      return;
+    }
+    // Convert miles/h to km/h
+    SharedPreferences prefs = getPreferenceManager().getSharedPreferences();
+    String metricspeed = prefs.getString(getString(id), null);
+    int englishspeed;
+    try {
+      englishspeed = (int) (Double.parseDouble(metricspeed) * UnitConversions.KMH_TO_MPH);
+    } catch (NumberFormatException e) {
+      englishspeed = 0;
+    }
+    preference.getEditText().setText(String.valueOf(englishspeed));
+  }
+  
+  /** 
+   * Saves the given edit text preference value.
+   * If the units are not metric convert the value before saving.  
+   */
+  private void validateTrackColorModeSettings(String newValue, int id) {
+    CheckBoxPreference metricUnitsPreference = (CheckBoxPreference) findPreference(
+        getString(R.string.metric_units_key));
+    String metricspeed;
+    if(!metricUnitsPreference.isChecked()) {
+      // Convert miles/h to km/h
+      try {
+        metricspeed = String.valueOf((int) (Double.parseDouble(newValue) * UnitConversions.MPH_TO_KMH) + 1);
+      } catch (NumberFormatException e) {
+        metricspeed = "0";
+      }
+    } else {
+      metricspeed = newValue;
+    }
+    SharedPreferences prefs = getPreferenceManager().getSharedPreferences();
+    prefs.edit().putString(getString(id), metricspeed).commit();
+  }
+  
+  /** 
+   * Sets the TrackColorMode preference listeners.
+   */
+  private void setTrackColorModePreferenceListeners() {
+    setTrackColorModePreferenceListener(R.string.track_color_mode_fixed_speed_slow_display_key,
+        R.string.track_color_mode_fixed_speed_slow_key);
+    setTrackColorModePreferenceListener(R.string.track_color_mode_fixed_speed_medium_display_key,
+        R.string.track_color_mode_fixed_speed_medium_key);
+  }
+  
+  /** 
+   * Sets a TrackColorMode preference listener.
+   */
+  private void setTrackColorModePreferenceListener(int displayKey, final int metricKey) {
+    EditTextPreference trackColorModePreference =
+        (EditTextPreference) findPreference(getString(displayKey));
+    trackColorModePreference.setOnPreferenceChangeListener(
+        new OnPreferenceChangeListener() {
+          @Override
+          public boolean onPreferenceChange(Preference preference,
+              Object newValue) {
+            validateTrackColorModeSettings((String) newValue, metricKey);
+            return true;
+          }
+        });
+    trackColorModePreference.setOnPreferenceClickListener(
+        new OnPreferenceClickListener() {
+          @Override
+          public boolean onPreferenceClick(Preference preference) {
+            viewTrackColorModeSettings((EditTextPreference) preference, metricKey);
+            return true;
+          }
+        });
   }
 }

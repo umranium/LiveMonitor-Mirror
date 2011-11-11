@@ -15,10 +15,10 @@
  */
 package com.google.android.apps.mytracks.services.sensors;
 
-import android.content.Context;
-
 import com.google.android.apps.mytracks.content.Sensor;
 import com.google.android.maps.mytracks.R;
+
+import android.content.Context;
 
 /**
  * A collection of methods for message parsers.
@@ -58,12 +58,12 @@ public class SensorUtils {
   }
 
   /**
-   * Returns CRC8 (polynomial 0x8C) from byte array buffer[start] until
-   * (including) buffer[end]
+   * Returns CRC8 (polynomial 0x8C) from byte array buffer[start] to
+   * (excluding) buffer[start + length]
    * 
    * @param buffer the byte array of data (payload)
    * @param start the position in the byte array where the payload begins
-   * @param end the position in the byte array where the payload ends
+   * @param length the length
    * @return CRC8 value
    */
   public static byte getCrc8(byte[] buffer, int start, int length) {
@@ -99,7 +99,7 @@ public class SensorUtils {
   public static String getStateAsString(Sensor.SensorState state, Context c) {
     switch (state) {
       case NONE:
-        return c.getString(R.string.none);
+        return c.getString(R.string.sensor_type_value_none);
       case CONNECTING:
         return c.getString(R.string.connecting);
       case CONNECTED:

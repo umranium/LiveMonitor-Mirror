@@ -3,7 +3,7 @@ package au.urremote.bridge.service;
 import au.urremote.bridge.service.utils.TwoWayBlockingQueue;
 
 public class SamplingQueue extends TwoWayBlockingQueue<Sample> {
-
+	
 	public SamplingQueue(int capacity) {
 		super(capacity);
 	}
@@ -12,5 +12,5 @@ public class SamplingQueue extends TwoWayBlockingQueue<Sample> {
 	protected Sample getNewInstance() {
 		return new Sample();
 	}
-
+	
 }

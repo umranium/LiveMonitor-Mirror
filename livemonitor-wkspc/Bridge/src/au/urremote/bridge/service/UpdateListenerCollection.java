@@ -21,6 +21,7 @@ public class UpdateListenerCollection extends ArrayList<UpdateListener> {
 		Method updateSystemMessages = null;
 		Method onSystemStart = null;
 		Method onSystemStop = null;
+		Method onUpdateRecordsBuffer = null;
 		
 		try {
 			launchMyTracks = UpdateListener.class.getDeclaredMethod("lauchMyTracks", null);

@@ -34,8 +34,6 @@ limitations under the License.
 
   <!-- Common -->
   <string name="license">Licencia</string>
-  <string name="close">Cerrar</string>
-  <string name="edit">Editar</string>
   <string name="save">Guardar</string>
 
   <!-- Placemark labels for start and end of track -->
@@ -129,7 +127,7 @@ limitations under the License.
   -->
 
   <!-- Sensor Type Options -->
-  <string name="no_sensor_option">Ninguna</string>
-  <string name="ant_sensor_option">ANT+ Sensores</string>
-  <string name="ant_bridge_sensor_option">SRM ANT+ Puente</string>
+  <string name="sensor_type_option_none">Ninguna</string>
+  <string name="sensor_type_option_ant">ANT+ Sensores</string>
+  <string name="sensor_type_option_srm_ant_bridge">SRM ANT+ Puente</string>
 </resources>

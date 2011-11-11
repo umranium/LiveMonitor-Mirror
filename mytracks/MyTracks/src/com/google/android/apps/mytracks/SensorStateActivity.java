@@ -130,10 +130,7 @@ public class SensorStateActivity extends Activity {
     timer.cancel();
     timer.purge();
     timer = null;
-    if (tempSensorManager != null) {
-      tempSensorManager.shutdown();
-      tempSensorManager = null;
-    }
+    stopTempSensorManager();
     super.onPause();
   }
 
@@ -187,12 +184,7 @@ public class SensorStateActivity extends Activity {
     }
 
     // Update the sensor state, and sensor data, using the variables.
-    if (currentState == null) {
-      updateSensorState(Sensor.SensorState.NONE);
-    } else {
-      updateSensorState(currentState);
-    }
-    updateSensorData(currentDataSet);
+    updateSensorStateAndData(currentState, currentDataSet);
   }
   
   private void updateFromSysSensorManager()
@@ -205,10 +197,7 @@ public class SensorStateActivity extends Activity {
     
     //  If a temp sensor manager is present, shut it down, 
     //  probably recording just started.
-    if (tempSensorManager != null) {
-      tempSensorManager.shutdown();
-      tempSensorManager = null;
-    }
+    stopTempSensorManager();
 
     // Get sensor details from the service.
     if (service == null) {
@@ -234,12 +223,24 @@ public class SensorStateActivity extends Activity {
     }
 
     // Update the sensor state, and sensor data, using the variables.
-    if (currentState == null) {
-      updateSensorState(Sensor.SensorState.NONE);
-    } else {
-      updateSensorState(currentState);
+    updateSensorStateAndData(currentState, currentDataSet);
+  }
+  
+  /**
+   * Stops the temporary sensor manager, if one exists. 
+   */
+  private void stopTempSensorManager()
+  {
+    if (tempSensorManager != null) {
+      tempSensorManager.shutdown();
+      tempSensorManager = null;
     }
-    updateSensorData(currentDataSet);
+  }
+  
+  private void updateSensorStateAndData(Sensor.SensorState state, Sensor.SensorDataSet dataSet)
+  {
+    updateSensorState(state == null ? Sensor.SensorState.NONE : state);
+    updateSensorData(dataSet);
   }
 
   private void updateSensorState(Sensor.SensorState state) {

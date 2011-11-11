@@ -18,6 +18,7 @@ import au.urremote.bridge.Main;
 import au.urremote.bridge.common.Constants;
 import au.urremote.bridge.service.thread.MonitoringThread;
 import au.urremote.bridge.service.thread.UploaderThread;
+import au.urremote.bridge.service.utils.CustomThreadUncaughtExceptionHandler;
 import au.urremote.bridge.service.utils.ServiceForegroundUtil;
 
 public class LiveMonitorService extends Service {
@@ -33,6 +34,11 @@ public class LiveMonitorService extends Service {
 		@Override
 		public boolean isStarted() {
 			return LiveMonitorService.this.foregroundUtil.isForeground();
+		}
+		
+		@Override
+		public int getPendingUploadCount() {
+			return samplingQueue.getPendingFilledInstances();
 		}
 		
 		@Override
@@ -145,7 +151,7 @@ public class LiveMonitorService extends Service {
 				}
 			});
 			
-		};
+		}
 
 	};
 	
@@ -179,7 +185,7 @@ public class LiveMonitorService extends Service {
 			uploaderThread.begin();
 			isRecording = true;
 			startService();
-			serviceMsgHandler.onSystemMessage("********** Recording Started. **********");
+			serviceMsgHandler.onSystemMessage("***** Recording Started. *****");
 		} catch (Exception e) {
 			serviceMsgHandler.onSystemMessage("Error:"+e.getMessage());
 			throw e;
@@ -198,7 +204,7 @@ public class LiveMonitorService extends Service {
 		uploaderThread.quit();
 		isRecording = false;
 		
-		serviceMsgHandler.onSystemMessage("********** Recording Stopped. **********");
+		serviceMsgHandler.onSystemMessage("***** Recording Stopped. *****");
 		
 		if (isUiActive)
 			stopService();
@@ -222,6 +228,8 @@ public class LiveMonitorService extends Service {
 	public void onCreate() {
 		super.onCreate();
 		Log.d(Constants.TAG, this.getClass().getSimpleName()+":onCreate()");
+		
+		CustomThreadUncaughtExceptionHandler.setInterceptHandler(Thread.currentThread());
 		
 		this.mainThreadHandler = new Handler(Looper.getMainLooper());
 		this.vibrator = (Vibrator)this.getSystemService(Context.VIBRATOR_SERVICE); 

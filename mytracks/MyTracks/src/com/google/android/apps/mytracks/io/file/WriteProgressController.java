@@ -70,13 +70,18 @@ class WriteProgressController {
   public void setOnCompletionListener(OnCompletionListener onCompletionListener) {
     this.onCompletionListener = onCompletionListener;
   }
+  
+  // For testing purpose
+  OnCompletionListener getOnCompletionListener() {
+    return onCompletionListener;
+  }
 
   public ProgressDialog createProgressDialog() {
     dialog = new ProgressDialog(activity);
     dialog.setIcon(android.R.drawable.ic_dialog_info);
     dialog.setTitle(activity.getString(R.string.progress_title));
     dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-    dialog.setMessage(activity.getString(R.string.write_progress_message));
+    dialog.setMessage(activity.getString(R.string.progress_message_export));
     dialog.setIndeterminate(true);
     dialog.setOnCancelListener(dialogCancelListener);
     return dialog;

@@ -9,11 +9,11 @@
     <LinearLayout android:scrollbarAlwaysDrawVerticalTrack="true" android:layout_height="wrap_content" android:layout_marginLeft="10px" android:scrollbars="vertical" android:layout_width="fill_parent" android:id="@+id/layout_content" android:orientation="vertical" android:layout_below="@+id/layout_button_container" android:layout_marginRight="10px">
         <RelativeLayout android:id="@+id/layout_accountsettings" android:layout_height="wrap_content" android:layout_width="fill_parent">
             <TextView android:layout_width="wrap_content" android:layout_centerVertical="true" android:textSize="20dp" android:layout_alignParentLeft="true" android:text="Account Settings" android:layout_height="wrap_content" android:id="@+id/lbl_account_settings"></TextView>
-            <Button android:layout_alignParentRight="true" android:layout_width="wrap_content" android:text="Edit" android:layout_centerVertical="true" android:layout_height="wrap_content" android:id="@+id/btn_edit_account_settings"></Button>
+            <Button android:layout_alignParentRight="true" android:text="Edit" android:layout_centerVertical="true" android:layout_height="wrap_content" android:id="@+id/btn_edit_account_settings" android:layout_width="80dp"></Button>
         </RelativeLayout>
         <RelativeLayout android:id="@+id/layout_settings" android:layout_height="wrap_content" android:layout_width="fill_parent">
             <TextView android:layout_width="wrap_content" android:layout_centerVertical="true" android:textSize="20dp" android:layout_alignParentLeft="true" android:text="Activity Settings" android:layout_height="wrap_content" android:id="@+id/lbl_activity_settings"></TextView>
-            <Button android:layout_alignParentRight="true" android:layout_width="wrap_content" android:text="Edit" android:layout_centerVertical="true" android:layout_height="wrap_content" android:id="@+id/btn_edit_activity_settings"></Button>
+            <Button android:layout_alignParentRight="true" android:text="Edit" android:layout_centerVertical="true" android:layout_height="wrap_content" android:id="@+id/btn_edit_activity_settings" android:layout_width="80dp"></Button>
         </RelativeLayout>
     </LinearLayout>
     <!--
@@ -26,12 +26,18 @@
         <ListView android:stackFromBottom="false" android:transcriptMode="alwaysScroll" android:layout_width="fill_parent" android:id="@+id/lst_status_uploader" android:layout_height="50dp"></ListView>
     </LinearLayout>
      -->
-    <LinearLayout android:layout_marginLeft="10dp" android:layout_marginRight="10dp" android:layout_marginBottom="10dp" android:layout_marginTop="10dp" android:gravity="fill_horizontal|clip_vertical" android:layout_width="fill_parent" android:id="@+id/layout_status_container" android:orientation="vertical" android:layout_alignParentBottom="true" android:layout_height="100px" android:layout_below="@+id/layout_content">
+    <LinearLayout android:layout_marginLeft="10dp" android:layout_marginRight="10dp" android:layout_marginBottom="10dp" android:layout_marginTop="10dp" android:gravity="fill_horizontal|clip_vertical" android:layout_width="fill_parent" android:id="@+id/layout_status_container" android:layout_alignParentBottom="true" android:layout_height="100px" android:layout_below="@+id/layout_content" android:orientation="vertical">
         <RelativeLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:id="@+id/lst_status_top_bar">
             <TextView android:textStyle="bold" android:textSize="15dp" android:text="Status : " android:id="@+id/lbl_status" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_alignParentLeft="true" android:layout_centerVertical="true"></TextView>
             <CheckBox android:layout_height="wrap_content" android:layout_width="wrap_content" android:layout_alignParentRight="true" android:id="@+id/chk_status_autoscroll" android:layout_centerVertical="true" android:checked="true"></CheckBox>
             <TextView android:layout_height="wrap_content" android:textSize="15dp" android:layout_width="wrap_content" android:id="@+id/lbl_status_autoscroll" android:layout_centerVertical="true" android:layout_toLeftOf="@+id/chk_status_autoscroll" android:layout_marginRight="10px" android:text="Autoscroll" android:focusable="false" android:focusableInTouchMode="false"></TextView>
+
         </RelativeLayout>
+        <LinearLayout
+            android:id="@+id/layout_devel_warning"
+            android:layout_height="wrap_content" android:layout_width="fill_parent" android:orientation="vertical" android:background="#008000">
+            <TextView android:layout_height="wrap_content" android:id="@+id/txt_devel_warning" android:text="Application in Development Mode" android:textColor="#FF0000" android:textStyle="bold" android:layout_width="wrap_content" android:layout_gravity="center"></TextView>
+        </LinearLayout>
         <ListView android:id="@+id/lst_status" android:transcriptMode="alwaysScroll" android:layout_width="fill_parent" android:stackFromBottom="false" android:layout_height="fill_parent"></ListView>
     </LinearLayout>
     

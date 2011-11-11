@@ -8,6 +8,8 @@ public class Constants {
 	
 	public static final String TAG = "livemonitor";
 	
+	public static final boolean IS_TESTING = false;
+	
 	public static final long MONITORING_INTERVAL = 1000L;
 	
 	public static final int MINIMUM_RECORDING_DISTANCE = 5;
@@ -22,7 +24,7 @@ public class Constants {
 	 */
 	public static final long LOCATION_MAX_UPDATE_INTERVAL = 60*1000L;
 	
-	public static final int SAMPLING_QUEUE_SIZE = 60*60; // at 1Hz, this means the queue can store for up to 1 hr
+	public static final int SAMPLING_QUEUE_SIZE = 5*60*60; // at 1Hz, this means the queue can store for up to 5 hrs
 
 	public static final int FOREGROUND_NOTIFICATION_ID = 1;
 	

@@ -12,9 +12,12 @@ public class CustomThreadUncaughtExceptionHandler implements
 			new CustomThreadUncaughtExceptionHandler(null);
 	
 	public static void setInterceptHandler(Thread thread) {
-		CustomThreadUncaughtExceptionHandler handler = 
-				new CustomThreadUncaughtExceptionHandler(thread.getUncaughtExceptionHandler());
-		thread.setUncaughtExceptionHandler(handler);
+		UncaughtExceptionHandler prevHandler = thread.getUncaughtExceptionHandler();
+		
+		if (!(prevHandler instanceof CustomThreadUncaughtExceptionHandler)) {
+			CustomThreadUncaughtExceptionHandler handler = new CustomThreadUncaughtExceptionHandler(prevHandler);
+			thread.setUncaughtExceptionHandler(handler);
+		}
 	}
 
 	

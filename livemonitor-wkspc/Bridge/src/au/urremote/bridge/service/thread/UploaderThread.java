@@ -16,6 +16,7 @@ import au.urremote.bridge.mapmymaps.MapMyMapsException;
 import au.urremote.bridge.service.InternalServiceMessageHandler;
 import au.urremote.bridge.service.Sample;
 import au.urremote.bridge.service.SamplingQueue;
+import au.urremote.bridge.service.utils.CustomThreadUncaughtExceptionHandler;
 
 import com.google.android.apps.mytracks.content.Sensor.SensorDataSet;
 
@@ -86,6 +87,8 @@ public class UploaderThread {
 		
 		@Override
 		public void run() {
+			CustomThreadUncaughtExceptionHandler.setInterceptHandler(Thread.currentThread());
+			
 			SharedPreferences state = context.getSharedPreferences(
 					Constants.SHARE_PREF, Context.MODE_PRIVATE);
 			this.mapMyTracksInterfaceApi = new MapMyTracksInterfaceApi(
@@ -94,7 +97,7 @@ public class UploaderThread {
 					);
 			
 			isRunning = true;
-			Sample sample = null;
+//			Sample sample = null;
 			try {
 				grabData(INITIAL_DATA_WAIT, pointsToUpload, sensorDataToUpload);
 				Log.d(Constants.TAG, "UploaderThread: filled sample received");
@@ -168,13 +171,13 @@ public class UploaderThread {
 				Log.e(Constants.TAG, "MapMyTracks Service Error", e);
 				serviceMsgHandler.onCriticalError("MapMyTracks:"+e.getMessage());
 			} finally {
-				if (sample!=null) {
-					try {
-						samplingQueue.returnEmptyInstance(sample);
-					} catch (InterruptedException e) {
-						Log.e(Constants.TAG, "Error", e);
-					}
-				}
+//				if (sample!=null) {
+//					try {
+//						samplingQueue.returnEmptyInstance(sample);
+//					} catch (InterruptedException e) {
+//						Log.e(Constants.TAG, "Error", e);
+//					}
+//				}
 			}
 			
 			if (isRunning) {
@@ -192,7 +195,7 @@ public class UploaderThread {
 				}
 			}
 			
-			while (samplingQueue.getFilledSize()>0) {
+			while (samplingQueue.getPendingFilledInstances()>0) {
 				try {
 					samplingQueue.returnEmptyInstance(samplingQueue.takeFilledInstance());
 				} catch (InterruptedException e) {
@@ -241,6 +244,8 @@ public class UploaderThread {
 		
 		@Override
 		public void run() {
+			CustomThreadUncaughtExceptionHandler.setInterceptHandler(Thread.currentThread());
+			
 			SharedPreferences state = context.getSharedPreferences(
 					Constants.SHARE_PREF, Context.MODE_PRIVATE);
 			this.mapMyTracksInterfaceApi = new MapMyTracksInterfaceApi(
@@ -267,6 +272,8 @@ public class UploaderThread {
 						
 						Location lp = pointsToUpload.get(pointsToUpload.size()-1);
 						
+						Log.d(Constants.TAG, "Helper Index: "+helperIndex+": Uploading "+lp.getTime());
+						
 						msgBuilder.append("Uploaded: "+timestampToDate(lp.getTime()));
 						if (!sensorDataToUpload.isEmpty()) {
 							SensorDataSet sd = sensorDataToUpload.get(0); 
@@ -286,6 +293,9 @@ public class UploaderThread {
 						pointsToUpload.clear();
 						sensorDataToUpload.clear();
 						previousWasIOException = false;
+					} catch (MapMyMapsException e) {
+						Log.e(Constants.TAG, "Helper "+helperIndex+": MapMyTracks Service Error", e);
+						serviceMsgHandler.onSystemMessage("MapMyTracks-API:"+e.getMessage());
 					} catch (IOException e) {
 						if (!previousWasIOException) {
 							Log.e(Constants.TAG, "Helper "+helperIndex+": Error Connecting To Server", e);
@@ -300,13 +310,8 @@ public class UploaderThread {
 						} catch (InterruptedException ex) {
 						}
 					}
-					
-					
 				} catch (InterruptedException e) {
 					// ignored
-				} catch (MapMyMapsException e) {
-					Log.e(Constants.TAG, "Helper "+helperIndex+": MapMyTracks Service Error", e);
-					serviceMsgHandler.onCriticalError("MapMyTracks:"+e.getMessage());
 				}
 			}
 			

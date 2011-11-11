@@ -10,6 +10,11 @@ public interface ILiveMonitorBinder extends IBinder {
 	public void stopService();
 	
 	public void setUiActive(boolean visible);
+	
+	/**
+	 * @return The number of records that are pending upload.
+	 */
+	public int getPendingUploadCount();
 
 	public boolean isRecording();
 	public void startRecording() throws Exception;

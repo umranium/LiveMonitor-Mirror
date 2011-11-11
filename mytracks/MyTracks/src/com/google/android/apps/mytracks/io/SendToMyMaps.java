@@ -16,6 +16,7 @@
 package com.google.android.apps.mytracks.io;
 
 import static com.google.android.apps.mytracks.Constants.TAG;
+
 import com.google.android.apps.mytracks.Constants;
 import com.google.android.apps.mytracks.ProgressIndicator;
 import com.google.android.apps.mytracks.content.MyTracksProviderUtils;
@@ -97,7 +98,7 @@ public class SendToMyMaps implements Runnable {
   }
 
   private void doUpload() {
-    int statusMessageId = R.string.error_sending_to_mymap;
+    int statusMessageId = R.string.error_sending_to_my_maps;
     boolean success = true;
     try {
       progressIndicator.setProgressMessage(
@@ -173,8 +174,8 @@ public class SendToMyMaps implements Runnable {
 
       if (success) {
         statusMessageId = isNewMap
-            ? R.string.status_new_mymap_has_been_created
-            : R.string.status_tracks_have_been_uploaded;
+            ? R.string.sending_to_my_maps_success_new_map
+            : R.string.sending_to_my_maps_success_existing_map;
       }
       Log.d(TAG, "SendToMyMaps: Done: " + success);
       progressIndicator.setProgressValue(100);
@@ -325,12 +326,12 @@ public class SendToMyMaps implements Runnable {
 
     // Start uploading them
     progressIndicator.setProgressMessage(
-        R.string.progress_message_sending_mymaps);
+        R.string.progress_message_sending_my_maps);
     for (Track splitTrack : splitTracks) {
       if (totalSegmentsUploaded > 1) {
         splitTrack.setName(splitTrack.getName() + " "
             + String.format(
-                context.getString(R.string.part), totalSegmentsUploaded));
+                context.getString(R.string.track_part_format), totalSegmentsUploaded));
       }
       totalSegmentsUploaded++;
       Log.d(TAG,
@@ -357,7 +358,7 @@ public class SendToMyMaps implements Runnable {
    * Prepares a buffer of locations for transmission to google maps.
    *
    * @param track the original track with meta data
-   * @param buffer a buffer of locations on the track
+   * @param locations a buffer of locations on the track
    * @return an array of tracks each with a sub section of the points in the
    *         original buffer
    */

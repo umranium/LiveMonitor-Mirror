@@ -46,14 +46,6 @@ public abstract class TwoWayBlockingQueue<InstanceType> {
 		return this.filledInstances.size()+this.emptyInstances.size();
 	}
 	
-	public int getFilledSize() {
-		return this.filledInstances.size();
-	}
-	
-	public int getEmptySize() {
-		return this.emptyInstances.size();
-	}
-	
 	public InstanceType takeEmptyInstance() throws InterruptedException {
 		InstanceType instance = emptyInstances.poll(POLLING_TIMEOUT, TimeUnit.MILLISECONDS);
 		if (instance==null)

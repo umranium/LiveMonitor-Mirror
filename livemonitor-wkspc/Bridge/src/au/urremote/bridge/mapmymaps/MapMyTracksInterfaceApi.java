@@ -25,6 +25,7 @@ import org.apache.http.params.HttpParams;
 
 import android.location.Location;
 import android.util.Log;
+import au.urremote.bridge.common.Constants;
 
 import com.google.android.apps.mytracks.content.Sensor.SensorDataSet;
 
@@ -40,7 +41,7 @@ public class MapMyTracksInterfaceApi {
 	
 	public static final String APP_NAME = "get Avocado Activity Classifier";
 	
-	public static final boolean DEBUG = false; 
+	public static final boolean DEBUG = Constants.IS_TESTING; 
 	public static final String TAG = "livemonitor-html";
 	
 	private Pattern SERVER_TIME_PAT = Pattern.compile("<server_time>\\s*(\\d+)\\s*</server_time>");
