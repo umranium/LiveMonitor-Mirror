@@ -210,7 +210,7 @@ public class ChartView extends View {
                              R.color.elevation_border,
                              new ZoomSettings(MAX_INTERVALS,
                                  new int[] {5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000}),
-                             R.string.elevation);
+                             R.string.elevation_label);
 
     series[SPEED_SERIES] =
         new ChartValueSeries(context,
@@ -832,8 +832,8 @@ public class ChartView extends View {
     canvas.drawLine(leftBorder, y, rightEdge, y, borderPaint);
     Context c = getContext();
     String s = mode == Mode.BY_DISTANCE
-        ? (metricUnits ? c.getString(R.string.kilometer) : c.getString(R.string.mile))
-        : c.getString(R.string.min);
+        ? (metricUnits ? c.getString(R.string.unit_kilometer) : c.getString(R.string.unit_mile))
+        : c.getString(R.string.unit_minute);
     canvas.drawText(s, rightEdge, effectiveHeight + .2f * UNIT_BORDER + topBorder, labelPaint);
   }
 
@@ -852,7 +852,7 @@ public class ChartView extends View {
 
     Context c = getContext();
     // TODO: This should really show units for all series.
-    String s = metricUnits ? c.getString(R.string.meter) : c.getString(R.string.feet);
+    String s = metricUnits ? c.getString(R.string.unit_meter) : c.getString(R.string.unit_feet);
     canvas.drawText(s, leftBorder - UNIT_BORDER * .2f, UNIT_BORDER * .8f + topBorder, labelPaint);
   }
 

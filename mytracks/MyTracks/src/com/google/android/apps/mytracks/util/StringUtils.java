@@ -221,34 +221,6 @@ public class StringUtils implements DescriptionGenerator {
     this.context = context;
   }
 
-  public String formatTimeLong(long time) {
-    int[] parts = getTimeParts(time);
-    String secLabel =
-        context.getString(parts[0] == 1 ? R.string.second : R.string.seconds);
-    String minLabel =
-        context.getString(parts[1] == 1 ? R.string.minute : R.string.minutes);
-    String hourLabel =
-        context.getString(parts[2] == 1 ? R.string.hour : R.string.hours);
-
-    StringBuilder sb = new StringBuilder();
-    if (parts[2] != 0) {
-      sb.append(parts[2]);
-      sb.append(" ");
-      sb.append(hourLabel);
-      sb.append(" ");
-      sb.append(parts[1]);
-      sb.append(minLabel);
-    } else {
-      sb.append(parts[1]);
-      sb.append(" ");
-      sb.append(minLabel);
-      sb.append(" ");
-      sb.append(parts[0]);
-      sb.append(secLabel);
-    }
-    return sb.toString();
-  }
-
   /**
    * Generates a description for a track (with information about the
    * statistics).
@@ -331,12 +303,12 @@ public class StringUtils implements DescriptionGenerator {
         + "<img border=\"0\" src=\"%s\"/>",
 
         // Line 1
-        context.getString(R.string.send_to_google_by_mytracks),
+        getCreatedByMyTracks(context, true),
 
         // Line 2
         context.getString(R.string.total_distance_label),
-        distanceInKm, context.getString(R.string.kilometer),
-        distanceInMiles, context.getString(R.string.mile),
+        distanceInKm, context.getString(R.string.unit_kilometer),
+        distanceInMiles, context.getString(R.string.unit_mile),
 
         // Line 3
         context.getString(R.string.total_time_label),
@@ -351,18 +323,18 @@ public class StringUtils implements DescriptionGenerator {
 
         // Line 6
         context.getString(R.string.min_elevation_label),
-        minElevationInMeters, context.getString(R.string.meter),
-        minElevationInFeet, context.getString(R.string.feet),
+        minElevationInMeters, context.getString(R.string.unit_meter),
+        minElevationInFeet, context.getString(R.string.unit_feet),
 
         // Line 7
         context.getString(R.string.max_elevation_label),
-        maxElevationInMeters, context.getString(R.string.meter),
-        maxElevationInFeet, context.getString(R.string.feet),
+        maxElevationInMeters, context.getString(R.string.unit_meter),
+        maxElevationInFeet, context.getString(R.string.unit_feet),
 
         // Line 8
         context.getString(R.string.elevation_gain_label),
-        elevationGainInMeters, context.getString(R.string.meter),
-        elevationGainInFeet, context.getString(R.string.feet),
+        elevationGainInMeters, context.getString(R.string.unit_meter),
+        elevationGainInFeet, context.getString(R.string.unit_feet),
 
         // Line 9
         context.getString(R.string.max_grade_label), maxGrade,
@@ -381,6 +353,22 @@ public class StringUtils implements DescriptionGenerator {
         ChartURLGenerator.getChartUrl(distances, elevations, track, context));
   }
 
+  /**
+   * Returns the 'Created by My Tracks on Android' string.
+   * 
+   * @param context the context
+   * @param addLink true to add a link to the My Tracks web site
+   */
+  public static String getCreatedByMyTracks(Context context, boolean addLink) {
+    String format = context.getString(R.string.send_google_by_my_tracks);
+    if (addLink) {
+      String url = context.getString(R.string.my_tracks_web_url);
+      return String.format(format, "<a href='http://" + url + "'>", "</a>");
+    } else {
+      return String.format(format, "", "");
+    }
+  }
+  
   private String getSpeedString(double speed, int speedLabel, int paceLabel,
       boolean displaySpeed) {
     double speedInKph = speed * 3.6;
@@ -462,10 +450,10 @@ public class StringUtils implements DescriptionGenerator {
         + "%s: %d %s (%d %s)\n"
         + "%s: %d %s\n"
         + "%s: %d %s\n",
-        context.getString(R.string.distance_label),
-            distanceInKm, context.getString(R.string.kilometer),
-            distanceInMiles, context.getString(R.string.mile),
-        context.getString(R.string.time_label),
+        context.getString(R.string.total_distance_label),
+            distanceInKm, context.getString(R.string.unit_kilometer),
+            distanceInMiles, context.getString(R.string.unit_mile),
+        context.getString(R.string.total_time_label),
             StringUtils.formatTime(stats.getTotalTime()),
         context.getString(R.string.moving_time_label),
             StringUtils.formatTime(stats.getMovingTime()),
@@ -479,14 +467,14 @@ public class StringUtils implements DescriptionGenerator {
             maxSpeedInKmh, context.getString(R.string.kilometer_per_hour),
             maxSpeedInMph, context.getString(R.string.mile_per_hour),
         context.getString(R.string.min_elevation_label),
-            minElevationInMeters, context.getString(R.string.meter),
-            minElevationInFeet, context.getString(R.string.feet),
+            minElevationInMeters, context.getString(R.string.unit_meter),
+            minElevationInFeet, context.getString(R.string.unit_feet),
         context.getString(R.string.max_elevation_label),
-            maxElevationInMeters, context.getString(R.string.meter),
-            maxElevationInFeet, context.getString(R.string.feet),
+            maxElevationInMeters, context.getString(R.string.unit_meter),
+            maxElevationInFeet, context.getString(R.string.unit_feet),
         context.getString(R.string.elevation_gain_label),
-            elevationGainInMeters, context.getString(R.string.meter),
-            elevationGainInFeet, context.getString(R.string.feet),
+            elevationGainInMeters, context.getString(R.string.unit_meter),
+            elevationGainInFeet, context.getString(R.string.unit_feet),
         context.getString(R.string.max_grade_label),
             theMaxGrade, percent,
         context.getString(R.string.min_grade_label),

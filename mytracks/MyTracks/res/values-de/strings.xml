@@ -41,7 +41,7 @@ limitations under the License.
   <string name="error_unable_to_stop_recording">Anhalten unmöglich. Bitte versuche es noch einmal.</string>
   <string name="error_import_unable_to_read_file">Konnte Datei nicht lesen.</string>
   <string name="error_import_invalid_gpx_format">Datei ist nicht im GPX-Format.</string>
-  <string name="error_generic">Ein Fehler ist aufgetreten. Bitte versuche es noch einmal.</string>
+  <string name="error_sending_to_google">Ein Fehler ist aufgetreten. Bitte versuche es noch einmal.</string>
   <string name="error_export_track_does_not_exist">Track existiert nicht.</string>
   <string name="error_import_out_of_memory">Die Datei ist zu groß (maximal 500 KB). Operation abgebrochen.</string>
   <string name="error_unable_to_insert_marker">Der Wegpunkt kann nicht einfügt werden. Keine Positionsbestimmung möglich.</string>
@@ -50,10 +50,6 @@ limitations under the License.
   <string name="status_wait_for_gps_fix">Warte auf ein besseres GPS-Signal. Bitte stelle sicher, dass der Himmel sichtbar ist.</string>
   <string name="status_now_recording">Ein neuer Track wird aufgezeichnet.</string>
   <string name="status_stopped_recording">Die Aufzeichnung wurde angehalten.</string>
-  <string name="sending_to_fusion_tables_success">Eine neue Tabelle wurde auf google.com/fusiontables erstellt.</string>
-  <string name="sending_to_my_maps_success_existing_map">Dein Track wurde auf maps.google.com gespeichert.</string>
-  <string name="sending_to_docs_success_new_doc">Dein Track wurde in einer neuen Tabelle bei docs.google.com gespeichert.</string>
-  <string name="sending_to_docs_success_existing_doc">Dein Track wurde an docs.google.com gesendet.</string>
   <string name="status_need_to_enable_gps">Hier berühren, um zu den Sicherheits- und Positionseinstellungen zu gelangen. Aktiviere \'GPS-Satelliten\'. Drücke dann den Zurück-Knopf, um hierher zurückzukehren.</string>
   <string name="status_approximate_current_location">Anmerkung: Eine ungefähre Position wird angezeigt, bestimmt mittels Mobilfunkstationen und WiFi-Netzwerken.</string>
   <string name="status_no_current_location">Die Position kann derzeit nicht bestimmt werden. Aktiviere mehr Positionsquellen (siehe Sicherheits- und Positionseinstellungen) und stelle sicher, dass der Himmel sichtbar ist.</string>
@@ -82,8 +78,7 @@ limitations under the License.
 
   <!-- Text and links when uploading to Google Fusion Tables -->
   <string name="new_map_description">Erstellt von My Tracks für Android.</string>
-  <string name="send_to_google_by_mytracks">Erstellt von &lt;a href=\'http://mytracks.appspot.com\'&gt;My Tracks&lt;/a&gt; für Android.</string>
-
+  
   <!-- Formatting of track and marker descriptions -->
   <string name="points">Punkte</string>
   <string name="recorded_date">Aufgezeichnet am</string>
@@ -168,12 +163,12 @@ limitations under the License.
   <string name="waypointdetails_category_hint">Art des Wegpunktes</string>
 
   <!-- MyTracks Settings -->
-  <string name="mytracks_settings">Einstellungen für My Tracks</string>
+  <string name="settings_title">Einstellungen für My Tracks</string>
   <string name="settings_display">Anzeige</string>
   <string name="settings_recording">Aufzeichnung</string>
   <string name="settings_sharing">Mit Freunden teilen</string>
 
-  <string name="settings_not_available_summary">In dieser Android-Version nicht verfügbar</string>
+  <string name="settings_announcement_frequency_not_available">In dieser Android-Version nicht verfügbar</string>
 
   <string name="settings_announcement_frequency">Dauer zwischen Ansagen</string>
   <string name="settings_announcement_frequency_summary">Kürzeste Zeit zwischen zwei Ansagen</string>
@@ -249,16 +244,16 @@ limitations under the License.
   <string name="mytracks_sky">GPS-Satelliten</string>
 
   <!-- Sharing -->
-  <string name="share_map">Karte mit Freunden teilen</string>
+  <string name="share_track_picker_title">Karte mit Freunden teilen</string>
   <string name="share_map_subject">Ich möchte gerne eine Karte mit Dir teilen.</string>
-  <string name="share_map_body_format">Vielleicht interessierst Du Dich für diese Karte:
+  <string name="share_track_url_body_format">Vielleicht interessierst Du Dich für diese Karte:
 
       %s</string>
-  <string name="send_track_subject">Ich möchte einen GPS-Track mit Dir teilen</string>
-  <string name="send_track_body_format">Vielleicht interessierst Du Dich für diese Track:
+  <string name="share_track_subject">Ich möchte einen GPS-Track mit Dir teilen</string>
+  <string name="share_track_file_body_format">Vielleicht interessierst Du Dich für diese Track:
 
       Der Track kann mit Google Earth oder anderer Karten-Software visualisiert werden.</string>
-  <string name="share_track">Track mit Freunden teilen</string>
+  <string name="share_track_url">Track mit Freunden teilen</string>
 
   <!-- Visibility -->
   <string name="public_map">Öffentlich</string>
@@ -304,33 +299,33 @@ limitations under the License.
 
   <!-- Units -->
   <!-- Time  -->
-  <string name="hour">Stunde</string>
-  <string name="hours">Stunden</string>
-  <string name="hr">Std</string>
-  <string name="min">Min</string>
-  <string name="minute">Minute</string>
-  <string name="minutes">Minuten</string>
-  <string name="second">Sekunde</string>
-  <string name="seconds">Sekunden</string>
+  <string name="voice_hour">Stunde</string>
+  <string name="voice_hours">Stunden</string>
+  <string name="unit_hour">Std</string>
+  <string name="unit_minute">Min</string>
+  <string name="voice_minute">Minute</string>
+  <string name="voice_minutes">Minuten</string>
+  <string name="voice_second">Sekunde</string>
+  <string name="voice_seconds">Sekunden</string>
   <!--string name="milliseconds">ms</string-->
 
   <!-- Distance -->
-  <!--string name="meter">m</string-->
-  <!--string name="kilometer">km</string-->
-  <string name="kilometers_long">Kilometer</string>
-  <string name="feet">Fuß</string>
-  <!--string name="mile">mi</string-->
-  <string name="miles_long">Meilen</string>
+  <!--string name="unit_meter">m</string-->
+  <!--string name="unit_kilometer">km</string-->
+  <string name="voice_kilometers">Kilometer</string>
+  <string name="unit_feet">Fuß</string>
+  <!--string name="unit_mile">mi</string-->
+  <string name="voice_miles">Meilen</string>
 
   <!-- Speed and Pace -->
   <!--string name="kilometer_per_hour">km/h</string-->
-  <string name="kilometer_per_hour_long">Kilometer pro Stunde</string>
+  <string name="voice_kilometer_per_hour">Kilometer pro Stunde</string>
   <!--string name="min_per_kilometer">min/km</string-->
-  <string name="per_kilometer">pro Kilometer</string>
+  <string name="voice_per_kilometer">pro Kilometer</string>
   <!--string name="mile_per_hour">mi/h</string-->
-  <string name="mile_per_hour_long">Meilen pro Stunde</string>
+  <string name="voice_mile_per_hour">Meilen pro Stunde</string>
   <!--string name="min_per_mile">min/mi</string-->
-  <string name="per_mile">pro Meile</string>
+  <string name="voice_per_mile">pro Meile</string>
 
   <!-- Sensors -->
   <!--string name="watts">W</string-->
@@ -424,7 +419,7 @@ limitations under the License.
   <string name="bluetooth_pairing">Geräteverbindung</string>
   <string name="bluetooth_pairing_summary">Öffnet Androids Bluetooth-Einstellungen, um Geräte zu verbinden.</string>
   <!--string name="sensor_bluetooth_options_key">bluetoothSensorsEnabled</string-->
-  <string name="sensor_options">Sensor-Einstellungen</string>
+  <string name="settings_sensor">Sensor-Einstellungen</string>
 
   <!-- Bluetooth Sensor -->
   <string name="bluetooth_connected">Verbunden mit %s</string>

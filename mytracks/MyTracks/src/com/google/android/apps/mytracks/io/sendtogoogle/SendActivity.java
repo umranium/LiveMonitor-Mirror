@@ -429,9 +429,9 @@ public class SendActivity extends Activity implements ProgressIndicator {
 
     SendToMyMaps.OnSendCompletedListener onCompletion = new SendToMyMaps.OnSendCompletedListener() {
       @Override
-      public void onSendCompleted(String mapId, boolean success, int statusMessage) {
+      public void onSendCompleted(String mapId, boolean success, String statusMessage) {
         // TODO: Use this message
-        sendToMyMapsMessage = getString(statusMessage);
+        sendToMyMapsMessage = statusMessage;
         sendToMyMapsSuccess = success;
         if (sendToMyMapsSuccess) {
           sendToMyMapsMapId = mapId;
@@ -491,10 +491,9 @@ public class SendActivity extends Activity implements ProgressIndicator {
 
     OnSendCompletedListener onCompletion = new OnSendCompletedListener() {
       @Override
-      public void onSendCompleted(String tableId, boolean success,
-          int statusMessage) {
+      public void onSendCompleted(String tableId, boolean success, String statusMessage) {
         // TODO: Use this message
-        sendToFusionTablesMessage = getString(statusMessage);
+        sendToFusionTablesMessage = statusMessage;
         sendToFusionTablesSuccess = success;
         if (sendToFusionTablesSuccess) {
           sendToFusionTablesTableId = tableId;
@@ -692,15 +691,15 @@ public class SendActivity extends Activity implements ProgressIndicator {
     boolean shareUrlOnly = sharedPreferences.getBoolean(
         getString(R.string.share_url_only_key), false);
     String msg = shareUrlOnly ? url : String.format(
-        getResources().getText(R.string.share_map_body_format).toString(), url);
+        getResources().getText(R.string.share_track_url_body_format).toString(), url);
 
     Intent shareIntent = new Intent(Intent.ACTION_SEND);
     shareIntent.setType("text/plain");
     shareIntent.putExtra(Intent.EXTRA_SUBJECT,
-        getResources().getText(R.string.share_map_subject).toString());
+        getResources().getText(R.string.share_track_subject).toString());
     shareIntent.putExtra(Intent.EXTRA_TEXT, msg);
     startActivity(Intent.createChooser(shareIntent,
-        getResources().getText(R.string.share_map).toString()));
+        getResources().getText(R.string.share_track_picker_title).toString()));
   }
 
   protected String getFusionTablesUrl(long trackId) {

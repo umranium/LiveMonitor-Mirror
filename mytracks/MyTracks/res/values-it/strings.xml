@@ -48,10 +48,6 @@ limitations under the License.
   <string name="status_wait_for_gps_fix">Sto aspettando il fix del GPS. Accertati che il cielo sia visibile.</string>
   <string name="status_now_recording">Sto registrando un nuovo percorso.</string>
   <string name="status_stopped_recording">Registrazione del percorso terminata.</string>
-  <!-- <string name="sending_to_fusion_tables_success">Una nuova mappa è stata creata in «Le mie mappe» su maps.google.com.</string> -->
-  <string name="sending_to_my_maps_success_existing_map">Il tuo percorso è stato inviato a maps.google.com.</string>
-  <string name="sending_to_docs_success_new_doc">Il tuo percorso è stato inviato ad un nuovo foglio di calcolo su docs.google.com.</string>
-  <string name="sending_to_docs_success_existing_doc">Il tuo percorso è stato inviato a docs.google.com.</string>
   <string name="status_need_to_enable_gps">Premi qui per andare a «Impostazioni di posizione e protezione» e attiva «Utilizza satelliti GPS». Poi premi il tasto di ritorno per tornare qui.</string>
   <string name="status_approximate_current_location">Nota: la posizione indicata è un\'approssimazione determinata in base alle antenne cellulari e reti WIFI vicine.</string>
   <string name="status_no_current_location">La posizione non può essere determinata. Attiva più fonti di posizione (vedi «Impostazioni di posizione e protezione») e eccertati che il cielo sia visibile. Riprova più tardi.</string>
@@ -80,8 +76,7 @@ limitations under the License.
 
   <!-- Text and links when uploading to Google My Maps -->
   <string name="new_map_description">Creato da My Tracks su Android.</string>
-  <string name="send_to_google_by_mytracks">Creato da &lt;a href=\'http://mytracks.appspot.com\'&gt;My Tracks&lt;/a&gt; su Android.</string>
-
+ 
   <!-- Formatting of track and marker descriptions -->
   <string name="points">Punti</string>
   <string name="recorded_date">Registrato</string>
@@ -161,7 +156,7 @@ limitations under the License.
   <string name="waypointdetails_category_hint">Tipo di segnaposto</string>
 
   <!-- MyTracks Settings -->
-  <string name="mytracks_settings">Impostazioni di My Tracks</string>
+  <string name="settings_title">Impostazioni di My Tracks</string>
   <string name="settings_display">Visualizzazione</string>
   <string name="settings_recording">Registrazione</string>
   <string name="settings_sharing">Condivisione</string>
@@ -206,14 +201,14 @@ limitations under the License.
 
   <!-- Sharing -->
   <string name="share_map_subject">Vorrei condividere una mappa con te</string>
-  <string name="share_map_body_format">Credo che questa mappa potrebbe interessarti:
+  <string name="share_track_url_body_format">Credo che questa mappa potrebbe interessarti:
 
       %s</string>
-  <string name="send_track_subject">Vorrei condividere un percorso con te</string>
-  <string name="send_track_body_format">Credo che questo percorso potrebbe interessarti.
+  <string name="share_track_subject">Vorrei condividere un percorso con te</string>
+  <string name="share_track_file_body_format">Credo che questo percorso potrebbe interessarti.
 
     Per vedere questo percorso, usa Google Earth o un altro software di cartografia.</string>
-  <string name="share_track">Condividi il percorso con amici</string>
+  <string name="share_track_url">Condividi il percorso con amici</string>
 
   <!-- Visibility -->
   <string name="public_map">Pubblica</string>
@@ -259,32 +254,32 @@ limitations under the License.
 
   <!-- Units -->
   <!-- Time  -->
-  <string name="hour">ora</string>
-  <string name="hours">ore</string>
-  <string name="hr">h</string>
-  <string name="min">min</string>
-  <string name="minute">minuto</string>
-  <string name="minutes">minuti</string>
-  <string name="second">secondo</string>
-  <string name="seconds">secondi</string>
+  <string name="voice_hour">ora</string>
+  <string name="voice_hours">ore</string>
+  <string name="unit_hour">h</string>
+  <string name="unit_minute">min</string>
+  <string name="voice_minute">minuto</string>
+  <string name="voice_minutes">minuti</string>
+  <string name="voice_second">secondo</string>
+  <string name="voice_seconds">secondi</string>
 
   <!-- Distance -->
-  <string name="meter">m</string>
-  <string name="kilometer">km</string>
-  <string name="kilometers_long">chilometri</string>
-  <string name="feet">pd</string>
-  <string name="mile">mi</string>
-  <string name="miles_long">miglia</string>
+  <string name="unit_meter">m</string>
+  <string name="unit_kilometer">km</string>
+  <string name="voice_kilometers">chilometri</string>
+  <string name="unit_feet">pd</string>
+  <string name="unit_mile">mi</string>
+  <string name="voice_miles">miglia</string>
 
   <!-- Speed and Pace -->
   <string name="kilometer_per_hour">km/h</string>
-  <string name="kilometer_per_hour_long">chilometri orari</string>
+  <string name="voice_kilometer_per_hour">chilometri orari</string>
   <string name="min_per_kilometer">min/km</string>
-  <string name="per_kilometer">per chilometro</string>
+  <string name="voice_per_kilometer">per chilometro</string>
   <string name="mile_per_hour">mi/h</string>
-  <string name="mile_per_hour_long">miglia orarie</string>
+  <string name="voice_mile_per_hour">miglia orarie</string>
   <string name="min_per_mile">min/mi</string>
-  <string name="per_mile">per miglio</string>
+  <string name="voice_per_mile">per miglio</string>
 
   <!-- Stats Labels -->
   <string name="moving_time_label">Durata in moto</string>

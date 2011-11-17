@@ -49,10 +49,6 @@ limitations under the License.
   <string name="status_wait_for_gps_fix">Väntar på bättre GPS-position. Se till att himlen är synlig.</string>
   <string name="status_now_recording">Spelar nu in ett nytt spår.</string>
   <string name="status_stopped_recording">Stoppade inspelning av ditt spår.</string>
-  <!-- <string name="sending_to_fusion_tables_success">En ny Google Mina Kartor har skapats på maps.google.com.</string> -->
-  <string name="sending_to_my_maps_success_existing_map">Ditt spår har skickats till maps.google.com.</string>
-  <string name="sending_to_docs_success_new_doc">Ditt spår har skickats till ett nytt kalkylblad på docs.google.com.</string>
-  <string name="sending_to_docs_success_existing_doc">Ditt spår har skickats till docs.google.com.</string>
   <string name="status_need_to_enable_gps">Klicka här för att gå till Säkerhet och Platsinställningar och kryssa i \'aktivera gps-satteliter\'. Tryck på tillbakaknappen för att återgå.</string>
   <string name="status_approximate_current_location">OBS: En ungefärlig position som avgörs från mobilmaster och WIFI-nät visas.</string>
   <string name="status_no_current_location">En position kan för närvarande inte fastställas. Aktivera mer platskällor (se Säkerhet och Platsinställningar) och se till att himlen är synlig. Försök igen senare.</string>
@@ -81,7 +77,6 @@ limitations under the License.
 
   <!-- Text and links when uploading to Google My Maps -->
   <string name="new_map_description">Skapad av My Tracks på Android.</string>
-  <string name="send_to_google_by_mytracks">Skapad av &lt;a href=\'http://mytracks.appspot.com\'&gt;My Tracks&lt;/a&gt; på Android.</string>
 
   <!-- Formatting of track and marker descriptions -->
   <string name="points">Punkter</string>
@@ -163,7 +158,7 @@ limitations under the License.
   <string name="waypointdetails_category_hint">Markörtyp</string>
 
   <!-- MyTracks Settings -->
-  <string name="mytracks_settings">My Tracks inställningar</string>
+  <string name="settings_title">My Tracks inställningar</string>
   <string name="settings_display">Visning</string>
   <string name="settings_recording">Inspelning</string>
   <string name="settings_sharing">Delning</string>
@@ -209,14 +204,14 @@ limitations under the License.
 
   <!-- Sharing -->
   <string name="share_map_subject">Jag vill dela en karta med dig</string>
-  <string name="share_map_body_format">Jag tror att du skulle vara intresserad av den här kartan:
+  <string name="share_track_url_body_format">Jag tror att du skulle vara intresserad av den här kartan:
 
       %s</string>
-  <string name="send_track_subject">Jag vill dela ett spår med dig</string>
-  <string name="send_track_body_format">Jag tror att du skulle vara intresserad av det här spåret.
+  <string name="share_track_subject">Jag vill dela ett spår med dig</string>
+  <string name="share_track_file_body_format">Jag tror att du skulle vara intresserad av det här spåret.
 
     För att se det här spåret använd Google Earth eller något annat kartprogram.</string>
-  <string name="share_track">Dela spår med vänner</string>
+  <string name="share_track_url">Dela spår med vänner</string>
 
   <!-- Visibility -->
   <string name="public_map">Publik</string>
@@ -262,32 +257,32 @@ limitations under the License.
 
   <!-- Units -->
   <!-- Time  -->
-  <string name="hour">timme</string>
-  <string name="hours">timmar</string>
-  <string name="hr">tim</string>
-  <string name="min">min</string>
-  <string name="minute">minut</string>
-  <string name="minutes">minuter</string>
-  <string name="second">sekund</string>
-  <string name="seconds">sekunder</string>
+  <string name="voice_hour">timme</string>
+  <string name="voice_hours">timmar</string>
+  <string name="unit_hour">tim</string>
+  <string name="unit_minute">min</string>
+  <string name="voice_minute">minut</string>
+  <string name="voice_minutes">minuter</string>
+  <string name="voice_second">sekund</string>
+  <string name="voice_seconds">sekunder</string>
 
   <!-- Distance -->
-  <string name="meter">m</string>
-  <string name="kilometer">km</string>
-  <string name="kilometers_long">kilometer</string>
-  <string name="feet">ft</string>
-  <string name="mile">mi</string>
-  <string name="miles_long">miles</string>
+  <string name="unit_meter">m</string>
+  <string name="unit_kilometer">km</string>
+  <string name="voice_kilometers">kilometer</string>
+  <string name="unit_feet">ft</string>
+  <string name="unit_mile">mi</string>
+  <string name="voice_miles">miles</string>
 
   <!-- Speed and Pace -->
   <string name="kilometer_per_hour">km/h</string>
-  <string name="kilometer_per_hour_long">kilometer i timmen</string>
+  <string name="voice_kilometer_per_hour">kilometer i timmen</string>
   <string name="min_per_kilometer">min/km</string>
-  <string name="per_kilometer">per kilometer</string>
+  <string name="voice_per_kilometer">per kilometer</string>
   <string name="mile_per_hour">mi/h</string>
-  <string name="mile_per_hour_long">miles i timmen</string>
+  <string name="voice_mile_per_hour">miles i timmen</string>
   <string name="min_per_mile">min/mi</string>
-  <string name="per_mile">per mile</string>
+  <string name="voice_per_mile">per mile</string>
 
   <!-- Stats Labels -->
   <string name="moving_time_label">Rörlig tid</string>

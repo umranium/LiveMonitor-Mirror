@@ -43,7 +43,7 @@ limitations under the License.
   <string name="error_unable_to_stop_recording">No se puede detener la grabación. Inténtelo de nuevo.</string>
   <string name="error_import_unable_to_read_file">No pude leer del archivo.</string>
   <string name="error_import_invalid_gpx_format">El archivo no tiene un format GPX válido.</string>
-  <string name="error_generic">A ocurrido un error. Por favor, inténtelo de nuevo.</string>
+  <string name="error_sending_to_google">A ocurrido un error. Por favor, inténtelo de nuevo.</string>
   <string name="error_export_track_does_not_exist">El recorrido no existe.</string>
   <string name="error_export_operation_canceled">La operación fue cancelada.</string>
   <string name="error_import_out_of_memory">El archivo es demasiado grande (tiene que ser menor a 500 KB). Abortando.</string>
@@ -53,11 +53,6 @@ limitations under the License.
   <string name="status_wait_for_gps_fix">Esperando una ubicación mas exacta del GPS. Asegúrese que el cielo sea visible.</string>
   <string name="status_now_recording">Grabando un nuevo recorrido.</string>
   <string name="status_stopped_recording">Grabación interrumpida.</string>
-  <string name="sending_to_my_maps_success_new_map">Un nuevo sitio ha sido añadido en maps.google.com.</string>
-  <string name="sending_to_fusion_tables_success">Una nueva tabla de Google Fusion ha sido creada en google.com/fusiontables.</string>
-  <string name="sending_to_my_maps_success_existing_map">Su recorrido ha sido enviado a maps.google.com.</string>
-  <string name="sending_to_docs_success_new_doc">Su recorrido ha sido enviado a una nueva hoja de cálculo de docs.google.com.</string>
-  <string name="sending_to_docs_success_existing_doc">Su recorrido ha sido enviado a docs.google.com.</string>
   <string name="sending_to_google_additional_info">Es posible que pasen unos minutos hasta que los nuevos recorridos aparezcan.</string>
   <string name="status_need_to_enable_gps">Por favor, presione aquí para ir al menú de Seguridad y Ubicación, y asegúrese que el GPS esté habilitado. Presione el botón "atrás" para regresar.</string>
   <string name="status_approximate_current_location">Nota: Una ubicación aproximada es determinada a partir de torres de telefonía celular y redes WIFI.</string>
@@ -92,8 +87,7 @@ limitations under the License.
 
   <!-- Text and links when uploading to Google Fusion Tables -->
   <string name="new_map_description">Creado por My Tracks para Android.</string>
-  <string name="send_to_google_by_mytracks">Creado por &lt;a href=\'http://mytracks.appspot.com\'&gt;My Tracks&lt;/a&gt; en Android.</string>
-
+  
   <!-- Text and links when uploading to Google My Maps -->
   <string name="my_map_link">Created by &lt;a href=\'http://mytracks.appspot.com\'&gt;My Tracks&lt;/a&gt; en Android.</string>
   <string name="new_map_title">Nuevo Sitio</string>
@@ -197,12 +191,12 @@ limitations under the License.
   <string name="waypointdetails_category_hint">Tipo de señal</string>
 
   <!-- MyTracks Settings -->
-  <string name="mytracks_settings">Configuraciones de My Tracks</string>
+  <string name="settings_title">Configuraciones de My Tracks</string>
   <string name="settings_display">Visualizador</string>
   <string name="settings_recording">Grabando</string>
   <string name="settings_sharing">Compartiendo</string>
 
-  <string name="settings_not_available_summary">No disponible para tu versión de Android</string>
+  <string name="settings_announcement_frequency_not_available">No disponible para tu versión de Android</string>
   <string name="settings_not_while_recording">No disponible mientras se graba el recorrido</string>
 
   <string name="settings_allow_access">Permitir acceso</string>
@@ -309,7 +303,7 @@ limitations under the License.
   <string name="maps_list_failed">¡No se pudieron cargar sus mapas en este momento!</string>
   <string name="open_map">Seleccionar este mapa</string>
   <string name="edit_map_details">Editar detalles del mapa</string>
-  <string name="share_track">Compartir recorrido</string>
+  <string name="share_track_url">Compartir recorrido</string>
   <string name="delete_map">Borrar mapa de su cuenta</string>
   <string name="map_title">Titulo del mapa:</string>
   <string name="map_description">Descripción del mapa:</string>
@@ -319,13 +313,13 @@ limitations under the License.
   <string name="map_not_searchable">Este mapa y sus contenidos no aparecerán en los resultados de busquedas, aunque pueden ser vistos por otros a traves de su enlace directo</string>
 
   <!-- Sharing -->
-  <string name="share_map">Compartir mapa con amigos</string>
+  <string name="share_track_picker_title">Compartir mapa con amigos</string>
   <string name="share_map_subject">Me gustaría compartir un mapa contigo</string>
-  <string name="share_map_body_format">Creo que este mapa pudiera interesarte:
+  <string name="share_track_url_body_format">Creo que este mapa pudiera interesarte:
   
       %s</string>
-  <string name="send_track_subject">Me gustaría compartir un recorrido contigo</string>
-  <string name="send_track_body_format">Creo que este recorrido pudiera interesarte.
+  <string name="share_track_subject">Me gustaría compartir un recorrido contigo</string>
+  <string name="share_track_file_body_format">Creo que este recorrido pudiera interesarte.
 
     Para ver este recorrido usa Google Earth o algún otro software de mapeo.</string>
 
@@ -373,23 +367,23 @@ limitations under the License.
 
   <!-- Units -->
   <!-- Time  -->
-  <string name="hour">hora</string>
-  <string name="hours">horas</string>
-  <string name="minute">minuto</string>
-  <string name="minutes">minutos</string>
-  <string name="second">segundo</string>
-  <string name="seconds">segundos</string>
+  <string name="voice_hour">hora</string>
+  <string name="voice_hours">horas</string>
+  <string name="voice_minute">minuto</string>
+  <string name="voice_minutes">minutos</string>
+  <string name="voice_second">segundo</string>
+  <string name="voice_seconds">segundos</string>
 
   <!-- Distance -->
-  <string name="kilometers_long">kilómetros</string>
-  <string name="feet">pies</string>
-  <string name="miles_long">millas</string>
+  <string name="voice_kilometers">kilómetros</string>
+  <string name="unit_feet">pies</string>
+  <string name="voice_miles">millas</string>
 
   <!-- Speed and Pace -->
-  <string name="kilometer_per_hour_long">kilómetros por hora</string>
-  <string name="per_kilometer">por kilómetro</string>
-  <string name="mile_per_hour_long">millas por hora</string>
-  <string name="per_mile">por milla</string>
+  <string name="voice_kilometer_per_hour">kilómetros por hora</string>
+  <string name="voice_per_kilometer">por kilómetro</string>
+  <string name="voice_mile_per_hour">millas por hora</string>
+  <string name="voice_per_mile">por milla</string>
 
   <!-- Sensors -->
   <string name="battery_level">Nivel de batería</string>
@@ -480,7 +474,7 @@ limitations under the License.
   <string name="bluetooth_pairing_summary">Abrir la configuración Bluetooth de Android para conectar un dispositivo</string>
   <string name="sensor_bluetooth_options_key">Sensor Bluetooth activado</string>
   <string name="ant_options">Optiones ANT</string>
-  <string name="sensor_options">Opciones del sensor</string>
+  <string name="settings_sensor">Opciones del sensor</string>
   <string name="track_color_mode">Modo de Recorrido Coloreado</string>
   <string name="fixed_speed_options">Opciones de velocidad fija</string>
   <string name="dynamic_speed_options">Opciones de velocidad dinámica</string>
