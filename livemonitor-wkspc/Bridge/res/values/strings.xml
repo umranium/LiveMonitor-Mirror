@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Avocado MyTracks-to-MapMyTracks Bridge</string>
+    <string name="account_settings_intro">Please provide your MapMyTracks username and password. Click \'register\' if you don\'t have one.</string>
 
 </resources>

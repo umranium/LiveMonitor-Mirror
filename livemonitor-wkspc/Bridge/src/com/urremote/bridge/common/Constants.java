@@ -22,7 +22,7 @@ public class Constants {
 	 * The maximum duration before taking a location provided by a
 	 * source with lesser accuracy
 	 */
-	public static final long LOCATION_MAX_UPDATE_INTERVAL = 60*1000L;
+	public static final long LOCATION_MAX_UPDATE_INTERVAL = 30*1000L;
 	
 	public static final int SAMPLING_QUEUE_SIZE = 5*60*60; // at 1Hz, this means the queue can store for up to 5 hrs
 
@@ -43,6 +43,8 @@ public class Constants {
 	public static final String SHOW_ACTIVITY_SETTINGS_TOO = "SHOW_ACTIVITY_SETTINGS_TOO";
 	
 	
-	public static final Uri URI_MYTRACKS_MARKET = Uri.parse("market://search?q="+MY_TRACKS_PACKAGE); 
+	public static final Uri URI_MYTRACKS_MARKET = Uri.parse("market://search?q="+MY_TRACKS_PACKAGE);
+	
+	public static final Uri URI_MAPMYTRACKS_REGISTER = Uri.parse("http://www.mapmytracks.com/sign-up");
 	
 }

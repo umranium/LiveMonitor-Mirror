@@ -42,6 +42,7 @@ public class MonitoringThread {
 	
 	private LocationListener locationListener = new LocationListener() {
 		public void onLocationChanged(Location location) {
+//			latestLocation = location;
 			if (isBetterLocation(location, latestLocation)) {
 				latestLocation = location;
 			}
@@ -238,8 +239,9 @@ public class MonitoringThread {
 						}
 					}
 					
-					long locId = myTracksProviderUtils.getLastLocationId(mytracks.getRecordingTrackId());
-					Location location = (locId>=0)?(myTracksProviderUtils.getLocation(locId)):null;//latestLocation;
+					Location location = latestLocation;
+//					long locId = myTracksProviderUtils.getLastLocationId(mytracks.getRecordingTrackId());
+//					Location location = (locId>=0)?(myTracksProviderUtils.getLocation(locId)):null;//latestLocation;
 					//Log.d(Constants.TAG, "mytracks.isRecording()="+mytracks.isRecording()+" location="+((location!=null)?"available":"not available"));
 					
 					if (firstMyTracksRecording && mytracks.isRecording()) {

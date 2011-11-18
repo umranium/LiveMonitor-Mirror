@@ -11,7 +11,7 @@ public class RandomAntChannel extends AntChannel {
 
 	public RandomAntChannel(AntChannelManager antChannelManager) {
 		super(antChannelManager);
-		this.period = 8192;
+		this.period = 8070;
 	}
 	
 	public void setFrequency(byte frequency) {
@@ -24,6 +24,10 @@ public class RandomAntChannel extends AntChannel {
 	
 	public void setDeviceType(byte deviceType) {
 		this.deviceType = deviceType;
+	}
+	
+	public void setPeriod(int period) {
+		this.period = period;
 	}
 	
 	public DeviceIdSet getOnDeviceIdSet() {

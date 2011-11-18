@@ -18,9 +18,9 @@ public class Main extends Activity {
 
 //	private Button btnStart;
 
-	private int startScan = 12;
-	private int stopScan = 12;
-	private int simulScans = 2;
+	private int startScan = 120;
+	private int stopScan = 125;
+	private int simulScans = 1;
 	
 	private int type = startScan;
 	
@@ -28,6 +28,7 @@ public class Main extends Activity {
 		@Override
 		public void onDeviceIdSet(RandomAntChannel channel) {
 			Log.i("Devices Found", "type="+channel.getDeviceType()+", id="+channel.getDeviceId());
+			Log.i(Constants.TAG, "type="+channel.getDeviceType()+", id="+channel.getDeviceId());
 			
 			channel.close();
 			createNextDevice();
@@ -45,9 +46,11 @@ public class Main extends Activity {
 		
 		Log.i(Constants.TAG, "Test Type="+type);
 		RandomAntChannel channel =  new RandomAntChannel(antManager);
-		channel.setNetworkNumber((byte)0);
-		channel.setFrequency((byte)50);
+		channel.setNetworkNumber((byte)1);
+		channel.setFrequency((byte)57);
 		channel.setDeviceType((byte)type);
+		channel.setPeriod(8102);
+		
 		channel.setOnDeviceIdSet(deviceIdSet);
 		channel.search((byte)0, (byte)4);
 		
