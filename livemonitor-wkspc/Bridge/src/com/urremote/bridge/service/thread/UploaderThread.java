@@ -79,6 +79,7 @@ public class UploaderThread {
 		}
 		
 		public void quit() {
+			Log.d(Constants.TAG, "Uploader thread quiting");
 			isRunning = false;
 			synchronized (stopSemaphore) {
 				stopSemaphore.notifyAll();
@@ -92,6 +93,7 @@ public class UploaderThread {
 			SharedPreferences state = context.getSharedPreferences(
 					Constants.SHARE_PREF, Context.MODE_PRIVATE);
 			this.mapMyTracksInterfaceApi = new MapMyTracksInterfaceApi(
+					-1,
 					DefSettings.getUsername(state),
 					DefSettings.getPassword(state)
 					);
@@ -249,6 +251,7 @@ public class UploaderThread {
 			SharedPreferences state = context.getSharedPreferences(
 					Constants.SHARE_PREF, Context.MODE_PRIVATE);
 			this.mapMyTracksInterfaceApi = new MapMyTracksInterfaceApi(
+					helperIndex,
 					DefSettings.getUsername(state),
 					DefSettings.getPassword(state)
 					);
@@ -305,7 +308,7 @@ public class UploaderThread {
 						
 						try {
 							synchronized (uploaderHelper.stopSemaphore) {
-								uploaderHelper.stopSemaphore.wait(1000L);	//	1s
+								uploaderHelper.stopSemaphore.wait(10000L);	//	10s
 							}
 						} catch (InterruptedException ex) {
 						}

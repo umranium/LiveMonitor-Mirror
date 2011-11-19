@@ -70,13 +70,18 @@ public abstract class TwoWayBlockingQueue<InstanceType> {
 		return instance;
 	}
 	
-	public InstanceType peekFilledInstance() {
-		return filledInstances.peek();
-	} 
-	
 	public InstanceType takeFilledInstanceIfAvail() {
 		try {
 			InstanceType instance = filledInstances.poll(0, TimeUnit.MILLISECONDS);
+			return instance;
+		} catch (InterruptedException e) {
+			return null;
+		}
+	} 
+	
+	public InstanceType takeEmptyInstanceIfAvail() {
+		try {
+			InstanceType instance = emptyInstances.poll(0, TimeUnit.MILLISECONDS);
 			return instance;
 		} catch (InterruptedException e) {
 			return null;

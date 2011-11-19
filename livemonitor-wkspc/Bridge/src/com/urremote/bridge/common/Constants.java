@@ -24,7 +24,7 @@ public class Constants {
 	 */
 	public static final long LOCATION_MAX_UPDATE_INTERVAL = 30*1000L;
 	
-	public static final int SAMPLING_QUEUE_SIZE = 5*60*60; // at 1Hz, this means the queue can store for up to 5 hrs
+	public static final int SAMPLING_QUEUE_SIZE = 6*60*60; // at 1Hz, this means the queue can store for up to 5 hrs
 
 	public static final int FOREGROUND_NOTIFICATION_ID = 1;
 	

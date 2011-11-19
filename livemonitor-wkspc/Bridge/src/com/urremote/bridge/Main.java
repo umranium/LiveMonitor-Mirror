@@ -122,6 +122,7 @@ public class Main extends Activity {
 						if (binder.isRecording()) {
 							int dataCount = binder.getPendingUploadCount(); 
 							if (dataCount>0) {
+								Log.d(Constants.TAG, "Pending data found");
 								AlertDialog.Builder bldr = new AlertDialog.Builder(Main.this);
 								bldr.setTitle("Pending upload data");
 								bldr.setMessage("Are you sure you wish to stop before data is uploaded?\n" +
@@ -134,6 +135,7 @@ public class Main extends Activity {
 										dialog.dismiss();
 									}
 								});
+								bldr.show();
 							} else {
 								binder.stopRecording();
 							}

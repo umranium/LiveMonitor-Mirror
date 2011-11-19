@@ -279,13 +279,17 @@ public class MonitoringThread {
 										);
 							}
 							
-							sample = samplingQueue.takeEmptyInstance();
+							sample = samplingQueue.takeEmptyInstanceIfAvail(); // first try and get an empty instance
+							if (sample==null)
+								sample = samplingQueue.takeFilledInstance(); // if not available, take a filled one (which would be the oldest one)
 							sample.location = new Location(newLoc);
 							//sample.location.setTime(System.currentTimeMillis());
 							sample.sensorData.addAll(bufferdSensorData);
 							bufferdSensorData.clear();
 							samplingQueue.returnFilledInstance(sample);
 							sample = null;
+							
+							Log.d(Constants.TAG, "In sampling queue: empty="+samplingQueue.getPendingEmptyInstances()+", filled="+samplingQueue.getPendingFilledInstances());
 							
 							lastUploadedLoc = newLoc;
 							Log.d(Constants.TAG, "MonitoringThread: filled sample sent");

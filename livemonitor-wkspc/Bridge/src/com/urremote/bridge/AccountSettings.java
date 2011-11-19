@@ -135,6 +135,7 @@ public class AccountSettings extends Activity {
     private void verifyAccount(CharSequence username, CharSequence password)
     {
     	final MapMyTracksInterfaceApi mapMyTracksInterfaceApi = new MapMyTracksInterfaceApi(
+    			-1,
     			new String(new StringBuilder(username)), 
     			new String(new StringBuilder(password)));
     	

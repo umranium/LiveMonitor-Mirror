@@ -58,7 +58,11 @@ public class MapMyTracksInterfaceApi {
 	private ReusableNameValuePairMap updateActivityParamsMap;
 	private ReusableNameValuePairMap stopActivityParamsMap;
 	
-	public MapMyTracksInterfaceApi(String username, String password) {
+	private int instanceId;
+	
+	public MapMyTracksInterfaceApi(int instanceId, String username, String password) {
+		this.instanceId = instanceId;
+		
 		client = new DefaultHttpClient();
 		client.getCredentialsProvider().setCredentials(
 				new AuthScope(MY_MAP_WEBSITE_URL, 80),
@@ -104,10 +108,10 @@ public class MapMyTracksInterfaceApi {
 	private String sendPost(ReusableNameValuePairMap nameValuePairMap) throws IOException
 	{
 		if (DEBUG) {
-			Log.d(TAG, "executing request:\n" + httpPost.getRequestLine());
+			Log.d(TAG, instanceId+": executing request:\n" + httpPost.getRequestLine());
 			
 			for (ReusableBasicNameValuePair pair:nameValuePairMap.getPairs()) {
-				Log.d(TAG, "\t"+pair.getName()+"="+pair.getValue());
+				Log.d(TAG, instanceId+": \t"+pair.getName()+"="+pair.getValue());
 			}
 		}
 		
@@ -117,14 +121,14 @@ public class MapMyTracksInterfaceApi {
 		HttpEntity responseEntity = response.getEntity();
 
 		if (DEBUG) {
-			Log.d(TAG, "----------------------------------------");
-			Log.d(TAG, response.getStatusLine().toString());
+			Log.d(TAG, instanceId+": ----------------------------------------");
+			Log.d(TAG, instanceId+": "+response.getStatusLine().toString());
 		}
 		if (responseEntity != null) {
 			InputStream content = responseEntity.getContent();
 			if (DEBUG) {
-				Log.d(TAG, responseEntity.getContentType().toString());
-				Log.d(TAG, "length="+responseEntity.getContentLength());
+				Log.d(TAG, instanceId+": "+responseEntity.getContentType().toString());
+				Log.d(TAG, instanceId+": length="+responseEntity.getContentLength());
 			}
 			BufferedReader rd = new BufferedReader(new InputStreamReader(content));
 			StringBuilder buffer = new StringBuilder((int)responseEntity.getContentLength());
@@ -134,7 +138,7 @@ public class MapMyTracksInterfaceApi {
 			}
 			String msg = buffer.toString();
 			if (DEBUG)
-				Log.d(TAG, msg);
+				Log.d(TAG, instanceId+": "+msg);
 			return msg;
 		} else {
 			return null;
@@ -148,7 +152,8 @@ public class MapMyTracksInterfaceApi {
 			Matcher matcher = SERVER_TIME_PAT.matcher(reply);
 			if (matcher.find() && matcher.groupCount()==1) {
 				String time = matcher.group(1);
-				System.out.println("time="+time);
+				if (DEBUG)
+					Log.i(TAG, "server-time="+time);
 				return Long.parseLong(time)*1000;
 			}
 		}
