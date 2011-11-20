@@ -4,9 +4,9 @@ import java.util.List;
 
 import com.urremote.bridge.Main;
 import com.urremote.bridge.common.Constants;
+import com.urremote.bridge.common.CustomThreadUncaughtExceptionHandler;
 import com.urremote.bridge.service.thread.MonitoringThread;
 import com.urremote.bridge.service.thread.UploaderThread;
-import com.urremote.bridge.service.utils.CustomThreadUncaughtExceptionHandler;
 import com.urremote.bridge.service.utils.ServiceForegroundUtil;
 
 import android.app.Service;

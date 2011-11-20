@@ -28,12 +28,12 @@ import android.widget.Toast;
 import com.urremote.bridge.R;
 
 import com.urremote.bridge.common.Constants;
+import com.urremote.bridge.common.CustomThreadUncaughtExceptionHandler;
 import com.urremote.bridge.scroller.ScrollerMessage;
 import com.urremote.bridge.scroller.ScrollerUpdater;
 import com.urremote.bridge.service.ILiveMonitorBinder;
 import com.urremote.bridge.service.LiveMonitorService;
 import com.urremote.bridge.service.UpdateListener;
-import com.urremote.bridge.service.utils.CustomThreadUncaughtExceptionHandler;
 
 public class Main extends Activity {
 

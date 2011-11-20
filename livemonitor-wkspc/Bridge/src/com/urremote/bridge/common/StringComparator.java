@@ -1,4 +1,4 @@
-package com.urremote.bridge.service.utils;
+package com.urremote.bridge.common;
 
 import java.util.Comparator;
 

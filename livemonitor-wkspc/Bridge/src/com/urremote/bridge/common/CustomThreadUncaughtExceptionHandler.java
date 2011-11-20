@@ -1,8 +1,7 @@
-package com.urremote.bridge.service.utils;
+package com.urremote.bridge.common;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 
-import com.urremote.bridge.common.Constants;
 
 import android.util.Log;
 

@@ -21,10 +21,10 @@ import com.google.android.apps.mytracks.content.Sensor;
 import com.google.android.apps.mytracks.content.Sensor.SensorState;
 import com.google.android.apps.mytracks.services.ITrackRecordingService;
 import com.urremote.bridge.common.Constants;
+import com.urremote.bridge.common.CustomThreadUncaughtExceptionHandler;
 import com.urremote.bridge.service.InternalServiceMessageHandler;
 import com.urremote.bridge.service.Sample;
 import com.urremote.bridge.service.SamplingQueue;
-import com.urremote.bridge.service.utils.CustomThreadUncaughtExceptionHandler;
 
 public class MonitoringThread {
 	

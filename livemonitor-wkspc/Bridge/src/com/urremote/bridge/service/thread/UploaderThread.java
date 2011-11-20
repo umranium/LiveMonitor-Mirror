@@ -12,13 +12,13 @@ import android.util.Log;
 
 import com.google.android.apps.mytracks.content.Sensor.SensorDataSet;
 import com.urremote.bridge.common.Constants;
+import com.urremote.bridge.common.CustomThreadUncaughtExceptionHandler;
 import com.urremote.bridge.common.DefSettings;
 import com.urremote.bridge.mapmymaps.MapMyMapsException;
 import com.urremote.bridge.mapmymaps.MapMyTracksInterfaceApi;
 import com.urremote.bridge.service.InternalServiceMessageHandler;
 import com.urremote.bridge.service.Sample;
 import com.urremote.bridge.service.SamplingQueue;
-import com.urremote.bridge.service.utils.CustomThreadUncaughtExceptionHandler;
 
 public class UploaderThread {
 	

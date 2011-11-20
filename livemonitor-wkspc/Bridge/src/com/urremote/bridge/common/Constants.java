@@ -42,9 +42,14 @@ public class Constants {
 
 	public static final String SHOW_ACTIVITY_SETTINGS_TOO = "SHOW_ACTIVITY_SETTINGS_TOO";
 	
-	
+	// MYTRACKS 
 	public static final Uri URI_MYTRACKS_MARKET = Uri.parse("market://search?q="+MY_TRACKS_PACKAGE);
 	
+	//	MAPMYTRACKS
 	public static final Uri URI_MAPMYTRACKS_REGISTER = Uri.parse("http://www.mapmytracks.com/sign-up");
+	
+	// C2DM
+	public static final String EMAIL_C2DM_ACCOUNT = "umranium.mytracks@gmail.com";
+	
 	
 }
