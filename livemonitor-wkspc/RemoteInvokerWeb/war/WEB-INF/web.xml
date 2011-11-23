@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+              http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	version="2.5" xmlns="http://java.sun.com/xml/ns/javaee">
+	
+	<!-- RPC service -->
+	<servlet>
+		<servlet-name>DeviceServlet</servlet-name>
+		<servlet-class>com.urremote.invoker.server.DeviceServiceImpl</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DeviceServlet</servlet-name>
+		<url-pattern>/remoteinvokerweb/devices</url-pattern>
+	</servlet-mapping>
+	
+	<!-- handle phone registration -->
+	<servlet>
+		<servlet-name>RegisterPhoneServlet</servlet-name>
+		<servlet-class>com.urremote.invoker.server.RegisterPhoneServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>RegisterPhoneServlet</servlet-name>
+		<url-pattern>/registerphone</url-pattern>
+	</servlet-mapping>
+	
+	<!-- handle incoming messages from phones -->
+	<servlet>
+		<servlet-name>PhoneInputServlet</servlet-name>
+		<servlet-class>com.urremote.invoker.server.PhoneInputServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>PhoneInputServlet</servlet-name>
+		<url-pattern>/phoneinput</url-pattern>
+	</servlet-mapping>
+	
+	<!--  handle channel connections and disconnections -->
+	<servlet>
+		<servlet-name>ChannelConnectionServlet</servlet-name>
+		<servlet-class>com.urremote.invoker.server.ChannelConnectionServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ChannelConnectionServlet</servlet-name>
+		<url-pattern>/_ah/channel/connected/</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ChannelConnectionServlet</servlet-name>
+		<url-pattern>/_ah/channel/disconnected/</url-pattern>
+	</servlet-mapping>
+	
+	<!-- device details servlet, handles 1 device at a time, and allows access to the device -->
+	<servlet>
+		<servlet-name>DeviceDetailsServlet</servlet-name>
+		<servlet-class>com.urremote.invoker.server.DeviceDetailsServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DeviceDetailsServlet</servlet-name>
+		<url-pattern>/view/*</url-pattern>
+	</servlet-mapping>
+	
+	<!-- device list servlet, displays a list of available devices -->
+	<servlet>
+		<servlet-name>DeviceListServlet</servlet-name>
+		<servlet-class>com.urremote.invoker.server.DeviceListServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DeviceListServlet</servlet-name>
+		<url-pattern>/welcome</url-pattern>
+	</servlet-mapping>
+	
+	<welcome-file-list>
+		<welcome-file>welcome</welcome-file>
+	</welcome-file-list>
+ 	
+ 	
+</web-app>

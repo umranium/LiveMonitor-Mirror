@@ -1,0 +1,88 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+    <!--                                                               -->
+    <!-- Consider inlining CSS to reduce the number of requested files -->
+    <!--                                                               -->
+    <link type="text/css" rel="stylesheet" href="/default.css">
+
+    <!--                                           -->
+    <!-- Any title is fine                         -->
+    <!--                                           -->
+    <title>Avocado MyTracks-to-MapMyTracks Remote Invoker</title>
+    
+    <script type"text/javascript">
+    	var deviceId = '{{DEVICE_ID}}';
+    	var channelToken = '{{CHANNEL_TOKEN}}';
+    </script>
+    
+    <!--                                           -->
+    <!-- This script loads your compiled module.   -->
+    <!-- If you add any GWT meta tags, they must   -->
+    <!-- be added before this line.                -->
+    <!--                                           -->
+    <script type="text/javascript" language="javascript" src="/remoteinvokerweb/remoteinvokerweb.nocache.js"></script>
+    <script src='/_ah/channel/jsapi'></script>
+  </head>
+
+  <!--                                           -->
+  <!-- The body can have arbitrary html, or      -->
+  <!-- you can leave the body empty if you want  -->
+  <!-- to create a completely dynamic UI.        -->
+  <!--                                           -->
+  <body>
+
+    <!-- OPTIONAL: include this if you want history support -->
+    <iframe src="javascript:''" id="__gwt_historyFrame" tabIndex='-1' style="position:absolute;width:0;height:0;border:0"></iframe>
+    
+    <!-- RECOMMENDED if your web app will not function without JavaScript enabled -->
+    <noscript>
+      <div style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
+        Your web browser must have JavaScript enabled
+        in order for this application to display correctly.
+      </div>
+    </noscript>
+
+    <h2 align="center">Avocado MyTracks-to-MapMyTracks Remote Invoker</h2>
+
+    <table align="center" width="800px" height="100%">
+      <tr>
+        <td colspan="2" style="font-weight:bold;">{{DEVICE_NAME}}</td>        
+      </tr>
+      <tr>
+        <td colspan="2" style="color:red;" id="errorLabelContainer"></td>
+      </tr>
+      <tr>
+      	<div>
+		  <table align="center" width="800px" style="background-color:lightblue;">
+			  <tr>
+					<td style="width:200px;">Last Update Received At:<td>
+					<td id="lastUpdatTimeContainer"><td>
+			  </tr>
+			  <tr>
+					<td style="width:200px;">Is Recording?<td>
+					<td id="isRecordingStateContainer"><td>
+			  </tr>
+			  <tr>
+					<td style="width:200px;">Start Recording<td>
+					<td id="startRecordingBtnContainer"><td>
+			  </tr>
+			  <tr>
+					<td style="width:200px;">Stop Recording<td>
+					<td id="stopRecordingBtnContainer"><td>
+			  </tr>
+		  </table>
+		</div>
+      </tr>
+      </table>
+      </tr>
+    </table>
+  </body>
+</html>

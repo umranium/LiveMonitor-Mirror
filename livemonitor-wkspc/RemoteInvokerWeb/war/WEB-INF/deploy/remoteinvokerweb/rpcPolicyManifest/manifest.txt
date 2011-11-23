@@ -1,0 +1,3 @@
+# Module remoteinvokerweb
+# RPC service class, partial path of RPC policy file
+com.urremote.invoker.client.DeviceService, 918E2E18BC45E5DEEDC121CD4D832AD1.gwt.rpc
