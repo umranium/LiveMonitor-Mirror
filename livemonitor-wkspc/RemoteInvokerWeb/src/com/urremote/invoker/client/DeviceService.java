@@ -14,8 +14,6 @@ import com.urremote.invoker.shared.InvalidDeviceStateException;
 @RemoteServiceRelativePath("devices")
 public interface DeviceService extends RemoteService {
 	
-	//String getChannelToken();
-	
 	void setChannelDeviceFilter(String channelToken, String device);
 	
 	List<String> getDeviceList() throws Exception;

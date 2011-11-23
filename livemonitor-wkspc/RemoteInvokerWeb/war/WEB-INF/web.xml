@@ -11,7 +11,11 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>DeviceServlet</servlet-name>
-		<url-pattern>/remoteinvokerweb/devices</url-pattern>
+		<url-pattern>/devicelist/devices</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>DeviceServlet</servlet-name>
+		<url-pattern>/devicedetails/devices</url-pattern>
 	</servlet-mapping>
 	
 	<!-- handle phone registration -->

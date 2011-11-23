@@ -1,0 +1,2 @@
+serviceClass: com.urremote.invoker.client.DeviceService
+path: 918E2E18BC45E5DEEDC121CD4D832AD1.gwt.rpc

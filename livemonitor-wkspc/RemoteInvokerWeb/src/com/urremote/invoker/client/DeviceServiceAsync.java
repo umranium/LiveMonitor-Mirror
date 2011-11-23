@@ -9,8 +9,6 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  */
 public interface DeviceServiceAsync {
 	
-	//void getChannelToken(AsyncCallback<String> callback);
-	
 	void setChannelDeviceFilter(String channelToken, String device, AsyncCallback<Void> callback);
 	
 	void getDeviceList(AsyncCallback<List<String>> callback);
