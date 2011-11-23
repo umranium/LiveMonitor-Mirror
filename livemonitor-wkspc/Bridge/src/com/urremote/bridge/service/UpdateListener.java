@@ -4,9 +4,9 @@ import android.app.Activity;
 
 public interface UpdateListener {
 	
-	public Activity getActivity();
+//	public Activity getActivity();
 	
-	public void lauchMyTracks();
+	public boolean lauchMyTracks();
 	public void updateSystemMessages();
 	
 	public void onSystemStart();

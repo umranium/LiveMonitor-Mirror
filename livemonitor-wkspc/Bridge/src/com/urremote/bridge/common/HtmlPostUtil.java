@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.HttpResponse;
@@ -17,6 +18,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 public class HtmlPostUtil {
+	
+	private static final List<HtmlPostUtil> CURRENT_POSTS = new ArrayList<HtmlPostUtil>();
 	
 	public interface PostResultListener {
 		void OnError(Throwable e);
@@ -32,6 +35,7 @@ public class HtmlPostUtil {
 		@Override
 		public void run() {
 			try {
+				
 				HttpClient client = new DefaultHttpClient();
 				HttpPost post = new HttpPost(uri);
 				post.setEntity(new UrlEncodedFormEntity(nameValuePairs));
@@ -49,6 +53,10 @@ public class HtmlPostUtil {
 				postResultListener.OnError(e);
 			} catch (IOException e) {
 				postResultListener.OnError(e);
+			}
+			
+			synchronized (CURRENT_POSTS) {
+				CURRENT_POSTS.remove(HtmlPostUtil.this);
 			}
 		}
 	};
@@ -76,8 +84,21 @@ public class HtmlPostUtil {
 	}
 	
 	public static HtmlPostUtil asyncPost(PostResultListener postResultListener, URI uri, List<NameValuePair> nameValuePairs) {
-		return new HtmlPostUtil(postResultListener, uri, nameValuePairs);
-	}	
+		HtmlPostUtil post = new HtmlPostUtil(postResultListener, uri, nameValuePairs);
+		synchronized (CURRENT_POSTS) {
+			CURRENT_POSTS.add(post);
+		}
+		return post;
+	}
+	
+	public static void cancelAllPosts() {
+		synchronized (CURRENT_POSTS) {
+			for (HtmlPostUtil post:CURRENT_POSTS) {
+				post.cancel();
+			}
+		}
+	}
+	
 	
 	
 }

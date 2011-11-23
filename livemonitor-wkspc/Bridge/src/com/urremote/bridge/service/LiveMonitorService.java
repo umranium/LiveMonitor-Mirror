@@ -1,14 +1,29 @@
 package com.urremote.bridge.service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 
 import com.urremote.bridge.Main;
+import com.urremote.bridge.c2dm.C2dmDeviceRegistrationMessage;
+import com.urremote.bridge.c2dm.C2dmDeviceUpdateMessage;
 import com.urremote.bridge.common.Constants;
 import com.urremote.bridge.common.CustomThreadUncaughtExceptionHandler;
+import com.urremote.bridge.common.HtmlPostUtil;
+import com.urremote.bridge.common.PrimaryAccountUtil;
+import com.urremote.bridge.common.HtmlPostUtil.PostResultListener;
 import com.urremote.bridge.service.thread.MonitoringThread;
 import com.urremote.bridge.service.thread.UploaderThread;
 import com.urremote.bridge.service.utils.ServiceForegroundUtil;
 
+import android.app.Activity;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -156,6 +171,39 @@ public class LiveMonitorService extends Service {
 
 	};
 	
+	private class ServerUpdateTimerTask extends TimerTask {
+		@Override
+		public void run() {
+			updateC2dmRecordingState();
+		}
+	};
+	
+	private class C2dmServerEventBasedUpdater implements UpdateListener {
+		
+		@Override
+		public void updateSystemMessages() {
+			// TODO: Update C2dm server system messages
+		}
+		
+		@Override
+		public void onSystemStop() {
+			Log.d(Constants.TAG, "C2dmServerEventBasedUpdater::onSystemStop");
+			updateC2dmRecordingState();
+		}
+		
+		@Override
+		public void onSystemStart() {
+			Log.d(Constants.TAG, "C2dmServerEventBasedUpdater::onSystemStart");
+			updateC2dmRecordingState();
+		}
+		
+		@Override
+		public boolean lauchMyTracks() {
+			return false;
+		}
+		
+	};
+	
 	private Handler mainThreadHandler;
 	private LiveMonitorBinder binder = new LiveMonitorBinder();
 	private boolean isRecording = false;
@@ -168,7 +216,11 @@ public class LiveMonitorService extends Service {
 	private boolean isUiActive = false;
 	private Vibrator vibrator;
 	private MediaPlayer errorBeepPlayer;
-
+	
+	private Timer serverUpdateTimer;
+	private ServerUpdateTimerTask serverUpdateTimerTask;
+	private C2dmServerEventBasedUpdater eventBasedUpdater;
+	
 	@Override
 	public IBinder onBind(Intent arg0) {
 		Log.d(Constants.TAG, this.getClass().getSimpleName()+":onBind()");
@@ -185,8 +237,9 @@ public class LiveMonitorService extends Service {
 			monitoringThread.begin();
 			uploaderThread.begin();
 			isRecording = true;
-			startService();
+			updateHandlers.onSystemStart();
 			serviceMsgHandler.onSystemMessage("***** Recording Started. *****");
+			startService();
 		} catch (Exception e) {
 			serviceMsgHandler.onSystemMessage("Error:"+e.getMessage());
 			throw e;
@@ -207,6 +260,8 @@ public class LiveMonitorService extends Service {
 		
 		serviceMsgHandler.onSystemMessage("***** Recording Stopped. *****");
 		
+		updateHandlers.onSystemStop();
+		
 		if (isUiActive)
 			stopService();
 	}
@@ -219,7 +274,6 @@ public class LiveMonitorService extends Service {
 	private void stopService() {
 		if (foregroundUtil.isForeground()) {
 			foregroundUtil.cancelForeground();
-			updateHandlers.onSystemStop();
 		}
 		
 		this.stopSelf();
@@ -248,15 +302,26 @@ public class LiveMonitorService extends Service {
 				Log.e(Constants.TAG, "Unable to restart recording", e);
 			}
 		}
+		
+		this.eventBasedUpdater = new C2dmServerEventBasedUpdater();
+		this.updateHandlers.add(this.eventBasedUpdater);
+		
+		this.serverUpdateTimer = new Timer("Server-Update-Timer");
+		this.serverUpdateTimerTask = new ServerUpdateTimerTask();
+		this.serverUpdateTimer.schedule(serverUpdateTimerTask, 1000L, Constants.C2DM_UPDATE_SERVER_INTERVAL);
 	}
 	
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 		Log.d(Constants.TAG, this.getClass().getSimpleName()+":onDestroy()");
+		
 		if (this.foregroundUtil.isForeground())
 			this.foregroundUtil.cancelForeground();
 		this.monitoringThread.destroy();
+		
+		this.serverUpdateTimer.cancel();
+		this.serverUpdateTimer.purge();
 	}
 	
 	@Override
@@ -270,7 +335,43 @@ public class LiveMonitorService extends Service {
 			NOTIFICATION_TITLE,
 			NOTIFICATION_TEXT
 		);
-		updateHandlers.onSystemStart();		
+		
+	}
+	
+	private void updateC2dmRecordingState() {
+		final boolean isRecording = binder.isRecording();
+		
+		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+		Set<C2dmDeviceUpdateMessage.MessageType> msgTypes = new HashSet<C2dmDeviceUpdateMessage.MessageType>();
+		
+		nameValuePairs.add(new BasicNameValuePair(
+				Constants.C2DM_MSG_PARAM_ACCOUNT, 
+				PrimaryAccountUtil.getPrimaryAccount(LiveMonitorService.this)));
+		
+		msgTypes.add(C2dmDeviceUpdateMessage.MessageType.RecordingStateUpdate);
+		nameValuePairs.add(new BasicNameValuePair(
+				C2dmDeviceUpdateMessage.MessageType.RecordingStateUpdate.toString(), 
+				Boolean.toString(isRecording)));
+		
+		nameValuePairs.add(new BasicNameValuePair(
+				Constants.C2DM_MSG_PARAM_TYPE,
+				C2dmDeviceUpdateMessage.encode(msgTypes)
+				));
+		
+		HtmlPostUtil.asyncPost(new PostResultListener() {
+			@Override
+			public void OnResult(String result) {
+				Log.i(Constants.TAG, "device successfully updated server (isRecording="+isRecording+"). Result="+result);
+			}
+			
+			@Override
+			public void OnError(Throwable e) {
+				if (e instanceof java.net.UnknownHostException)
+					Log.e(Constants.TAG, "Failure while updating server. Internet connection problem.");
+				else
+					Log.e(Constants.TAG, "Failure while updating server", e);
+			}
+		}, 	Constants.URI_C2DM_SERVER_UPDATE, nameValuePairs);
 	}
 
 }

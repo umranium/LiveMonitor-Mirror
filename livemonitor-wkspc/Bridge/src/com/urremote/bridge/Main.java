@@ -181,6 +181,7 @@ public class Main extends Activity {
     	Intent intent = new Intent(this, LiveMonitorService.class);
         bindService(intent, connection, BIND_AUTO_CREATE);
         
+        C2dmReceiver.register(this);
     }
     
     @Override
@@ -298,43 +299,64 @@ public class Main extends Activity {
     
     private UpdateListener updateListener = new UpdateListener() {
 		
-		@Override
-		public Activity getActivity() {
-			return Main.this;
-		}
+//		@Override
+//		public Activity getActivity() {
+//			return Main.this;
+//		}
 		
 		@Override
-		public void lauchMyTracks() {
-			Log.d(Constants.TAG, "Launching MyTracks");
-	    	Intent intent = new Intent();
-			intent.setComponent(new ComponentName(
-					Constants.MY_TRACKS_PACKAGE,
-					Constants.MY_TRACKS_UI_CLASS));
-	    	Main.this.startActivity(intent);
+		public boolean lauchMyTracks() {
+			Main.this.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					Log.d(Constants.TAG, "Launching MyTracks");
+			    	Intent intent = new Intent();
+					intent.setComponent(new ComponentName(
+							Constants.MY_TRACKS_PACKAGE,
+							Constants.MY_TRACKS_UI_CLASS));
+			    	Main.this.startActivity(intent);
+				}
+			});
+			return true;
 		}
 
 		@Override
 		synchronized
 		public void updateSystemMessages() {
-			systemMessagesUpdater.update();
-			if (binder!=null) {
-	        	btnStart.setEnabled(!binder.isStarted());
-	         	btnStop.setEnabled(binder.isStarted());
-	         	
-				if (binder.isStarted() && !binder.isRecording()) {
-					binder.stopService();
+			Main.this.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					systemMessagesUpdater.update();
+					if (binder!=null) {
+			        	btnStart.setEnabled(!binder.isStarted());
+			         	btnStop.setEnabled(binder.isStarted());
+			         	
+						if (binder.isStarted() && !binder.isRecording()) {
+							binder.stopService();
+						}
+					}
 				}
-			}
+			});
 		}
 		
 		@Override
 		public void onSystemStart() {
-			updateSystemMessages();
+			Main.this.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					updateSystemMessages();
+				}
+			});
 		}
 		
 		@Override
 		public void onSystemStop() {
-			updateSystemMessages();
+			Main.this.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					updateSystemMessages();
+				}
+			});
 		}
 		
 	}; 
