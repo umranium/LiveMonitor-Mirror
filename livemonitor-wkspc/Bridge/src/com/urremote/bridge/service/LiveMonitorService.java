@@ -11,6 +11,7 @@ import java.util.TimerTask;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
+import com.urremote.bridge.C2dmReceiver;
 import com.urremote.bridge.Main;
 import com.urremote.bridge.c2dm.C2dmDeviceRegistrationMessage;
 import com.urremote.bridge.c2dm.C2dmDeviceUpdateMessage;
@@ -21,6 +22,8 @@ import com.urremote.bridge.common.PrimaryAccountUtil;
 import com.urremote.bridge.common.HtmlPostUtil.PostResultListener;
 import com.urremote.bridge.service.thread.MonitoringThread;
 import com.urremote.bridge.service.thread.UploaderThread;
+import com.urremote.bridge.service.thread.uploader.ActivityRestartImpl;
+import com.urremote.bridge.service.thread.uploader.NoActivityRestartImpl;
 import com.urremote.bridge.service.utils.ServiceForegroundUtil;
 
 import android.app.Activity;
@@ -29,6 +32,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -217,6 +221,7 @@ public class LiveMonitorService extends Service {
 	private Vibrator vibrator;
 	private MediaPlayer errorBeepPlayer;
 	
+	// for C2DM
 	private Timer serverUpdateTimer;
 	private ServerUpdateTimerTask serverUpdateTimerTask;
 	private C2dmServerEventBasedUpdater eventBasedUpdater;
@@ -282,7 +287,7 @@ public class LiveMonitorService extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		Log.d(Constants.TAG, this.getClass().getSimpleName()+":onCreate()");
+		Log.d(Constants.TAG, this.getClass().getSimpleName()+":onCreate() xxxx");
 		
 		CustomThreadUncaughtExceptionHandler.setInterceptHandler(Thread.currentThread());
 		
@@ -292,8 +297,9 @@ public class LiveMonitorService extends Service {
 		
 		this.monitoringThread = new MonitoringThread(
 				this, serviceMsgHandler, samplingQueue);
-		this.uploaderThread = new UploaderThread(
+		this.uploaderThread = new ActivityRestartImpl(
 				this, serviceMsgHandler, samplingQueue);
+
 		this.foregroundUtil = new ServiceForegroundUtil(this, Main.class, Constants.FOREGROUND_NOTIFICATION_ID);
 		if (this.foregroundUtil.isForeground()) {
 			try {
@@ -303,12 +309,24 @@ public class LiveMonitorService extends Service {
 			}
 		}
 		
-		this.eventBasedUpdater = new C2dmServerEventBasedUpdater();
-		this.updateHandlers.add(this.eventBasedUpdater);
+		if (Constants.ENABLE_C2DM) {
+			Log.i(Constants.TAG, "C2DM IS enabled in this version");
+			if (Build.VERSION.SDK_INT>=8) {
+				C2dmReceiver.register(this);
+				
+				this.eventBasedUpdater = new C2dmServerEventBasedUpdater();
+				this.updateHandlers.add(this.eventBasedUpdater);
+				
+				this.serverUpdateTimer = new Timer("Server-Update-Timer");
+				this.serverUpdateTimerTask = new ServerUpdateTimerTask();
+			this.serverUpdateTimer.schedule(serverUpdateTimerTask, 1000L, Constants.C2DM_UPDATE_SERVER_INTERVAL);
+			} else {
+				Log.i(Constants.TAG, "Android version doesn't support C2DM, version 2.2 or above required.");
+			}
+		} else {
+			Log.i(Constants.TAG, "C2DM is NOT enabled in this version");
+		}
 		
-		this.serverUpdateTimer = new Timer("Server-Update-Timer");
-		this.serverUpdateTimerTask = new ServerUpdateTimerTask();
-		this.serverUpdateTimer.schedule(serverUpdateTimerTask, 1000L, Constants.C2DM_UPDATE_SERVER_INTERVAL);
 	}
 	
 	@Override
@@ -320,8 +338,10 @@ public class LiveMonitorService extends Service {
 			this.foregroundUtil.cancelForeground();
 		this.monitoringThread.destroy();
 		
-		this.serverUpdateTimer.cancel();
-		this.serverUpdateTimer.purge();
+		if (this.serverUpdateTimer!=null) {
+			this.serverUpdateTimer.cancel();
+			this.serverUpdateTimer.purge();
+		}
 	}
 	
 	@Override
@@ -360,8 +380,11 @@ public class LiveMonitorService extends Service {
 		
 		HtmlPostUtil.asyncPost(new PostResultListener() {
 			@Override
-			public void OnResult(String result) {
-				Log.i(Constants.TAG, "device successfully updated server (isRecording="+isRecording+"). Result="+result);
+			public void OnResult(int statusCode, String result) {
+				if (statusCode==200)
+					Log.i(Constants.TAG, "device successfully updated server ("+statusCode+") (isRecording="+isRecording+"). Result="+result);
+				else
+					Log.i(Constants.TAG, "Error updating server ("+statusCode+"). Result="+result);
 			}
 			
 			@Override

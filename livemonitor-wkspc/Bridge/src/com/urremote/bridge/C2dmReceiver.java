@@ -57,70 +57,75 @@ public class C2dmReceiver extends BroadcastReceiver {
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		
-		if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
-			Log.d(Constants.TAG, "Received Boot Completed");
-			register(context);
-		} else
-		if (Intent.ACTION_SHUTDOWN.equals(intent.getAction())) {
-			Log.d(Constants.TAG, "Received Shutdown");
-			unregister(context);
-		} else
-		if (INTENT_C2DM_REGISTRATION.equals(intent.getAction())) {
-			Log.d(Constants.TAG, "Received C2DM Registration Info");
-			
-			String registrationId = intent.getStringExtra(EXTRA_C2DM_REG_REPLY_REG_ID);
-			String error = intent.getStringExtra(EXTRA_C2DM_REG_REPLY_ERROR);
-			String unregistered = intent.getStringExtra(EXTRA_C2DM_REG_REPLY_UNREGISTERED);
-			
-			Log.i(Constants.TAG, "C2DM: registrationId = " + registrationId + ", error = " + error);
-			
-			if (error!=null) {
-				handleRegistrationError(context, error);
-			} if (unregistered!=null) {
-		        SharedPreferences preferences = context.getSharedPreferences(Constants.SHARE_PREF, Context.MODE_PRIVATE);
-		        Editor editor = preferences.edit();
-		        editor.remove(Constants.KEY_CD2M_ID);
-		        editor.commit();
-		        
-				sendUnregisterServer(context);
-			} else {
-		        SharedPreferences preferences = context.getSharedPreferences(Constants.SHARE_PREF, Context.MODE_PRIVATE);
-		        Editor editor = preferences.edit();
-		        editor.putString(Constants.KEY_CD2M_ID, registrationId);
-		        editor.commit();
-		        
-				sendRegisterServer(context, registrationId);
+		if (Constants.ENABLE_C2DM) {
+			if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
+				Log.d(Constants.TAG, "Received Boot Completed");
+				register(context);
+			} else
+			if (Intent.ACTION_SHUTDOWN.equals(intent.getAction())) {
+				Log.d(Constants.TAG, "Received Shutdown");
+				unregister(context);
+			} else
+			if (INTENT_C2DM_REGISTRATION.equals(intent.getAction())) {
+				Log.d(Constants.TAG, "Received C2DM Registration Info");
+				
+				String registrationId = intent.getStringExtra(EXTRA_C2DM_REG_REPLY_REG_ID);
+				String error = intent.getStringExtra(EXTRA_C2DM_REG_REPLY_ERROR);
+				String unregistered = intent.getStringExtra(EXTRA_C2DM_REG_REPLY_UNREGISTERED);
+				
+				Log.i(Constants.TAG, "C2DM: registrationId = " + registrationId + ", error = " + error);
+				
+				if (error!=null) {
+					handleRegistrationError(context, error);
+				} if (unregistered!=null) {
+			        SharedPreferences preferences = context.getSharedPreferences(Constants.SHARE_PREF, Context.MODE_PRIVATE);
+			        Editor editor = preferences.edit();
+			        editor.remove(Constants.KEY_CD2M_ID);
+			        editor.commit();
+			        
+					sendUnregisterServer(context);
+				} else {
+			        SharedPreferences preferences = context.getSharedPreferences(Constants.SHARE_PREF, Context.MODE_PRIVATE);
+			        Editor editor = preferences.edit();
+			        editor.putString(Constants.KEY_CD2M_ID, registrationId);
+			        editor.commit();
+			        
+					sendRegisterServer(context, registrationId);
+				}
+				
+			} else
+			if (INTENT_C2DM_RECEIVE.equals(intent.getAction())) {
+				Log.d(Constants.TAG, "Received C2DM Message");
+				
+				Bundle bundle = intent.getExtras();
+				handleMessage(context, bundle);
 			}
-			
-		} else
-		if (INTENT_C2DM_RECEIVE.equals(intent.getAction())) {
-			Log.d(Constants.TAG, "Received C2DM Message");
-			
-			Bundle bundle = intent.getExtras();
-			handleMessage(context, bundle);
 		}
 	}
 	
 	public static void register(Context context) {
-		Log.d(Constants.TAG, "Sending C2DM Registration Request");
-		Intent intent = new Intent(INTENT_REGISTER_C2DM);
-		intent.putExtra(EXTRA_C2DM_REG_REQUEST_PENDING_INTENT,
-				PendingIntent.getBroadcast(context, 0, new Intent(), 0));
-		intent.putExtra(EXTRA_C2DM_REG_REQUEST_SENDER_ACCOUNT,
-				Constants.EMAIL_C2DM_ACCOUNT);
-		context.startService(intent);
+		if (Constants.ENABLE_C2DM) {
+			Log.d(Constants.TAG, "Sending C2DM Registration Request");
+			Intent intent = new Intent(INTENT_REGISTER_C2DM);
+			intent.putExtra(EXTRA_C2DM_REG_REQUEST_PENDING_INTENT,
+					PendingIntent.getBroadcast(context, 0, new Intent(), 0));
+			intent.putExtra(EXTRA_C2DM_REG_REQUEST_SENDER_ACCOUNT,
+					Constants.EMAIL_C2DM_ACCOUNT);
+			context.startService(intent);
+		}
 	}
 
 	public static void unregister(Context context) {
-		Log.d(Constants.TAG, "Sending C2DM Unregistration Request");
-		Intent intent = new Intent(INTENT_UNREGISTER_C2DM);
-		intent.putExtra(EXTRA_C2DM_REG_REQUEST_PENDING_INTENT,
-				PendingIntent.getBroadcast(context, 0, new Intent(), 0));
-		context.startService(intent);
+		if (Constants.ENABLE_C2DM) {
+			Log.d(Constants.TAG, "Sending C2DM Unregistration Request");
+			Intent intent = new Intent(INTENT_UNREGISTER_C2DM);
+			intent.putExtra(EXTRA_C2DM_REG_REQUEST_PENDING_INTENT,
+					PendingIntent.getBroadcast(context, 0, new Intent(), 0));
+			context.startService(intent);
+		}
 	}
 	
-	public static void sendRegisterServer(final Context context, final String registrationId) {
+	private static void sendRegisterServer(final Context context, final String registrationId) {
 		NameValuePair account = new BasicNameValuePair(Constants.C2DM_MSG_PARAM_ACCOUNT, 
 				PrimaryAccountUtil.getPrimaryAccount(context));
 		NameValuePair type = new BasicNameValuePair(Constants.C2DM_MSG_PARAM_TYPE, 
@@ -130,8 +135,11 @@ public class C2dmReceiver extends BroadcastReceiver {
 		
 		HtmlPostUtil.asyncPost(new PostResultListener() {
 			@Override
-			public void OnResult(String result) {
-				Log.i(Constants.TAG, "device successfully registered with server: "+result);
+			public void OnResult(int statusCode, String result) {
+				if (statusCode==200)
+					Log.i(Constants.TAG, "device successfully registered with server ("+statusCode+"): "+result);
+				else
+					Log.i(Constants.TAG, "Error registering with server ("+statusCode+"): "+result);
 			}
 			
 			@Override
@@ -151,7 +159,7 @@ public class C2dmReceiver extends BroadcastReceiver {
 		}, 	Constants.URI_C2DM_SERVER_REG, Arrays.asList(account, type, deviceId));
 	}
 	
-	public static void sendUnregisterServer(final Context context) {
+	private static void sendUnregisterServer(final Context context) {
 		NameValuePair account = new BasicNameValuePair(Constants.C2DM_MSG_PARAM_ACCOUNT, 
 				PrimaryAccountUtil.getPrimaryAccount(context));
 		NameValuePair type = new BasicNameValuePair(Constants.C2DM_MSG_PARAM_TYPE, 
@@ -159,8 +167,11 @@ public class C2dmReceiver extends BroadcastReceiver {
 		
 		HtmlPostUtil.asyncPost(new PostResultListener() {
 			@Override
-			public void OnResult(String result) {
-				Log.i(Constants.TAG, "device successfully registered with server: "+result);
+			public void OnResult(int statusCode, String result) {
+				if (statusCode==200)
+					Log.i(Constants.TAG, "device successfully unregistered from server ("+statusCode+"): "+result);
+				else
+					Log.i(Constants.TAG, "Error unregistering from server ("+statusCode+"): "+result);
 			}
 			
 			@Override
@@ -171,13 +182,13 @@ public class C2dmReceiver extends BroadcastReceiver {
 		}, 	Constants.URI_C2DM_SERVER_REG, Arrays.asList(account, type));
 	}
 	
-	public static void handleRegistrationError(Context context, String error) {
+	private static void handleRegistrationError(Context context, String error) {
 		String msg = "Error registering device for c2dm:\n"+ error;
 		Log.e(Constants.TAG, msg);
 		Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
 	}
 	
-	public static void handleMessage(Context context, Bundle message) {
+	private static void handleMessage(Context context, Bundle message) {
 		Log.i(Constants.TAG, "Received C2DM Message: ");
 		for (String key:message.keySet()) {
 			Log.i(Constants.TAG, "C2DM: "+key+"="+message.getString(key));

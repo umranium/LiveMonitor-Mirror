@@ -9,10 +9,14 @@ public class Constants {
 	public static final String TAG = "livemonitor";
 	
 	public static final boolean IS_TESTING = false;
+	public static final boolean IS_CRIPLED = false;
 	
 	public static final long MONITORING_INTERVAL = 1000L;
 	
 	public static final int MINIMUM_RECORDING_DISTANCE = 5;
+	
+	public static final long INTERVAL_RETRY_UPLOAD = 30*1000L;
+	public static final long DURATION_WAIT_FOR_STABLE_CONNECTION = 4*60*1000L;
 	
 	public static final String MY_TRACKS_PACKAGE = "com.google.android.maps.mytracks";
 	public static final String MY_TRACKS_SERVICE_CLASS = "com.google.android.apps.mytracks.services.TrackRecordingService";
@@ -49,6 +53,8 @@ public class Constants {
 	public static final Uri URI_MAPMYTRACKS_REGISTER = Uri.parse("http://www.mapmytracks.com/sign-up");
 	
 	// C2DM
+	public static final boolean ENABLE_C2DM = false;
+	
 	public static final String EMAIL_C2DM_ACCOUNT = "umranium.mytracks@gmail.com";
 	// C2DM - Server Comm.
 //	public static final URI URI_C2DM_SERVER_REG = URI.create("http://192.168.1.10:8888/registerphone");

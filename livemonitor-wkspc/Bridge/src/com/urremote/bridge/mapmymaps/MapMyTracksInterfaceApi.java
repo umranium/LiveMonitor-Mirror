@@ -44,10 +44,11 @@ public class MapMyTracksInterfaceApi {
 	public static final boolean DEBUG = Constants.IS_TESTING; 
 	public static final String TAG = "livemonitor-html";
 	
-	private Pattern SERVER_TIME_PAT = Pattern.compile("<server_time>\\s*(\\d+)\\s*</server_time>");
-	private Pattern REPLY_TYPE_PAT = Pattern.compile("<type>\\s*(\\w+)\\s*</type>");
-	private Pattern ACTIVITY_ID_PAT = Pattern.compile("<activity_id>\\s*(\\d+)\\s*</activity_id>");
-	private static Pattern REASON_PAT = Pattern.compile("<reason>(.*)</reason>");
+	private static final Pattern SERVER_TIME_PAT = Pattern.compile("<server_time>\\s*(\\d+)\\s*</server_time>");
+	private static final Pattern REPLY_TYPE_PAT = Pattern.compile("<type>\\s*(\\w+)\\s*</type>");
+	private static final Pattern ACTIVITY_ID_PAT = Pattern.compile("<activity_id>\\s*(\\d+)\\s*</activity_id>");
+	private static final Pattern REASON_PAT = Pattern.compile("<reason>(.*)</reason>");
+	private static final Pattern COMPLETE_PAT = Pattern.compile("<complete>(.*)</complete>");
 	
 	private DefaultHttpClient client;
 	private HttpPost httpPost;
@@ -57,6 +58,7 @@ public class MapMyTracksInterfaceApi {
 	private ReusableNameValuePairMap startActivityParamsMap;
 	private ReusableNameValuePairMap updateActivityParamsMap;
 	private ReusableNameValuePairMap stopActivityParamsMap;
+	private ReusableNameValuePairMap queryActivityParamsMap;
 	
 	private int instanceId;
 	
@@ -99,6 +101,12 @@ public class MapMyTracksInterfaceApi {
 		
 		stopActivityParamsMap = new ReusableNameValuePairMap();
 		stopActivityParamsMap.add("request", "stop_activity");
+
+		queryActivityParamsMap = new ReusableNameValuePairMap();
+		queryActivityParamsMap.add("request", "get_activity");
+		queryActivityParamsMap.add("activity_id", "");
+		queryActivityParamsMap.add("from_time", "");
+		
 	}
 	
 	public void shutdown() {
@@ -252,11 +260,15 @@ public class MapMyTracksInterfaceApi {
 			
 			updateActivityParamsMap.update("hr", hrBuilder.toString());
 			updateActivityParamsMap.update("cad", cadBuilder.toString());
-			updateActivityParamsMap.update("pwr", pwrBuilder.toString());
+			if (!Constants.IS_CRIPLED) {
+				updateActivityParamsMap.update("pwr", pwrBuilder.toString());
+			}
 		} else {
 			updateActivityParamsMap.update("hr", "");
 			updateActivityParamsMap.update("cad", "");
-			updateActivityParamsMap.update("pwr", "");
+			if (!Constants.IS_CRIPLED) {
+				updateActivityParamsMap.update("pwr", "");
+			}
 		}
 		
 		String reply = sendPost(updateActivityParamsMap);
@@ -296,7 +308,31 @@ public class MapMyTracksInterfaceApi {
 			throw new MapMyMapsException("Server did not reply. Service appears to be down.");
 	}
 	
-	public static String[] matchOne(Pattern pattern, String input)
+	public Boolean isActivityRecording(long activityId) throws IOException, MapMyMapsException
+	{
+		long timeSecs = System.currentTimeMillis() / 1000;
+		queryActivityParamsMap.update("activity_id", Long.toString(activityId));
+		queryActivityParamsMap.update("from_time", Long.toString(timeSecs));
+		String reply = sendPost(queryActivityParamsMap);
+		if (reply!=null) {
+			String[] type = matchOne(COMPLETE_PAT, reply);
+			if (type==null) {
+				throw new MapMyMapsException("Unparsable reply: "+reply);
+			}
+			
+			if (type[0].equalsIgnoreCase("yes")) {
+				return Boolean.FALSE; // not complete, hence recording
+			} if (type[0].equalsIgnoreCase("no")) {
+				return Boolean.TRUE; // complete, hence not recording anymore
+			} else {
+				parseError(type, reply);
+				throw new MapMyMapsException("Unexpected server reply type: '"+type[0]+"'");
+			}
+		} else
+			throw new MapMyMapsException("Server did not reply. Service appears to be down.");
+	}
+	
+	private static String[] matchOne(Pattern pattern, String input)
 	{
 		Matcher matcher;
 		
@@ -314,7 +350,7 @@ public class MapMyTracksInterfaceApi {
 		}
 	}
 	
-	public static void parseError(String[] type, String reply) throws MapMyMapsException
+	private static void parseError(String[] type, String reply) throws MapMyMapsException
 	{
 		if (type[0].equalsIgnoreCase("error")) {
 			String[] reason = matchOne(REASON_PAT, reply);

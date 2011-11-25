@@ -23,7 +23,7 @@ public class HtmlPostUtil {
 	
 	public interface PostResultListener {
 		void OnError(Throwable e);
-		void OnResult(String result);
+		void OnResult(int statusCode, String result);
 	}
 	
 	private URI uri;
@@ -46,7 +46,7 @@ public class HtmlPostUtil {
 				while ((line = rd.readLine()) != null) {
 					respBuilder.append(line).append("\n");
 				}
-				postResultListener.OnResult(respBuilder.toString());
+				postResultListener.OnResult(response.getStatusLine().getStatusCode(), respBuilder.toString());
 			} catch (UnsupportedEncodingException e) {
 				postResultListener.OnError(e);
 			} catch (ClientProtocolException e) {

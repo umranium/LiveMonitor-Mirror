@@ -180,8 +180,6 @@ public class Main extends Activity {
         
     	Intent intent = new Intent(this, LiveMonitorService.class);
         bindService(intent, connection, BIND_AUTO_CREATE);
-        
-        C2dmReceiver.register(this);
     }
     
     @Override
