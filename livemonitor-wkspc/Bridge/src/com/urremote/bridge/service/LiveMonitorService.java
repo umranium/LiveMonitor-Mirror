@@ -16,7 +16,7 @@ import com.urremote.bridge.Main;
 import com.urremote.bridge.c2dm.C2dmDeviceRegistrationMessage;
 import com.urremote.bridge.c2dm.C2dmDeviceUpdateMessage;
 import com.urremote.bridge.common.Constants;
-import com.urremote.bridge.common.CustomThreadUncaughtExceptionHandler;
+import com.urremote.bridge.common.CustomUncaughtExceptionHandler;
 import com.urremote.bridge.common.HtmlPostUtil;
 import com.urremote.bridge.common.PrimaryAccountUtil;
 import com.urremote.bridge.common.HtmlPostUtil.PostResultListener;
@@ -210,13 +210,14 @@ public class LiveMonitorService extends Service {
 	
 	private Handler mainThreadHandler;
 	private LiveMonitorBinder binder = new LiveMonitorBinder();
-	private boolean isRecording = false;
 	private UpdateListenerCollection updateHandlers = new UpdateListenerCollection();
-	private ServiceForegroundUtil foregroundUtil;
 	private SamplingQueue samplingQueue = new SamplingQueue(Constants.SAMPLING_QUEUE_SIZE);
+	private MessageContainer systemMessages = new MessageContainer(MAX_SYSTEM_MESSAGES);
+	private SystemEventLogger systemEventLogger;
+	private boolean isRecording = false;
+	private ServiceForegroundUtil foregroundUtil;
 	private MonitoringThread monitoringThread = null; 
 	private UploaderThread uploaderThread = null;
-	private MessageContainer systemMessages = new MessageContainer(MAX_SYSTEM_MESSAGES);
 	private boolean isUiActive = false;
 	private Vibrator vibrator;
 	private MediaPlayer errorBeepPlayer;
@@ -289,7 +290,10 @@ public class LiveMonitorService extends Service {
 		super.onCreate();
 		Log.d(Constants.TAG, this.getClass().getSimpleName()+":onCreate() xxxx");
 		
-		CustomThreadUncaughtExceptionHandler.setInterceptHandler(Thread.currentThread());
+		CustomUncaughtExceptionHandler.setInterceptHandler(this, Thread.currentThread());
+		
+		this.systemEventLogger = new SystemEventLogger(binder);
+		this.updateHandlers.add(systemEventLogger);
 		
 		this.mainThreadHandler = new Handler(Looper.getMainLooper());
 		this.vibrator = (Vibrator)this.getSystemService(Context.VIBRATOR_SERVICE); 

@@ -12,7 +12,7 @@ import android.util.Log;
 
 import com.google.android.apps.mytracks.content.Sensor.SensorDataSet;
 import com.urremote.bridge.common.Constants;
-import com.urremote.bridge.common.CustomThreadUncaughtExceptionHandler;
+import com.urremote.bridge.common.CustomUncaughtExceptionHandler;
 import com.urremote.bridge.common.DefSettings;
 import com.urremote.bridge.mapmymaps.MapMyMapsException;
 import com.urremote.bridge.mapmymaps.MapMyTracksInterfaceApi;
@@ -97,7 +97,7 @@ public class NoActivityRestartImpl implements UploaderThread {
 		
 		@Override
 		public void run() {
-			CustomThreadUncaughtExceptionHandler.setInterceptHandler(Thread.currentThread());
+			CustomUncaughtExceptionHandler.setInterceptHandler(context, Thread.currentThread());
 			
 			SharedPreferences state = context.getSharedPreferences(
 					Constants.SHARE_PREF, Context.MODE_PRIVATE);
@@ -237,7 +237,7 @@ public class NoActivityRestartImpl implements UploaderThread {
 		
 		@Override
 		public void run() {
-			CustomThreadUncaughtExceptionHandler.setInterceptHandler(Thread.currentThread());
+			CustomUncaughtExceptionHandler.setInterceptHandler(context, Thread.currentThread());
 			
 			SharedPreferences state = context.getSharedPreferences(
 					Constants.SHARE_PREF, Context.MODE_PRIVATE);

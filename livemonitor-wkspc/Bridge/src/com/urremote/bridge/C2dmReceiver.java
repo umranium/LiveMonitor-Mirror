@@ -1,6 +1,5 @@
 package com.urremote.bridge;
 
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
@@ -19,7 +18,6 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
@@ -260,36 +258,6 @@ public class C2dmReceiver extends BroadcastReceiver {
 	        }
 
 	    };
-	}
-	
-	
-	private static class DelayedInvoke implements Runnable {
-		
-		private Object _this;
-		private Method method;
-		private Object[] args;
-		
-		public DelayedInvoke(Context context, long delay, Class<?> _class, Object _this, String methodName, Class<?>[] paramTypes, Object ... args) throws SecurityException, NoSuchMethodException {
-			this._this = _this;
-			this.method = _class.getMethod(methodName, paramTypes);
-			this.args = args;
-			
-			Context appContext = context.getApplicationContext();
-			Handler mainLooperHandler = new Handler(appContext.getMainLooper());
-			mainLooperHandler.postDelayed(this, delay);
-		}
-		
-		@Override
-		public void run() {
-			try {
-				
-				method.invoke(_this, args);
-				
-			} catch (Exception e) {
-				Log.e(Constants.TAG, "Exception while trying to run method "+method, e);
-			}
-		}
-		
 	}
 	
 	

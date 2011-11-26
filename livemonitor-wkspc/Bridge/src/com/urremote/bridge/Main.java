@@ -28,7 +28,7 @@ import android.widget.Toast;
 import com.urremote.bridge.R;
 
 import com.urremote.bridge.common.Constants;
-import com.urremote.bridge.common.CustomThreadUncaughtExceptionHandler;
+import com.urremote.bridge.common.CustomUncaughtExceptionHandler;
 import com.urremote.bridge.scroller.ScrollerMessage;
 import com.urremote.bridge.scroller.ScrollerUpdater;
 import com.urremote.bridge.service.ILiveMonitorBinder;
@@ -65,7 +65,7 @@ public class Main extends Activity {
         super.onCreate(savedInstanceState);
 		Log.d(Constants.TAG, this.getClass().getSimpleName()+":onCreate()");
 		
-		CustomThreadUncaughtExceptionHandler.setInterceptHandler(Thread.currentThread());
+		CustomUncaughtExceptionHandler.setInterceptHandler(this, Thread.currentThread());
         
         this.locationManager = (LocationManager)this.getSystemService(LOCATION_SERVICE);
         

@@ -1,8 +1,10 @@
 package com.urremote.bridge.common;
 
+import java.io.File;
 import java.net.URI;
 
 import android.net.Uri;
+import android.os.Environment;
 
 public class Constants {
 	
@@ -45,6 +47,10 @@ public class Constants {
 	public static final String KEY_TAGS				= "tags";
 
 	public static final String SHOW_ACTIVITY_SETTINGS_TOO = "SHOW_ACTIVITY_SETTINGS_TOO";
+	
+	public static final String PATH_SD_CARD_APP_LOC = Environment.getExternalStorageDirectory() + File.separator + "Bridge";
+	
+	public static final URI URI_CRASH_REPORT = URI.create("http://remote-invoker.appspot.com/crashreport");
 	
 	// MYTRACKS 
 	public static final Uri URI_MYTRACKS_MARKET = Uri.parse("market://search?q="+MY_TRACKS_PACKAGE);
