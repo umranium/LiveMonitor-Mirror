@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.urremote.bridge.R;
 
 import com.urremote.bridge.common.Constants;
+import com.urremote.bridge.common.CustomUncaughtExceptionHandler;
 import com.urremote.bridge.common.DefSettings;
 import com.urremote.bridge.mapmymaps.MapMyTracksInterfaceApi;
 
@@ -161,6 +162,8 @@ public class AccountSettings extends Activity {
 		Thread th = new Thread() {
 			@Override
 			public void run() {
+				CustomUncaughtExceptionHandler.setInterceptHandler(AccountSettings.this, Thread.currentThread());
+				
 		    	try {
 					Long serverTime = mapMyTracksInterfaceApi.getServerTime();
 					if (serverTime!=null) {

@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -30,31 +31,38 @@ public class SystemEventLogger implements UpdateListener {
     	}
     	
 		DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT); 
-		String filename = dateFormatter.format(new Date(System.currentTimeMillis())).replaceAll("[^A-Z0-9]+", "_") + ".log";
+		String filename = dateFormatter.format(new Date(System.currentTimeMillis())).replaceAll("[^A-Za-z0-9]+", "-") + ".log";
     	File outputFile = new File(Constants.PATH_SD_CARD_APP_LOC + File.separator + filename);
-    	
-    	if (!outputFile.getParentFile().exists()) {
-    		if (!outputFile.getParentFile().mkdirs()) {
-                Log.e(Constants.TAG, 
-                		"Unable to create log file directory:\n"+
-                		outputFile.getParentFile());
-    		}
-    	}
     	
     	this.binder = binder;
     	
     	try {
+        	if (!outputFile.getParentFile().exists()) {
+        		if (!outputFile.getParentFile().mkdirs()) {
+                    Log.e(Constants.TAG, 
+                    		"Unable to create log file directory:\n"+
+                    		outputFile.getParentFile());
+        		}
+        	}
+        	
+    		if (!outputFile.exists())
+    			outputFile.createNewFile();
+    		
 			log = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputFile)));
-		} catch (FileNotFoundException e) {
+
+    		Log.i(Constants.TAG, "Logging to: "+outputFile);
+    		
+    	} catch (FileNotFoundException e) {
+			Log.e(Constants.TAG, "Error while creating log", e);
+		} catch (IOException e) {
 			Log.e(Constants.TAG, "Error while creating log", e);
 		}
 	}
 	
 	@Override
 	protected void finalize() throws Throwable {
-		super.finalize();
-		
 		log.close();
+		super.finalize();
 	}
 
 	@Override
@@ -69,8 +77,8 @@ public class SystemEventLogger implements UpdateListener {
 			for (SystemMessage msg:sysMsgs) {
 				if (msg.timeStamp>lastSystemMessage) {
 					lastSystemMessage = msg.timeStamp;
-					log.println(msg.message);
-					Log.d(Constants.TAG, "Written: "+msg.message);
+					log.println(msg.timeStamp+":"+msg.message);
+					log.flush();
 				}
 			}
 			
@@ -81,6 +89,7 @@ public class SystemEventLogger implements UpdateListener {
 	public void onSystemStart() {
 		if (log!=null) {
 			log.println("System Started");
+			log.flush();
 		}
 	}
 

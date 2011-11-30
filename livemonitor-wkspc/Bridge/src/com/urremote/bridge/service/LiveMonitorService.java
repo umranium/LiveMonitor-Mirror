@@ -113,23 +113,32 @@ public class LiveMonitorService extends Service {
 	
 	private InternalServiceMessageHandler serviceMsgHandler = new InternalServiceMessageHandler() {
 		
+		private Object systemMessageMutex = new Object();
+		
 		@Override
 		public void onCriticalError(String msg) {
 			if (isRecording) {
 				stopRecording();
-				onSystemMessage("Error: "+msg);
+				onSystemMessage("Critical Error: "+msg);
+				CustomUncaughtExceptionHandler.reportCrash(
+						LiveMonitorService.this,
+						Thread.currentThread(),
+						new RuntimeException("Critical Error: "+msg));
 			}
 		}
 		
 		@Override
 		public void onSystemMessage(String msg) {
-			String lines[] = msg.replace("\t", "        ").split("\n");
-			for (String line:lines)
-				systemMessages.addMessage(line);
-			
-			updateHandlers.updateSystemMessages();
-			if (foregroundUtil.isForeground()) {
-				foregroundUtil.updateNotification(NOTIFICATION_TITLE, lines[lines.length-1]);
+			synchronized (systemMessageMutex) {
+				String lines[] = msg.replace("\t", "        ").split("\n");
+				for (String line:lines) {
+					systemMessages.addMessage(line);
+				}
+				
+				updateHandlers.updateSystemMessages();
+//				if (foregroundUtil.isForeground()) {
+//					foregroundUtil.updateNotification(NOTIFICATION_TITLE, lines[lines.length-1]);
+//				}
 			}
 		}
 
@@ -301,7 +310,7 @@ public class LiveMonitorService extends Service {
 		
 		this.monitoringThread = new MonitoringThread(
 				this, serviceMsgHandler, samplingQueue);
-		this.uploaderThread = new ActivityRestartImpl(
+		this.uploaderThread = new NoActivityRestartImpl(
 				this, serviceMsgHandler, samplingQueue);
 
 		this.foregroundUtil = new ServiceForegroundUtil(this, Main.class, Constants.FOREGROUND_NOTIFICATION_ID);
@@ -360,6 +369,12 @@ public class LiveMonitorService extends Service {
 			NOTIFICATION_TEXT
 		);
 		
+	}
+	
+	@Override
+	public void onLowMemory() {
+		super.onLowMemory();
+		serviceMsgHandler.onSystemMessage("Low Memory Detected");
 	}
 	
 	private void updateC2dmRecordingState() {

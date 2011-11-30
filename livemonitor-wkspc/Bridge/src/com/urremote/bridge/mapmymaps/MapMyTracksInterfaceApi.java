@@ -41,7 +41,7 @@ public class MapMyTracksInterfaceApi {
 	
 	public static final String APP_NAME = "get Avocado Activity Classifier";
 	
-	public static final boolean DEBUG = Constants.IS_TESTING; 
+	public static final boolean DEBUG = false;//Constants.IS_TESTING; 
 	public static final String TAG = "livemonitor-html";
 	
 	private static final Pattern SERVER_TIME_PAT = Pattern.compile("<server_time>\\s*(\\d+)\\s*</server_time>");

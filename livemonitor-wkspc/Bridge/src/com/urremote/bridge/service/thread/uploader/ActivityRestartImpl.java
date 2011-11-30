@@ -23,9 +23,9 @@ import com.urremote.bridge.service.thread.UploaderThread;
 
 public class ActivityRestartImpl implements UploaderThread {
 	
-	private static final int NUM_HELPER_THREADS = 20;
+	private static final int NUM_HELPER_THREADS = 5;
 	private static final long INITIAL_DATA_WAIT = 60*60*1000L;
-	private static final long CONSEQUENT_DATA_WAIT = 20;
+	private static final long CONSEQUENT_DATA_WAIT = 60*1000L;
 	
 	private InternalServiceMessageHandler serviceMsgHandler;
 	private SamplingQueue samplingQueue;

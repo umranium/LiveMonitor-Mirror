@@ -7,7 +7,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.http.NameValuePair;
@@ -26,6 +29,8 @@ import android.util.Log;
 
 public class CustomUncaughtExceptionHandler implements
 		UncaughtExceptionHandler {
+	
+	public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
 	
 	public static void setInterceptHandler(Context context, Thread thread) {
 		UncaughtExceptionHandler prevHandler = thread.getUncaughtExceptionHandler();
@@ -55,13 +60,11 @@ public class CustomUncaughtExceptionHandler implements
     }
 	
     
-    private String appName;
-    private String version;
+    private Context context;
 	private UncaughtExceptionHandler prev;
 	
 	public CustomUncaughtExceptionHandler(Context context, UncaughtExceptionHandler prev) {
-		this.appName = getAppName(context);
-		this.version = getVersionName(context);
+		this.context = context;
 		this.prev = prev;
 	}
 
@@ -69,28 +72,40 @@ public class CustomUncaughtExceptionHandler implements
 	public void uncaughtException(Thread thread, Throwable ex) {
 		Log.e(Constants.TAG, "Uncaught exception in thread: "+thread.getName(), ex);
 		
-		StringWriter strWriter = new StringWriter();
-		PrintWriter writer = new PrintWriter(strWriter);
-		
-		writer.println("Application: "+appName);
-		writer.println("Version: "+version);
-		writer.println("Uncaught exception in thread: "+thread.getName());
-		ex.printStackTrace(writer);
-		
-		writer.close();
-		
-		String crashReport = strWriter.toString();
-		
-		writeToFile(crashReport, Long.toString(System.currentTimeMillis())+".stacktrace");
-//		sendToServer(crashReport);
+		reportCrash(context, thread, ex);
 		
 		if (this.prev!=null)
 			this.prev.uncaughtException(thread, ex);
 	}
 	
-    private void writeToFile(String crashReport, String filename) {
+	public static void reportCrash(Context context, Thread thread, Throwable ex) {
+		String crashReport = createCrashReport(context, thread, ex); 
+		writeToFile(crashReport);
+//		sendToServer(crashReport);
+	}
+	
+	private static String createCrashReport(Context context, Thread thread, Throwable ex) {
+		StringWriter strWriter = new StringWriter();
+		PrintWriter writer = new PrintWriter(strWriter);
+		
+		writer.println("Application: "+getAppName(context));
+		writer.println("Version: "+getVersionName(context));
+		writer.println("Uncaught exception in thread: "+thread.getName());
+		ex.printStackTrace(writer);
+		
+		writer.close();
+		
+		return strWriter.toString();
+	}
+	
+	private static String timeToFilename(long time) {
+		return dateFormat.format(new Date(time)).replaceAll("[^0-9A-Za-z]", "-");
+	}
+	
+	private static void writeToFile(String crashReport) {
         try {
-        	File outputFile = new File(Constants.PATH_SD_CARD_APP_LOC + File.separator + filename);
+        	File outputFile = new File(Constants.PATH_SD_CARD_APP_LOC + File.separator +
+        			timeToFilename(System.currentTimeMillis())+".stacktrace");
         	
         	if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
         		Log.e(Constants.TAG, "Unable to write stacktrace to file. External media not mounted!");
@@ -126,7 +141,7 @@ public class CustomUncaughtExceptionHandler implements
         }
     }
 
-    private void sendToServer(String crashReport) {
+	private static void sendToServer(String crashReport) {
         DefaultHttpClient httpClient = new DefaultHttpClient();
         HttpPost httpPost = new HttpPost(Constants.URI_CRASH_REPORT);
         List<NameValuePair> nvps = new ArrayList<NameValuePair>();

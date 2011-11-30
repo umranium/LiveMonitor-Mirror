@@ -17,7 +17,7 @@ public class Constants {
 	
 	public static final int MINIMUM_RECORDING_DISTANCE = 5;
 	
-	public static final long INTERVAL_RETRY_UPLOAD = 30*1000L;
+	public static final long INTERVAL_RETRY_UPLOAD = 60*1000L;
 	public static final long DURATION_WAIT_FOR_STABLE_CONNECTION = 4*60*1000L;
 	
 	public static final String MY_TRACKS_PACKAGE = "com.google.android.maps.mytracks";
@@ -30,7 +30,9 @@ public class Constants {
 	 */
 	public static final long LOCATION_MAX_UPDATE_INTERVAL = 30*1000L;
 	
-	public static final int SAMPLING_QUEUE_SIZE = 6*60*60; // at 1Hz, this means the queue can store for up to 5 hrs
+	public static final int SAMPLING_QUEUE_SIZE = 2*60*60; // at 1 sample every 3 seconds, this means the queue can store for up to 6 hrs
+	
+	public static final int SAMPLING_INTERVAL = 3; // sample once every 3 seconds
 
 	public static final int FOREGROUND_NOTIFICATION_ID = 1;
 	

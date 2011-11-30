@@ -35,7 +35,6 @@ public class HtmlPostUtil {
 		@Override
 		public void run() {
 			try {
-				
 				HttpClient client = new DefaultHttpClient();
 				HttpPost post = new HttpPost(uri);
 				post.setEntity(new UrlEncodedFormEntity(nameValuePairs));

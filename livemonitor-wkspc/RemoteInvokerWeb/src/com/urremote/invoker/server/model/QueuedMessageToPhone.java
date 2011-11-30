@@ -1,14 +1,22 @@
 package com.urremote.invoker.server.model;
 
+import java.io.Serializable;
+
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
+import javax.persistence.NamedQuery;
 
 import com.google.appengine.api.datastore.Key;
 
 @PersistenceCapable
-public class MessageToPhone {
+@NamedQuery(name="fetchDeviceMessagesSinceLastUpdate",query=
+		"SELECT c FROM QueuedMessageToPhone c " +
+		"WHERE c.deviceId=device && c.timeStamp>time " +
+		"ORDER BY c.collapseKey, c.timeStamp " +
+		"PARAMETERS String device, long time")
+public class QueuedMessageToPhone implements Serializable {
 	
 	@PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
@@ -29,7 +37,7 @@ public class MessageToPhone {
 	@Persistent
 	private String messageDataContent;
 
-	public MessageToPhone(String deviceId, long timestamp, String collapseKey,
+	public QueuedMessageToPhone(String deviceId, long timestamp, String collapseKey,
 			String messageDataKey, String messageDataContent) {
 		this.deviceId = deviceId;
 		this.timestamp = timestamp;

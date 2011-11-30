@@ -38,6 +38,10 @@ public class ServiceForegroundUtil {
 		this.service = service;
 		this.mainActivity = mainActivity;
 		this.isForeground = isServiceForeground(service);
+		
+		if (this.isForeground) {
+			Log.i(Constants.TAG, "Service found to be in foreground mode already.");
+		}
 	}
 	
 	private void createNotification(int icon, String ticker) {
@@ -52,7 +56,7 @@ public class ServiceForegroundUtil {
 		notificationIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP
 				//| Intent.FLAG_ACTIVITY_CLEAR_TOP
 				);
-		this.notificationContentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);		
+		this.notificationContentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
 		this.notification.setLatestEventInfo(context, title, text, this.notificationContentIntent);
 		if (this.isForeground) {
 			notificationManager.notify(notificationId, notification);
@@ -61,11 +65,13 @@ public class ServiceForegroundUtil {
 	
 	public void setToForeground(int icon, String ticker, String title, String text)
 	{
-		if (this.isForeground) {
-			updateNotification(title, text);
-		} else {
+		Log.i(Constants.TAG, "Setting to foreground: isForeground="+this.isForeground);
+		if (this.notification==null) {
 			createNotification(icon, ticker);
-			updateNotification(title, text);
+		}
+		updateNotification(title, text);
+		
+		if (!this.isForeground){
 			service.startForeground(notificationId, notification);
 			this.isForeground = true;
 			Log.d(Constants.TAG, "Service now in foreground mode");

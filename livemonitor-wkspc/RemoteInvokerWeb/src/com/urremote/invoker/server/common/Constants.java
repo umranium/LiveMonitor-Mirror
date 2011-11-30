@@ -13,6 +13,7 @@ public class Constants {
 	public static final String C2DM_MSG_PARAM_DEVICE_ID = "deviceId";
 	public static final String C2DM_MSG_PARAM_TYPE = "type";
 	public static final String C2DM_MSG_PARAM_DATA = "data";
+	public static final String C2DM_MSG_PARAM_LAST_UPDATE = "lastUpdate";
 	
 	public static final String C2DM_MSG_TYPE_STATE_UPDATE = "StateUpdate";
 	public static final String C2DM_MSG_TYPE_START_RECORDING = "StartRecording";

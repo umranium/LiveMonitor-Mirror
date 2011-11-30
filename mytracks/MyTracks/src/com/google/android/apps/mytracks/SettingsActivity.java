@@ -31,6 +31,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
@@ -43,7 +44,9 @@ import android.preference.PreferenceCategory;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.provider.Settings;
+import android.text.InputType;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -374,7 +377,7 @@ public class SettingsActivity extends PreferenceActivity {
     super.onPause();
   }
 
-  private void updateSensorSettings(String sensorType) {
+  private void updateSensorSettings(final String sensorType) {
     boolean usesBluetooth =
         getString(R.string.sensor_type_value_zephyr).equals(sensorType)
         || getString(R.string.sensor_type_value_polar).equals(sensorType);
@@ -387,14 +390,129 @@ public class SettingsActivity extends PreferenceActivity {
     // TODO: Only enable on phones that have ANT+.
     Preference antHrm = findPreference(getString(R.string.ant_heart_rate_sensor_id_key));
     Preference antSrm = findPreference(getString(R.string.ant_srm_bridge_sensor_id_key));
+    
+    int srmDeviceNumber = getIntPref(R.string.ant_srm_bridge_sensor_id_key, 0);
+    if (srmDeviceNumber>0)
+      antSrm.setSummary("Paired to: "+srmDeviceNumber);
+    else
+      antSrm.setSummary("Not paired");
+    
+    antSrm.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+      @Override
+      public boolean onPreferenceClick(Preference preference) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
+        
+        int srmDeviceNumber = getIntPref(R.string.ant_srm_bridge_sensor_id_key, 0);
+         
+        final EditText textView = new EditText(SettingsActivity.this);
+        textView.setInputType(InputType.TYPE_CLASS_NUMBER);
+        if (srmDeviceNumber>0)
+          textView.setText(Integer.toString(srmDeviceNumber));
+        builder.setCancelable(false);
+        builder.setView(textView);
+        
+        builder.setPositiveButton("Ok", new OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+              String text = (new StringBuffer(textView.getText())).toString();
+              if (text.length()==0) {
+                Toast.makeText(
+                    SettingsActivity.this,
+                    "Invalid device id\nPlease enter a number",
+                    Toast.LENGTH_SHORT).show();
+                return;
+              }
+              
+              int val = Integer.parseInt(text);
+              if (val<=0 || val>=255) {
+                Toast.makeText(
+                    SettingsActivity.this,
+                    "Invalid device id\nSRM PC7 Device Id needs to be between 1 and 255",
+                    Toast.LENGTH_SHORT).show();
+                return;
+              }
+              
+              if (setIntPref(R.string.ant_srm_bridge_sensor_id_key, val)) {
+                Toast.makeText(
+                    SettingsActivity.this,
+                    "SRM PC7 Device Id Successfully Set",
+                    Toast.LENGTH_SHORT).show();
+              } else {
+                Toast.makeText(
+                    SettingsActivity.this,
+                    "Failure Setting SRM PC7 Device Id",
+                    Toast.LENGTH_SHORT).show();
+              }
+              
+              updateSensorSettings(sensorType);
+              dialog.dismiss();
+          }
+        });
+        
+        builder.setNeutralButton("Clear", new OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            if (setIntPref(R.string.ant_srm_bridge_sensor_id_key, 0)) {
+              Toast.makeText(
+                  SettingsActivity.this,
+                  "SRM PC7 Device Id Successfully Cleared",
+                  Toast.LENGTH_SHORT).show();
+            } else {
+              Toast.makeText(
+                  SettingsActivity.this,
+                  "Failure Clearing SRM PC7 Device Id",
+                  Toast.LENGTH_SHORT).show();
+            }
+            
+            updateSensorSettings(sensorType);
+            dialog.dismiss();
+          }
+        });
+        
+        builder.setNegativeButton("Cancel", new OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            dialog.dismiss();
+          }
+        });
+        
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        
+        return true;
+      }
+    });
+    
+    
     if (antHrm != null && antSrm != null) {
       antHrm
           .setEnabled(getString(R.string.sensor_type_value_ant).equals(sensorType));
       antSrm
           .setEnabled(getString(R.string.sensor_type_value_srm_ant_bridge).equals(sensorType));
+      
+    }
+  }
+  
+  private int getIntPref(int keyStrId, int defaultValue) {
+    SharedPreferences prefs = getSharedPreferences(Constants.SETTINGS_NAME, 0);
+    if (prefs != null) {
+      return prefs.getInt(getString(keyStrId), defaultValue);
+    } else {
+      return defaultValue;
     }
   }
 
+  private boolean setIntPref(int keyStrId, int value) {
+    SharedPreferences prefs = getSharedPreferences(Constants.SETTINGS_NAME, 0);
+    if (prefs != null) {
+      Editor editor = prefs.edit();
+      editor.putInt(getString(keyStrId), value);
+      return editor.commit();
+    } else {
+      return false;
+    }
+  }
+  
   private void updateTrackColorModeSettings(String trackColorMode) {
     boolean usesFixedSpeed = trackColorMode.equals(
         getString(R.string.track_color_mode_value_fixed));

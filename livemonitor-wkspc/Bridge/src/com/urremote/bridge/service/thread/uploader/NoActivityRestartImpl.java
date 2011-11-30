@@ -23,9 +23,8 @@ import com.urremote.bridge.service.thread.UploaderThread;
 
 public class NoActivityRestartImpl implements UploaderThread {
 	
-	private static final int NUM_HELPER_THREADS = 20;
-	private static final long INITIAL_DATA_WAIT = 60*60*1000L;
-	private static final long CONSEQUENT_DATA_WAIT = 20;
+	private static final int NUM_HELPER_THREADS = 5;
+	private static final long DATA_WAIT = 30*1000L;
 	
 	private InternalServiceMessageHandler serviceMsgHandler;
 	private SamplingQueue samplingQueue;
@@ -108,13 +107,19 @@ public class NoActivityRestartImpl implements UploaderThread {
 					);
 			
 			isRunning = true;
-//			Sample sample = null;
 			try {
-				grabData(INITIAL_DATA_WAIT, pointsToUpload, sensorDataToUpload);
+				while (isRunning && pointsToUpload.isEmpty()) {
+					try {
+						grabData(DATA_WAIT, pointsToUpload, sensorDataToUpload);
+					} catch (InterruptedException e) {
+						// ignore
+					}
+				}
 				Log.d(Constants.TAG, "Uploader: filled sample received");
 				
 				serviceMsgHandler.onSystemMessage("Attempting to start MapMyTracks Activity");
 				activityId = null;
+				Class<?> prevExceptionClass = null;
 				while (isRunning && activityId==null) {
 					try {
 						activityId = 
@@ -126,15 +131,15 @@ public class NoActivityRestartImpl implements UploaderThread {
 								pointsToUpload
 							);
 					} catch (Exception e) {
-						//	ignore, sometimes happens because of poor connection
-						//	try again after a short time
-						//Thread.sleep(30000L);	don't use sleep, instead
-						//						allow for the user to stop, ie. use the stop semaphore
-						Log.d(Constants.TAG, "Error while starting MapMyTracks Activity", e);
-						serviceMsgHandler.onSystemMessage("Error: "+e.getMessage()+", retrying shortly");
+						if (prevExceptionClass==null || !prevExceptionClass.equals(e.getClass())) {
+							Log.d(Constants.TAG, "Error while starting MapMyTracks Activity", e);
+							serviceMsgHandler.onSystemMessage("Error starting activity: "+e.getMessage()+", retrying shortly");
+							prevExceptionClass = e.getClass();;
+						}
+						
 						try {
 							synchronized (stopSemaphore) {
-								stopSemaphore.wait(30000L);	//	30s
+								stopSemaphore.wait(Constants.INTERVAL_RETRY_UPLOAD);	//	30s
 							}
 						} catch (InterruptedException ex) {
 							//	ignore
@@ -161,8 +166,6 @@ public class NoActivityRestartImpl implements UploaderThread {
 					}
 				}
 				
-			} catch (InterruptedException e) {
-				//ignore
 			} finally {
 //				if (sample!=null) {
 //					try {
@@ -211,7 +214,11 @@ public class NoActivityRestartImpl implements UploaderThread {
 		
 	}
 	
+	private Class<?> prevExceptionClass = null;
+	private final Object prevExceptionMutex = new Object();
+	
 	class ActivityUploaderHelper extends Thread {
+		
 		private int helperIndex;
 		private ActivityUploader uploaderHelper;
 		private MapMyTracksInterfaceApi mapMyTracksInterfaceApi;
@@ -247,14 +254,12 @@ public class NoActivityRestartImpl implements UploaderThread {
 					DefSettings.getPassword(state)
 					);
 			
-			Class<?> prevExceptionClass = null;
-			
 			StringBuilder msgBuilder = new StringBuilder();
 			
 			while (uploaderHelper.isRunning) {
 				try {
 					if (pointsToUpload.isEmpty()) {
-						grabData(CONSEQUENT_DATA_WAIT, pointsToUpload, sensorDataToUpload);
+						grabData(DATA_WAIT, pointsToUpload, sensorDataToUpload);
 					}
 					
 					try {
@@ -286,22 +291,26 @@ public class NoActivityRestartImpl implements UploaderThread {
 						
 						pointsToUpload.clear();
 						sensorDataToUpload.clear();
+						
 						prevExceptionClass = null;
 					} catch (Exception e) {
-						if (prevExceptionClass==null || !prevExceptionClass.equals(e.getClass())) {
-							Log.e(Constants.TAG, "Helper "+helperIndex+": Error Updating Server", e);
-							serviceMsgHandler.onSystemMessage("Error Updating Server: "+e.getMessage()+"\nRetrying shortly");
-							prevExceptionClass = e.getClass();;
+						synchronized (prevExceptionMutex) {
+							if (prevExceptionClass==null || !prevExceptionClass.equals(e.getClass())) {
+								Log.e(Constants.TAG, "Error Updating Server", e);
+								serviceMsgHandler.onSystemMessage("Error Updating Server: "+e.getMessage()+"\nRetrying shortly");
+								prevExceptionClass = e.getClass();
+							}
 						}
 						
 						try {
 							synchronized (uploaderHelper.stopSemaphore) {
-								uploaderHelper.stopSemaphore.wait(30000L);	//	30s
+								uploaderHelper.stopSemaphore.wait(Constants.INTERVAL_RETRY_UPLOAD);	//	60s
 							}
 						} catch (InterruptedException ex) {
 						}
 					}
-				} catch (InterruptedException e) {
+				} catch (Exception e) {
+					Log.d(Constants.TAG, "Helper interrupted while fetching data", e);
 					// ignored
 				}
 			}

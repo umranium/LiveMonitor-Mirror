@@ -60,6 +60,8 @@ public class Main extends Activity {
 	private boolean isUiActive = false;
 	private boolean pendingRegisterUpdateListener = false;
 	
+	private MyUpdateListener updateListener = new MyUpdateListener();
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -135,9 +137,33 @@ public class Main extends Activity {
 										dialog.dismiss();
 									}
 								});
+								bldr.setNegativeButton("No! Don't!", new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+										dialog.dismiss();
+									}
+								});
 								bldr.show();
 							} else {
-								binder.stopRecording();
+//								binder.stopRecording();
+								AlertDialog.Builder bldr = new AlertDialog.Builder(Main.this);
+								bldr.setTitle("Stop recording");
+								bldr.setMessage("Are you sure you wish to stop recording?");
+								bldr.setCancelable(true);
+								bldr.setPositiveButton("Yes please", new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+										binder.stopRecording();
+										dialog.dismiss();
+									}
+								});
+								bldr.setNegativeButton("No! Don't!", new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+										dialog.dismiss();
+									}
+								});
+								bldr.show();
 							}
 						}
 						else
@@ -232,7 +258,7 @@ public class Main extends Activity {
     	
     	if (binder!=null) {
     		binder.setUiActive(isUiActive);
-    		updateListener.updateSystemMessages();
+    		updateListener.internalUpdateSystemMessages();
     	} else {
     		this.btnStart.setEnabled(true);
     		this.btnStart.setEnabled(true);
@@ -286,7 +312,7 @@ public class Main extends Activity {
         	}
         	binder.setUiActive(isUiActive);
         	systemMessagesUpdater.setMessageList(binder.getSystemMessages());
-        	updateListener.updateSystemMessages();
+        	updateListener.internalUpdateSystemMessages();
         }
 
         public void onServiceDisconnected(ComponentName arg0) {
@@ -295,7 +321,7 @@ public class Main extends Activity {
 
     };
     
-    private UpdateListener updateListener = new UpdateListener() {
+    private class MyUpdateListener implements UpdateListener {
 		
 //		@Override
 //		public Activity getActivity() {
@@ -324,15 +350,7 @@ public class Main extends Activity {
 			Main.this.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					systemMessagesUpdater.update();
-					if (binder!=null) {
-			        	btnStart.setEnabled(!binder.isStarted());
-			         	btnStop.setEnabled(binder.isStarted());
-			         	
-						if (binder.isStarted() && !binder.isRecording()) {
-							binder.stopService();
-						}
-					}
+					internalUpdateSystemMessages();
 				}
 			});
 		}
@@ -342,7 +360,7 @@ public class Main extends Activity {
 			Main.this.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					updateSystemMessages();
+					internalUpdateSystemMessages();
 				}
 			});
 		}
@@ -352,9 +370,21 @@ public class Main extends Activity {
 			Main.this.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					updateSystemMessages();
+					internalUpdateSystemMessages();
 				}
 			});
+		}
+		
+		synchronized private void internalUpdateSystemMessages() {
+			systemMessagesUpdater.update();
+			if (binder!=null) {
+	        	btnStart.setEnabled(!binder.isStarted());
+	         	btnStop.setEnabled(binder.isStarted());
+	         	
+				if (binder.isStarted() && !binder.isRecording()) {
+					binder.stopService();
+				}
+			}
 		}
 		
 	}; 
@@ -415,6 +445,7 @@ public class Main extends Activity {
     		if (!isMyTracksInstalled()) {
     			this.finish();
     		}
+    		break;
     	}
     	}
     }

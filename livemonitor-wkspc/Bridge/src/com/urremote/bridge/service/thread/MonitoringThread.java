@@ -267,7 +267,7 @@ public class MonitoringThread {
 					
 					if (mytracks.isRecording() && location!=null) {
 						
-						if ((locationIndex % 3) == 0) {
+						if ((locationIndex % Constants.SAMPLING_INTERVAL) == 0) {
 							Location newLoc = new Location(location);
 							if (lastUploadedLoc!=null) {
 								double dist = lastUploadedLoc.distanceTo(newLoc);
