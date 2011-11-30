@@ -28,8 +28,10 @@ import com.urremote.bridge.service.utils.ServiceForegroundUtil;
 
 import android.app.Activity;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.Build;
@@ -217,6 +219,20 @@ public class LiveMonitorService extends Service {
 		
 	};
 	
+	private BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
+		
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			int level = intent.getIntExtra( "level", 100 );
+			Log.d(Constants.TAG, "battery level = "+level);
+			
+			if (level<Constants.MINIMUM_BATTERY && isRecording) {
+				serviceMsgHandler.onCriticalError("Battery too low.");
+			}
+		}
+		
+	};
+	
 	private Handler mainThreadHandler;
 	private LiveMonitorBinder binder = new LiveMonitorBinder();
 	private UpdateListenerCollection updateHandlers = new UpdateListenerCollection();
@@ -304,6 +320,8 @@ public class LiveMonitorService extends Service {
 		this.systemEventLogger = new SystemEventLogger(binder);
 		this.updateHandlers.add(systemEventLogger);
 		
+		this.registerReceiver( batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED) );
+		
 		this.mainThreadHandler = new Handler(Looper.getMainLooper());
 		this.vibrator = (Vibrator)this.getSystemService(Context.VIBRATOR_SERVICE); 
 		this.errorBeepPlayer = MediaPlayer.create(this, R.raw.error);
@@ -346,6 +364,8 @@ public class LiveMonitorService extends Service {
 	public void onDestroy() {
 		super.onDestroy();
 		Log.d(Constants.TAG, this.getClass().getSimpleName()+":onDestroy()");
+		
+		this.unregisterReceiver(batteryReceiver);
 		
 		if (this.foregroundUtil.isForeground())
 			this.foregroundUtil.cancelForeground();

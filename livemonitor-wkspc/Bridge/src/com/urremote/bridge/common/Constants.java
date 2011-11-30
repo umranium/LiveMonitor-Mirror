@@ -17,6 +17,8 @@ public class Constants {
 	
 	public static final int MINIMUM_RECORDING_DISTANCE = 5;
 	
+	public static final int MINIMUM_BATTERY = 5;
+	
 	public static final long INTERVAL_RETRY_UPLOAD = 60*1000L;
 	public static final long DURATION_WAIT_FOR_STABLE_CONNECTION = 4*60*1000L;
 	

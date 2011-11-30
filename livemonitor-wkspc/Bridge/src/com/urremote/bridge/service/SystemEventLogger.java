@@ -42,6 +42,7 @@ public class SystemEventLogger implements UpdateListener {
                     Log.e(Constants.TAG, 
                     		"Unable to create log file directory:\n"+
                     		outputFile.getParentFile());
+                    return;
         		}
         	}
         	
@@ -50,6 +51,7 @@ public class SystemEventLogger implements UpdateListener {
     		
 			log = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputFile)));
 
+			log.println("Logging started.");
     		Log.i(Constants.TAG, "Logging to: "+outputFile);
     		
     	} catch (FileNotFoundException e) {
