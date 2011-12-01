@@ -132,6 +132,9 @@ public class MyTracks extends TabActivity implements OnTouchListener {
   protected void onCreate(Bundle savedInstanceState) {
     Log.d(TAG, "MyTracks.onCreate");
     super.onCreate(savedInstanceState);
+    
+    CustomUncaughtExceptionHandler.setDefaultInterceptHandler(this);
+    
     ApiFeatures apiFeatures = ApiFeatures.getInstance();
     if (!SystemUtils.isRelease(this)) {
       apiFeatures.getApiAdapter().enableStrictMode();

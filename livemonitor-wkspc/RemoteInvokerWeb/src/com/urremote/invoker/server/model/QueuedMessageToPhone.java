@@ -11,11 +11,6 @@ import javax.persistence.NamedQuery;
 import com.google.appengine.api.datastore.Key;
 
 @PersistenceCapable
-@NamedQuery(name="fetchDeviceMessagesSinceLastUpdate",query=
-		"SELECT c FROM QueuedMessageToPhone c " +
-		"WHERE c.deviceId=device && c.timeStamp>time " +
-		"ORDER BY c.collapseKey, c.timeStamp " +
-		"PARAMETERS String device, long time")
 public class QueuedMessageToPhone implements Serializable {
 	
 	@PrimaryKey

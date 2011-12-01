@@ -19,6 +19,7 @@ import static com.google.android.apps.mytracks.Constants.RESUME_TRACK_EXTRA_NAME
 import static com.google.android.apps.mytracks.Constants.TAG;
 
 import com.google.android.apps.mytracks.Constants;
+import com.google.android.apps.mytracks.CustomUncaughtExceptionHandler;
 import com.google.android.apps.mytracks.MyTracks;
 import com.google.android.apps.mytracks.content.MyTracksLocation;
 import com.google.android.apps.mytracks.content.MyTracksProviderUtils;
@@ -242,6 +243,9 @@ public class TrackRecordingService extends Service {
   public void onCreate() {
     super.onCreate();
     Log.d(TAG, "TrackRecordingService.onCreate");
+    
+    CustomUncaughtExceptionHandler.setDefaultInterceptHandler(this);
+    
     providerUtils = MyTracksProviderUtils.Factory.get(this);
     notificationManager =
         (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -300,6 +304,13 @@ public class TrackRecordingService extends Service {
   public int onStartCommand(Intent intent, int flags, int startId) {
     handleStartCommand(intent, startId);
     return START_STICKY;
+  }
+  
+  @Override
+  public void onLowMemory() {
+    super.onLowMemory();
+    
+    CustomUncaughtExceptionHandler.writeToFile("Received Low Memory Event");
   }
   
   private void handleStartCommand(Intent intent, int startId) {

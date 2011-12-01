@@ -20,8 +20,9 @@ import com.urremote.bridge.common.CustomUncaughtExceptionHandler;
 import com.urremote.bridge.common.HtmlPostUtil;
 import com.urremote.bridge.common.PrimaryAccountUtil;
 import com.urremote.bridge.common.HtmlPostUtil.PostResultListener;
-import com.urremote.bridge.service.thread.MonitoringThread;
 import com.urremote.bridge.service.thread.UploaderThread;
+import com.urremote.bridge.service.thread.monitor.OldMonitoringThread;
+import com.urremote.bridge.service.thread.monitor.MonitoringThread;
 import com.urremote.bridge.service.thread.uploader.ActivityRestartImpl;
 import com.urremote.bridge.service.thread.uploader.NoActivityRestartImpl;
 import com.urremote.bridge.service.utils.ServiceForegroundUtil;
@@ -394,7 +395,7 @@ public class LiveMonitorService extends Service {
 	@Override
 	public void onLowMemory() {
 		super.onLowMemory();
-		serviceMsgHandler.onSystemMessage("Low Memory Detected");
+		serviceMsgHandler.onSystemMessage("Low Memory Event Received");
 	}
 	
 	private void updateC2dmRecordingState() {
