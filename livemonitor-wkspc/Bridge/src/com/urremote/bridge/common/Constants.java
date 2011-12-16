@@ -2,6 +2,8 @@ package com.urremote.bridge.common;
 
 import java.io.File;
 import java.net.URI;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 import android.net.Uri;
 import android.os.Environment;
@@ -17,9 +19,13 @@ public class Constants {
 	
 	public static final int MINIMUM_RECORDING_DISTANCE = 5;
 	
-	public static final int MINIMUM_BATTERY = 5;
+	public static final int MINIMUM_BATTERY = 2;
 	
-	public static final long INTERVAL_RETRY_UPLOAD = 60*1000L;
+	public static final DateFormat FMT_TAG_TIMESTAMP = DateFormat.getDateInstance(DateFormat.SHORT);
+	
+	public static final int TIMEOUT_SOCKET = 0; //infinite //60*1000;
+	public static final int TIMEOUT_CONNECTION = 0; //infinite //60*1000;
+	public static final long INTERVAL_RETRY_UPLOAD = IS_TESTING?(10*1000L):(60*1000L);
 	public static final long DURATION_WAIT_FOR_STABLE_CONNECTION = 4*60*1000L;
 	
 	public static final String MY_TRACKS_PACKAGE = "com.google.android.maps.mytracks";
@@ -49,6 +55,7 @@ public class Constants {
 	public static final String KEY_IS_PUBLIC		= "is_public";
 	public static final String KEY_ACTIVITY_TYPE	= "activity_type";
 	public static final String KEY_TAGS				= "tags";
+	public static final String KEY_TIMESTAMPED_TAGS	= "timestampedTags";
 
 	public static final String SHOW_ACTIVITY_SETTINGS_TOO = "SHOW_ACTIVITY_SETTINGS_TOO";
 	

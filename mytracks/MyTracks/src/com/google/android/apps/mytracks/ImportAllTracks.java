@@ -26,6 +26,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -95,7 +96,8 @@ public class ImportAllTracks {
    * track. Acquire a wake lock if there is no current track.
    */
   private void aquireLocksAndImport() {
-    SharedPreferences prefs = activity.getSharedPreferences(Constants.SETTINGS_NAME, 0);
+    SharedPreferences prefs = activity.getSharedPreferences(
+        Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
     long recordingTrackId = -1;
     if (prefs != null) {
       recordingTrackId = prefs.getLong(activity.getString(R.string.recording_track_key), -1);
@@ -126,12 +128,14 @@ public class ImportAllTracks {
     Log.i(Constants.TAG, "ImportAllTracks: Done");
     AlertDialog.Builder builder = new AlertDialog.Builder(activity);
     if (gpxFileCount == 0) {
-      builder.setMessage(activity.getString(R.string.import_multi_empty, gpxPath));
+      builder.setMessage(activity.getString(R.string.import_no_file, gpxPath));
     } else {
-      builder.setMessage(activity.getString(R.string.import_multi_done, importSuccessCount, gpxFileCount,
-          gpxPath));
+      String totalFiles = activity.getResources().getQuantityString(
+          R.plurals.importGpxFiles, gpxFileCount, gpxFileCount);
+      builder.setMessage(
+          activity.getString(R.string.import_success, importSuccessCount, totalFiles, gpxPath));
     }
-    builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+    builder.setPositiveButton(R.string.generic_ok, new DialogInterface.OnClickListener() {
       @Override
       public void onClick(DialogInterface dialog, int which) {
         if (singleTrackSelected) {
@@ -150,7 +154,7 @@ public class ImportAllTracks {
   }
 
   private void makeProgressDialog(final int trackCount) {
-    String importMsg = activity.getString(R.string.tracklist_btn_import_all);
+    String importMsg = activity.getString(R.string.track_list_import_all);
     progress = new ProgressDialog(activity);
     progress.setIcon(android.R.drawable.ic_dialog_info);
     progress.setTitle(importMsg);

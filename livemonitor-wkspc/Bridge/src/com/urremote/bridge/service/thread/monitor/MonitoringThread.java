@@ -157,7 +157,7 @@ public class MonitoringThread {
 					firstLocation = false;
 				}
 				
-				if (location!=null) {
+				if (location!=null && myTracksConnection.isRecording()) {
 					++locationIndex;
 					
 					if ((locationIndex % Constants.SAMPLING_INTERVAL) == 0) {

@@ -21,7 +21,7 @@ import com.google.android.maps.mytracks.R;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.Date;
 
 /**
@@ -30,8 +30,6 @@ import java.util.Date;
  * @author Matthew Simmons
  */
 class DefaultTrackNameFactory {
-  private static final String TIMESTAMP_DATE_FORMAT = "yyyy-MM-dd HH:mm";
-
   private final Context context;
 
   DefaultTrackNameFactory(Context context) {
@@ -48,17 +46,17 @@ class DefaultTrackNameFactory {
    */
   String newTrackName(long trackId, long startTime) {
     if (useTimestampTrackName()) {
-      SimpleDateFormat formatter = new SimpleDateFormat(TIMESTAMP_DATE_FORMAT);
+      DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
       return formatter.format(new Date(startTime));
     } else {
-      return String.format(context.getString(R.string.new_track_format), trackId);
+      return String.format(context.getString(R.string.track_name_format), trackId);
     }
   }
 
   /** Determines whether the preferences allow a timestamp-based track name */
   protected boolean useTimestampTrackName() {
-    SharedPreferences prefs =
-        context.getSharedPreferences(Constants.SETTINGS_NAME, 0);
+    SharedPreferences prefs = context.getSharedPreferences(
+        Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
     return prefs.getBoolean(
         context.getString(R.string.timestamp_track_name_key), true);
   }

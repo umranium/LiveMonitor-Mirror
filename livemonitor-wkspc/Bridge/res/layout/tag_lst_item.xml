@@ -1,22 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_height="fill_parent" android:layout_width="fill_parent">
+
+    <CheckBox
+        android:id="@+id/chk_timestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingRight="10dp" android:layout_alignParentLeft="true" android:layout_centerVertical="true"/>
+
     <TextView
     	android:padding="4dp"
-    	android:layout_alignParentLeft="true"
     	android:text="Text"
     	android:layout_height="wrap_content"
     	android:gravity="center_vertical"
-    	android:layout_alignLeft="@+id/btn_del_tag"
     	android:layout_centerVertical="true"
     	android:layout_width="wrap_content"
-    	android:id="@+id/txt_tag_list_item" android:textSize="16sp">
+    	android:id="@+id/txt_tag_list_item" android:textSize="16sp" android:layout_alignBaseline="@id/chk_timestamp" android:layout_toRightOf="@id/chk_timestamp">
 	</TextView>
+
     <Button
     	android:id="@+id/btn_del_tag"
     	android:layout_alignParentRight="true"
     	android:text="Del"
     	android:layout_height="wrap_content"
-    	android:layout_centerVertical="true" android:layout_width="80dp">
+    	android:layout_width="80dp" android:layout_alignBaseline="@id/chk_timestamp">
     </Button>
+
 </RelativeLayout>

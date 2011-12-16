@@ -5,13 +5,19 @@
 package com.urremote.bridge.mapmymaps;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -22,6 +28,11 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import android.location.Location;
 import android.util.Log;
@@ -48,7 +59,7 @@ public class MapMyTracksInterfaceApi {
 	private static final Pattern REPLY_TYPE_PAT = Pattern.compile("<type>\\s*(\\w+)\\s*</type>");
 	private static final Pattern ACTIVITY_ID_PAT = Pattern.compile("<activity_id>\\s*(\\d+)\\s*</activity_id>");
 	private static final Pattern REASON_PAT = Pattern.compile("<reason>(.*)</reason>");
-	private static final Pattern COMPLETE_PAT = Pattern.compile("<complete>(.*)</complete>");
+	private static final Pattern COMPLETE_PAT = Pattern.compile("<complete>(.*)</complete>"); 
 	
 	private DefaultHttpClient client;
 	private HttpPost httpPost;
@@ -70,8 +81,12 @@ public class MapMyTracksInterfaceApi {
 				new AuthScope(MY_MAP_WEBSITE_URL, 80),
 				new UsernamePasswordCredentials(username, password));
 		HttpParams params = client.getParams();
-		HttpConnectionParams.setConnectionTimeout(params, 30000);
-		HttpConnectionParams.setSoTimeout(params, 30000);
+		
+//		Log.d(Constants.TAG, "Default Connection Timeout = "+HttpConnectionParams.getConnectionTimeout(params));
+//		Log.d(Constants.TAG, "Default Socket Timeout = "+HttpConnectionParams.getSoTimeout(params));
+		HttpConnectionParams.setConnectionTimeout(params, Constants.TIMEOUT_CONNECTION);
+		HttpConnectionParams.setSoTimeout(params, Constants.TIMEOUT_SOCKET);
+		HttpConnectionParams.setTcpNoDelay(params, true);
 		
 		httpPost = new HttpPost(URI_POST);
 		
@@ -139,20 +154,49 @@ public class MapMyTracksInterfaceApi {
 				Log.d(TAG, instanceId+": length="+responseEntity.getContentLength());
 			}
 			BufferedReader rd = new BufferedReader(new InputStreamReader(content));
-			StringBuilder buffer = new StringBuilder((int)responseEntity.getContentLength());
-			String line;
-			while ((line = rd.readLine()) != null) {
-				buffer.append(line).append("\n");
+			if (responseEntity.getContentLength()>=0) {
+				StringBuilder buffer = new StringBuilder((int)responseEntity.getContentLength());
+				String line;
+				while ((line = rd.readLine()) != null) {
+					buffer.append(line).append("\n");
+				}
+				String msg = buffer.toString();
+				if (DEBUG)
+					Log.d(TAG, instanceId+": "+msg);
+				return msg;
+			} else {
+				return null;
 			}
-			String msg = buffer.toString();
-			if (DEBUG)
-				Log.d(TAG, instanceId+": "+msg);
-			return msg;
 		} else {
 			return null;
 		}
 	}
 	
+    public static Document parseXml(String xml) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document document = db.parse(new ByteArrayInputStream(xml.getBytes()));
+        return document;
+    }
+    
+    public static String messageType(Document document) {
+        Element docEl = (Element)document.getDocumentElement();
+        return docEl.getTagName();
+    }
+
+    public static String getElementTextContent(Element el) {
+        NodeList lst = el.getChildNodes();
+        StringBuilder builder = new StringBuilder();
+        for (int i=0; i<lst.getLength(); ++i) {
+            Node node = lst.item(i);
+            if (node.getNodeType()==Node.CDATA_SECTION_NODE || 
+                    node.getNodeType()==Node.TEXT_NODE) {
+                builder.append(node.getNodeValue());
+            }
+        }
+        return builder.toString();
+    }
+    
 	public Long getServerTime() throws IOException
 	{
 		String reply = sendPost(serverTimeParamsMap);
@@ -168,6 +212,57 @@ public class MapMyTracksInterfaceApi {
 		return null;
 	}
 	
+	public List<ActivityDetails> getActivities(String user) throws IOException, MapMyMapsException
+	{
+		activitiesParamsMap.update("author", user);
+		
+		List<ActivityDetails> activityDetails = new ArrayList<ActivityDetails>();
+		
+		String reply = sendPost(activitiesParamsMap);
+		if (reply!=null) {
+			try {
+				Document document = parseXml(reply);
+		        String type = messageType(document);
+		        if ("message".equalsIgnoreCase(type)) {
+		            NodeList activitiesContainerLst = document.getElementsByTagName("activities");
+		            if (activitiesContainerLst!=null && activitiesContainerLst.getLength()>=1) {
+		                Node activitiesContainer = (Node)activitiesContainerLst.item(0);
+		                NodeList activities = activitiesContainer.getChildNodes();
+		                for (int i=0; i<activities.getLength(); ++i)
+		                if (activities.item(i).getNodeType()==Node.ELEMENT_NODE) {
+		                    Element activity = (Element)activities.item(i);
+		                    Element idNode = (Element)activity.getElementsByTagName("id").item(0);
+		                    Element titleNode = (Element)activity.getElementsByTagName("title").item(0);
+		                    Element dateNode = (Element)activity.getElementsByTagName("date").item(0);
+		                    
+		                    String idStr = getElementTextContent(idNode);
+		                    String titleStr = getElementTextContent(titleNode);
+		                    String dateStr = getElementTextContent(dateNode);
+		                    
+		                    if (DEBUG)
+		                    	Log.d(TAG, idStr+":"+dateStr+":"+titleStr);
+		                    
+		                    activityDetails.add(new ActivityDetails(
+		                    		Long.parseLong(idStr),
+		                    		titleStr,
+		                    		Long.parseLong(dateStr)*1000L));
+		                }
+		            }
+		        } else {
+					parseError(new String[]{type}, reply);
+					throw new MapMyMapsException("Unexpected server reply type: '"+type+"'");
+		        }
+			} catch (ParserConfigurationException e) {
+				throw new MapMyMapsException(e);
+			} catch (SAXException e) {
+				throw new MapMyMapsException(e);
+			}
+		} else
+			throw new MapMyMapsException("Server did not reply. Service appears to be down.");
+		
+		return activityDetails;
+	}
+	
 	public Long startActivity(
 			String title,
 			String tags,
@@ -175,6 +270,8 @@ public class MapMyTracksInterfaceApi {
 			ActivityType activityType,
 			List<Location> points) throws MapMyMapsException, IOException
 	{
+//		throw new UnsupportedOperationException();
+		
 		startActivityParamsMap.update("title", title);
 		
 		startActivityParamsMap.update("tags", tags);
@@ -352,7 +449,7 @@ public class MapMyTracksInterfaceApi {
 	
 	private static void parseError(String[] type, String reply) throws MapMyMapsException
 	{
-		if (type[0].equalsIgnoreCase("error")) {
+		if (type!=null && type.length>0 && type[0]!=null && type[0].equalsIgnoreCase("error")) {
 			String[] reason = matchOne(REASON_PAT, reply);
 			if (reason==null) {
 				throw new MapMyMapsException("Invalid format for 'error' reply type: "+reply);

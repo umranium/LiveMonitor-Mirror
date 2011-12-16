@@ -41,23 +41,24 @@ public class TrackPathPainterFactoryTest extends TrackPathPainterTestCase {
     }
     
     Context context = getContext();
-    SharedPreferences prefs = context.getSharedPreferences(Constants.SETTINGS_NAME, 0);
+    SharedPreferences prefs = context.getSharedPreferences(
+        Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
     if (prefs == null) {
       return;
     }
-    
-    testTrackPathPainterFactorySpecific(context, prefs, R.string.track_color_mode_value_none, 
+
+    testTrackPathPainterFactorySpecific(context, prefs, R.string.display_track_color_value_none, 
         SingleColorTrackPathPainter.class);
-    testTrackPathPainterFactorySpecific(context, prefs, R.string.track_color_mode_value_fixed, 
+    testTrackPathPainterFactorySpecific(context, prefs, R.string.display_track_color_value_fixed, 
         DynamicSpeedTrackPathPainter.class);
-    testTrackPathPainterFactorySpecific(context, prefs, R.string.track_color_mode_value_dynamic, 
+    testTrackPathPainterFactorySpecific(context, prefs, R.string.display_track_color_value_dynamic, 
         DynamicSpeedTrackPathPainter.class);
   }
   
   private <T> void testTrackPathPainterFactorySpecific(Context context, SharedPreferences prefs, 
       int track_color_mode, Class <?> c) {
     prefs.edit().putString(context.getString(R.string.track_color_mode_key), 
-        context.getString(track_color_mode)).commit();
+        context.getString(track_color_mode)).apply();
     
     int startLocationIdx = 0;
     Boolean alwaysVisible = true;

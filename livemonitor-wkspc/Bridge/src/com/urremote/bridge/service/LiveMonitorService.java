@@ -1,7 +1,6 @@
 package com.urremote.bridge.service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -11,23 +10,6 @@ import java.util.TimerTask;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
-import com.urremote.bridge.C2dmReceiver;
-import com.urremote.bridge.Main;
-import com.urremote.bridge.c2dm.C2dmDeviceRegistrationMessage;
-import com.urremote.bridge.c2dm.C2dmDeviceUpdateMessage;
-import com.urremote.bridge.common.Constants;
-import com.urremote.bridge.common.CustomUncaughtExceptionHandler;
-import com.urremote.bridge.common.HtmlPostUtil;
-import com.urremote.bridge.common.PrimaryAccountUtil;
-import com.urremote.bridge.common.HtmlPostUtil.PostResultListener;
-import com.urremote.bridge.service.thread.UploaderThread;
-import com.urremote.bridge.service.thread.monitor.OldMonitoringThread;
-import com.urremote.bridge.service.thread.monitor.MonitoringThread;
-import com.urremote.bridge.service.thread.uploader.ActivityRestartImpl;
-import com.urremote.bridge.service.thread.uploader.NoActivityRestartImpl;
-import com.urremote.bridge.service.utils.ServiceForegroundUtil;
-
-import android.app.Activity;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -42,7 +24,20 @@ import android.os.Looper;
 import android.os.Vibrator;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.urremote.bridge.C2dmReceiver;
+import com.urremote.bridge.Main;
 import com.urremote.bridge.R;
+import com.urremote.bridge.c2dm.C2dmDeviceUpdateMessage;
+import com.urremote.bridge.common.Constants;
+import com.urremote.bridge.common.CustomUncaughtExceptionHandler;
+import com.urremote.bridge.common.HtmlPostUtil;
+import com.urremote.bridge.common.HtmlPostUtil.PostResultListener;
+import com.urremote.bridge.common.PrimaryAccountUtil;
+import com.urremote.bridge.service.thread.UploaderThread;
+import com.urremote.bridge.service.thread.monitor.MonitoringThread;
+import com.urremote.bridge.service.thread.uploader.NoActivityRestartImpl;
+import com.urremote.bridge.service.utils.ServiceForegroundUtil;
 
 public class LiveMonitorService extends Service {
 	

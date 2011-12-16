@@ -26,6 +26,7 @@ import com.google.android.maps.mytracks.R;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -78,10 +79,19 @@ public class ExportAllTracks {
     this.activity = activity;
     Log.i(Constants.TAG, "ExportAllTracks: Starting");
 
+    String exportFileFormat = activity.getString(R.string.track_list_export_file);
+    String fileTypes[] = activity.getResources().getStringArray(R.array.file_types);
+    
+    String[] choices = new String[fileTypes.length];
+    for (int i = 0; i < fileTypes.length; i++) {
+      choices[i] = String.format(exportFileFormat, fileTypes[i]);
+    }
+    
     AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-    builder.setSingleChoiceItems(R.array.export_formats, 0, itemClick);
-    builder.setPositiveButton(R.string.ok, positiveClick);
-    builder.setNegativeButton(R.string.cancel, null);
+    builder.setTitle(R.string.track_list_export_all);
+    builder.setSingleChoiceItems(choices, 0, itemClick);
+    builder.setPositiveButton(R.string.generic_ok, positiveClick);
+    builder.setNegativeButton(R.string.generic_cancel, null);
     builder.show();
   }
 
@@ -105,8 +115,8 @@ public class ExportAllTracks {
    * current track.
    */
   private void aquireLocksAndExport() {
-    SharedPreferences prefs =
-        activity.getSharedPreferences(Constants.SETTINGS_NAME, 0);
+    SharedPreferences prefs = activity.getSharedPreferences(
+        Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
     long recordingTrackId = -1;
     if (prefs != null) {
       recordingTrackId =
@@ -126,11 +136,11 @@ public class ExportAllTracks {
       Log.i(Constants.TAG, "ExportAllTracks: Releasing wake lock.");
     }
     Log.i(Constants.TAG, "ExportAllTracks: Done");
-    showToast(R.string.export_done, Toast.LENGTH_SHORT);
+    showToast(R.string.export_success, Toast.LENGTH_SHORT);
   }
 
   private void makeProgressDialog(final int trackCount) {
-    String exportMsg = activity.getString(R.string.tracklist_btn_export_all);
+    String exportMsg = activity.getString(R.string.track_list_export_all);
     progress = new ProgressDialog(activity);
     progress.setIcon(android.R.drawable.ic_dialog_info);
     progress.setTitle(exportMsg);
@@ -183,7 +193,7 @@ public class ExportAllTracks {
         TrackWriter writer =
             TrackWriterFactory.newWriter(activity, providerUtils, id, format);
         if (writer == null) {
-          showToast(R.string.error_export_generic, Toast.LENGTH_LONG);
+          showToast(R.string.export_error, Toast.LENGTH_LONG);
           return;
         }
 

@@ -151,17 +151,16 @@ public class TrackRecordingServiceTest
 
     providerUtils = MyTracksProviderUtils.Factory.get(context);
 
-    sharedPreferences = context.getSharedPreferences(
-        Constants.SETTINGS_NAME, 0);
+    sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
     // Let's use default values.
-    sharedPreferences.edit().clear().commit();
+    sharedPreferences.edit().clear().apply();
 
     // Disable auto resume by default.
     updateAutoResumePrefs(0, -1);
     // No recording track.
     Editor editor = sharedPreferences.edit();
     editor.putLong(context.getString(R.string.recording_track_key), -1);
-    editor.commit();
+    editor.apply();
   }
 
   @SmallTest
@@ -382,7 +381,7 @@ public class TrackRecordingServiceTest
     Track track = providerUtils.getTrack(id);
     assertNotNull(track);
     assertEquals(id, track.getId());
-    assertEquals(sharedPreferences.getString(context.getString(R.string.default_category_key), ""),
+    assertEquals(sharedPreferences.getString(context.getString(R.string.default_activity_key), ""),
         track.getCategory());
     assertEquals(id, sharedPreferences.getLong(
         context.getString(R.string.recording_track_key), -1));
@@ -491,9 +490,9 @@ public class TrackRecordingServiceTest
     assertEquals(2, service.insertWaypoint(WaypointCreationRequest.DEFAULT_STATISTICS));
 
     Waypoint wpt = providerUtils.getWaypoint(1);
-    assertEquals(getContext().getString(R.string.stats_icon_url),
+    assertEquals(getContext().getString(R.string.marker_statistics_icon_url),
         wpt.getIcon());
-    assertEquals(getContext().getString(R.string.statistics),
+    assertEquals(getContext().getString(R.string.marker_type_statistics),
         wpt.getName());
     assertEquals(Waypoint.TYPE_STATISTICS, wpt.getType());
     assertEquals(123, wpt.getTrackId());
@@ -527,9 +526,9 @@ public class TrackRecordingServiceTest
 
     assertEquals(1, service.insertWaypoint(WaypointCreationRequest.DEFAULT_MARKER));
     Waypoint wpt = providerUtils.getWaypoint(1);
-    assertEquals(getContext().getString(R.string.waypoint_icon_url),
+    assertEquals(getContext().getString(R.string.marker_waypoint_icon_url),
         wpt.getIcon());
-    assertEquals(getContext().getString(R.string.waypoint),
+    assertEquals(getContext().getString(R.string.marker_type_waypoint),
         wpt.getName());
     assertEquals(Waypoint.TYPE_WAYPOINT, wpt.getType());
     assertEquals(123, wpt.getTrackId());
@@ -654,7 +653,7 @@ public class TrackRecordingServiceTest
     R.string.auto_resume_track_current_retry_key), attempts);
     editor.putInt(context.getString(
         R.string.auto_resume_track_timeout_key), timeoutMins);
-    editor.commit();
+    editor.apply();
   }
 
   private Intent createStartIntent() {
@@ -673,7 +672,7 @@ public class TrackRecordingServiceTest
   private void setRecordingTrack(long id) {
     Editor editor = sharedPreferences.edit();
     editor.putLong(context.getString(R.string.recording_track_key), id);
-    editor.commit();
+    editor.apply();
   }
 
   // TODO: We support multiple values for readability, however this test's
@@ -697,7 +696,7 @@ public class TrackRecordingServiceTest
       } else if (value == null) {
         // Do nothing, as clear above has already removed this property.
       }
-      editor.commit();
+      editor.apply();
 
       fullRecordingSession();
     }

@@ -42,7 +42,7 @@ public class AntUtils {
   /**
    * Finds the names of in the messages with the given value
    */
-  public static String antMesgToStr(byte msg) {
+  public static String antMessageToString(byte msg) {
     return findConstByteInClass(AntDefine.class, msg, "MESG_.*_ID");
   }
 
@@ -56,10 +56,10 @@ public class AntUtils {
   /**
    * Finds a set of constant static byte field declarations in the class that have the given value
    * and whose name match the given pattern
-   * @param cl              class to search in
-   * @param value           value of constant static byte field declarations to match
-   * @param regexPattern    pattern to match against the name of the field     
-   * @return                a set of the names of fields, expressed as a string
+   * @param cl class to search in
+   * @param value value of constant static byte field declarations to match
+   * @param regexPattern pattern to match against the name of the field     
+   * @return a set of the names of fields, expressed as a string
    */
   private static String findConstByteInClass(Class<?> cl, byte value, String regexPattern)
   {

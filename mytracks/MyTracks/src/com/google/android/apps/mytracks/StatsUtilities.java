@@ -24,7 +24,6 @@ import android.app.Activity;
 import android.util.Log;
 import android.widget.TextView;
 
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 /**
@@ -35,15 +34,20 @@ import java.text.NumberFormat;
 public class StatsUtilities {
 
   private final Activity activity;
-  private static final NumberFormat LAT_LONG_FORMAT =
-      new DecimalFormat("##,###.00000");
-  private static final NumberFormat ALTITUDE_FORMAT =
-      new DecimalFormat("###,###");
-  private static final NumberFormat SPEED_FORMAT =
-      new DecimalFormat("#,###,###.00");
-  private static final NumberFormat GRADE_FORMAT =
-      new DecimalFormat("##.0%");
+  private static final NumberFormat LAT_LONG_FORMAT = NumberFormat.getNumberInstance();
+  private static final NumberFormat ALTITUDE_FORMAT = NumberFormat.getIntegerInstance();
+  private static final NumberFormat SPEED_FORMAT = NumberFormat.getNumberInstance();
+  private static final NumberFormat GRADE_FORMAT = NumberFormat.getPercentInstance();
 
+  static {
+    LAT_LONG_FORMAT.setMaximumFractionDigits(5);
+    LAT_LONG_FORMAT.setMinimumFractionDigits(5);
+    SPEED_FORMAT.setMaximumFractionDigits(2);
+    SPEED_FORMAT.setMinimumFractionDigits(2);
+    GRADE_FORMAT.setMaximumFractionDigits(1);
+    GRADE_FORMAT.setMinimumFractionDigits(1);
+  }
+  
   /**
    * True if distances should be displayed in metric units (from shared
    * preferences).
@@ -77,7 +81,7 @@ public class StatsUtilities {
   }
 
   public void setUnknown(int id) {
-    ((TextView) activity.findViewById(id)).setText(R.string.unknown);
+    ((TextView) activity.findViewById(id)).setText(R.string.value_unknown);
   }
 
   public void setText(int id, double d, NumberFormat format) {
@@ -251,13 +255,13 @@ public class StatsUtilities {
 
   public void setSpeedLabels() {
     setSpeedLabel(R.id.average_speed_label,
-                  R.string.average_speed_label,
-                  R.string.average_pace_label);
+                  R.string.stat_average_speed,
+                  R.string.stat_average_pace);
     setSpeedLabel(R.id.average_moving_speed_label,
-                  R.string.average_moving_speed_label,
-                  R.string.average_moving_pace_label);
+                  R.string.stat_average_moving_speed,
+                  R.string.stat_average_moving_pace);
     setSpeedLabel(R.id.max_speed_label,
-                  R.string.max_speed_label,
-                  R.string.min_pace_label);
+                  R.string.stat_max_speed,
+                  R.string.stat_min_pace);
   }
 }

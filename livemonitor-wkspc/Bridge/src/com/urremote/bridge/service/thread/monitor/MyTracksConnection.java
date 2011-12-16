@@ -151,6 +151,10 @@ public class MyTracksConnection {
 								bufferdSensorData.add(sensorDataSet);
 							}
 						}
+					} else {
+						serviceMsgHandler.onSystemMessage("MyTracks is not Recording.\nRe-Requesting MyTracks to start Recording.");
+						mytracks.startNewTrack();
+						requestedTrackRecording = true;
 					}
 					
 					if (firstMyTracksRecording && isRecording) {

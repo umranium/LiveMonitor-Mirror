@@ -49,8 +49,8 @@ public class ChartURLGenerator {
    */
   public static String getChartUrl(Vector<Double> distances,
       Vector<Double> elevations, Track track, Context context) {
-    SharedPreferences preferences =
-        context.getSharedPreferences(Constants.SETTINGS_NAME, 0);
+    SharedPreferences preferences = context.getSharedPreferences(
+        Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
     boolean metricUnits = true;
     if (preferences != null) {
       metricUnits = preferences.getBoolean(
@@ -58,7 +58,7 @@ public class ChartURLGenerator {
     }
 
     return getChartUrl(distances, elevations, track,
-        context.getString(R.string.elevation_label), metricUnits);
+        context.getString(R.string.stat_elevation), metricUnits);
   }
 
   /**

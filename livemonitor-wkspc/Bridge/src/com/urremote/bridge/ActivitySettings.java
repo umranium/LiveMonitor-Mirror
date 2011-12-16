@@ -1,5 +1,11 @@
 package com.urremote.bridge;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -31,9 +37,7 @@ public class ActivitySettings extends Activity {
 	private ArrayAdapter<ActivityType> spnActivityTypeAdapter;
 	private Button btnAddTag;
 	private LinearLayout lstTags;
-
-	private Button btnDone;
-
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,7 +52,22 @@ public class ActivitySettings extends Activity {
         spnActivityType.setAdapter(spnActivityTypeAdapter);
         btnAddTag = (Button)this.findViewById(R.id.btn_add_tag);
         lstTags = (LinearLayout)this.findViewById(R.id.lst_tags);
-        btnDone = (Button)this.findViewById(R.id.btn_settings_done);
+        
+        txtActivityTitle.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+				if (!hasFocus) {
+					save();
+				}
+			}
+		});
+        
+        chkIsPublic.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				save();
+			}
+		});
         
         btnAddTag.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -66,7 +85,10 @@ public class ActivitySettings extends Activity {
 
 				alert.setPositiveButton("Add", new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int whichButton) {
-						addTag(input.getText().toString());
+						String tag = input.getText().toString();
+						DefSettings.TagOptions options = new DefSettings.TagOptions(tag, false);
+						addTag(options);
+				        save();
 						lstTags.requestFocus();
 					}
 				});
@@ -81,20 +103,22 @@ public class ActivitySettings extends Activity {
 			}
 		});
         
-        btnDone.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-		        SharedPreferences preferences = ActivitySettings.this.getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
-		    	saveState(preferences);
-				ActivitySettings.this.setResult(RESULT_OK);
-				ActivitySettings.this.finish();
-			}
-		});
-        
         SharedPreferences preferences = this.getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
     	loadState(preferences);
     	
     	setResult(RESULT_CANCELED);
+    }
+    
+    private void save() {
+        SharedPreferences preferences = ActivitySettings.this.getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
+    	saveState(preferences);
+    }
+    
+    @Override
+    public void onBackPressed() {
+    	save();
+		setResult(RESULT_OK);
+		finish();
     }
     
     private void loadState(SharedPreferences state)
@@ -102,11 +126,11 @@ public class ActivitySettings extends Activity {
 		txtActivityTitle.setText(DefSettings.getActivityTitle(state));    	
 		chkIsPublic.setChecked(DefSettings.isPublic(state));
 		spnActivityType.setSelection(spnActivityTypeAdapter.getPosition(DefSettings.getActivityType(state)));
-    	String tags[] = DefSettings.getTags(state).split(",");
+		
 		lstTags.removeAllViews();
-		for (String tag:tags) {
-			if (tag.length()>0)
-				addTag(tag);
+		List<DefSettings.TagOptions> tags = DefSettings.getTagOptions(state);
+		for (DefSettings.TagOptions tag:tags) {
+			addTag(tag);
 		}
     }
     
@@ -118,29 +142,33 @@ public class ActivitySettings extends Activity {
     	editor.putBoolean(Constants.KEY_IS_PUBLIC, chkIsPublic.isChecked());
     	editor.putInt(Constants.KEY_ACTIVITY_TYPE, ((ActivityType)spnActivityType.getSelectedItem()).ordinal());
     	
-    	StringBuilder builder = new StringBuilder();
+    	List<DefSettings.TagOptions> options = new ArrayList<DefSettings.TagOptions>();
     	for (int l=lstTags.getChildCount(), i=0; i<l; ++i) {
     		View v = lstTags.getChildAt(i);
-    		TextView txt = (TextView) v.findViewById(R.id.txt_tag_list_item);
-    		CharSequence tag = txt.getText();
-    		if (i>0)
-    			builder.append(",");
-    		builder.append(tag);
+    		TagUi tagUi = new TagUi(v);
+    		
+    		String tag = (new StringBuilder(tagUi.txtTag.getText())).toString();
+    		options.add(new DefSettings.TagOptions(tag, tagUi.chkTimestamp.isChecked()));
     	}
-    	editor.putString(Constants.KEY_TAGS, builder.toString());
+    	try {
+			DefSettings.saveTagOptions(editor, options);
+		} catch (JSONException e) {
+			throw new RuntimeException(e);
+		}
     	
     	editor.commit();
     }
     
-    private void addTag(String tag)
+    private void addTag(DefSettings.TagOptions tagOptions)
     {
         LayoutInflater vi = (LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View v = vi.inflate(R.layout.tag_lst_item, null);
         
-        TextView txt = (TextView) v.findViewById(R.id.txt_tag_list_item);
-        txt.setText(tag);
-        View btn = v.findViewById(R.id.btn_del_tag);
-        btn.setOnClickListener(new TagDelClickListener(v));
+        TagUi tagUi = new TagUi(v);
+        tagUi.txtTag.setText(tagOptions.tag);
+        tagUi.chkTimestamp.setChecked(tagOptions.timestamp);
+        tagUi.btnDel.setOnClickListener(new TagDelClickListener(v));
+        tagUi.chkTimestamp.setOnClickListener(new TagTimestampClickListener(v));
         
         lstTags.addView(v);
     }
@@ -156,8 +184,64 @@ public class ActivitySettings extends Activity {
 		@Override
 		public void onClick(View v) {
 			lstTags.removeView(view);
+			save();
 		}
     	
+    }
+    
+    public class TagTimestampClickListener implements View.OnClickListener {
+    	
+    	private View view;
+    	
+    	public TagTimestampClickListener(View view) {
+    		this.view = view;
+		}
+
+		@Override
+		public void onClick(View v) {
+			final TagUi tagUi = new TagUi(view);
+			final boolean wasChecked = !tagUi.chkTimestamp.isChecked();
+			String tag = (new StringBuilder(tagUi.txtTag.getText())).toString();
+			
+			AlertDialog.Builder alert = new AlertDialog.Builder(ActivitySettings.this);
+
+			if (wasChecked) {
+				alert.setTitle("Remove Timestamp");
+				alert.setMessage("Are you sure you DON'T want timestamps appended to the tag '"+tag+"' in the future?");
+			} else {
+				alert.setTitle("Append Timestamp");
+				alert.setMessage("Are you sure you WANT timestamps appended to the tag '"+tag+"' in the future?");
+			}
+
+			alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int whichButton) {
+					tagUi.chkTimestamp.setChecked(!wasChecked);
+					save();
+				}
+			});
+			
+			alert.setNegativeButton("No", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int whichButton) {
+					tagUi.chkTimestamp.setChecked(wasChecked);
+					save();
+				}
+			});
+			
+			alert.show();
+		}
+    	
+    }
+    
+    private class TagUi {
+    	TextView txtTag;
+    	Button btnDel;
+    	CheckBox chkTimestamp;
+    	
+    	public TagUi(View parent) {
+    		txtTag = (TextView)parent.findViewById(R.id.txt_tag_list_item);
+    		btnDel = (Button)parent.findViewById(R.id.btn_del_tag);
+    		chkTimestamp = (CheckBox)parent.findViewById(R.id.chk_timestamp);
+		}
     }
         
 }

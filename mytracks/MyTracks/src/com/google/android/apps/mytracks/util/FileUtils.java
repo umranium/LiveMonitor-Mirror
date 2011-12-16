@@ -20,6 +20,9 @@ import com.google.android.apps.mytracks.Constants;
 import android.os.Environment;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 /**
@@ -39,6 +42,32 @@ public class FileUtils {
   private static final Pattern PROHIBITED_CHAR_PATTERN =
       Pattern.compile("[^ A-Za-z0-9_.()-]+");
 
+  /**
+   * Timestamp format in UTC time zone.
+   */
+  private static final SimpleDateFormat FILE_TIMESTAMP_FORMAT =
+      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
+
+  static {
+    FILE_TIMESTAMP_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+  }
+  
+  public static String formatFileTimestamp(long timestamp) {
+    // get the time in tenth of a second
+    double timestampTenthOfSeconds = timestamp / 100.0;
+    // round it to get rid of excess decimal places
+    timestampTenthOfSeconds = Math.round(timestampTenthOfSeconds);
+    // get the digit of 10th of a second for use later
+    int tenthOfASec = (int)((long)timestampTenthOfSeconds % 10);
+    // time after rounding, in seconds (truncating 10th of a second)
+    long finalTimestamp =  (long)timestampTenthOfSeconds / 10;
+    // convert seconds to milliseconds
+    finalTimestamp *= 1000;
+    // add the 10th of a second digit as a unit digit
+    finalTimestamp += tenthOfASec;
+    return FILE_TIMESTAMP_FORMAT.format(new Date(finalTimestamp));
+  }
+  
   /**
    * Builds a path inside the My Tracks directory in the SD card.
    *

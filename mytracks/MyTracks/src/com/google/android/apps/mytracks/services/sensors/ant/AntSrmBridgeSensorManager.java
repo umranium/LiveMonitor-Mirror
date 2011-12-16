@@ -22,6 +22,8 @@ import com.dsi.ant.AntMesg;
 import com.dsi.ant.exception.AntInterfaceException;
 import com.google.android.apps.mytracks.Constants;
 import com.google.android.apps.mytracks.content.Sensor;
+import com.google.android.apps.mytracks.util.ApiFeatures;
+import com.google.android.apps.mytracks.util.SystemUtils;
 import com.google.android.maps.mytracks.R;
 
 import android.content.Context;
@@ -46,15 +48,15 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
   public static final short CHANNEL_PERIOD = 8192;
   public static final byte RF_FREQUENCY = 50;
 
-  private static final int INDEX_MESSAGE_TYPE     = 1;
-  private static final int INDEX_MESSAGE_ID       = 2;
-  private static final int INDEX_MESSAGE_POWER    = 3;
-  private static final int INDEX_MESSAGE_SPEED    = 5;
-  private static final int INDEX_MESSAGE_CADENCE  = 7;
-  private static final int INDEX_MESSAGE_BPM      = 8;
+  private static final int INDEX_MESSAGE_TYPE = 1;
+  private static final int INDEX_MESSAGE_ID = 2;
+  private static final int INDEX_MESSAGE_POWER = 3;
+  private static final int INDEX_MESSAGE_SPEED = 5;
+  private static final int INDEX_MESSAGE_CADENCE = 7;
+  private static final int INDEX_MESSAGE_BPM = 8;
   
-  private static final int MSG_INITIAL    = 5;
-  private static final int MSG_DATA       = 6;
+  private static final int MSG_INITIAL = 5;
+  private static final int MSG_DATA = 6;
   
   private short deviceNumber;
 
@@ -67,7 +69,7 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
 
     // First read the the device id that we will be pairing with.
     SharedPreferences prefs = context.getSharedPreferences(
-        Constants.SETTINGS_NAME, 0);
+        Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
     if (prefs != null) {
       deviceNumber =
         (short) prefs.getInt(context.getString(
@@ -83,7 +85,9 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
       return true;
     }
     
-    Log.d(TAG, "Received ANT msg: "+AntUtils.antMesgToStr(messageId)+"("+messageId+")");
+    if (!SystemUtils.isRelease(context)) {
+      Log.d(TAG, "Received ANT msg: " + AntUtils.antMessageToString(messageId) + "(" + messageId + ")");
+    }
 
     int channel = messageData[0] & AntDefine.CHANNEL_NUMBER_MASK;
     switch (channel) {
@@ -120,8 +124,7 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
   private void handleBroadcastData(byte[] antMessage) {
     if (deviceNumber == WILDCARD) {
       try {
-        getAntReceiver().ANTRequestMessage(CHANNEL_NUMBER,
-            AntMesg.MESG_CHANNEL_ID_ID);
+        getAntReceiver().ANTRequestMessage(CHANNEL_NUMBER, AntMesg.MESG_CHANNEL_ID_ID);
       } catch (AntInterfaceException e) {
         Log.e(TAG, "ANT error handling broadcast data", e);
       }
@@ -131,7 +134,7 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
     setSensorState(Sensor.SensorState.CONNECTED);
     
     int messageType = antMessage[INDEX_MESSAGE_TYPE] & 0xFF;
-    Log.d(TAG, "message-type="+messageType);
+    Log.d(TAG, "Received message-type=" + messageType);
     
     switch (messageType) {
       case MSG_INITIAL:
@@ -145,10 +148,11 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
   private void parseDataMsg(byte[] msg)
   {
       int messageId = msg[INDEX_MESSAGE_ID] & 0xFF;
-      Log.d(TAG, "message-id="+messageId);
+      Log.d(TAG, "Received message-id=" + messageId);
       
       int powerVal = (((msg[INDEX_MESSAGE_POWER] & 0xFF) << 8) |
           (msg[INDEX_MESSAGE_POWER+1] & 0xFF));
+      @SuppressWarnings("unused")
       int speedVal = (((msg[INDEX_MESSAGE_SPEED] & 0xFF) << 8) |
           (msg[INDEX_MESSAGE_SPEED+1] & 0xFF));
       int cadenceVal = (msg[INDEX_MESSAGE_CADENCE] & 0xFF);
@@ -160,12 +164,12 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
             .setValue(powerVal)
             .setState(Sensor.SensorState.SENDING);
     
-      // Although speed is available from the SRM Bridge, MyTracks doesn't
-      // use the value, and computes speed from the GPS location data.
-//      Sensor.SensorData.Builder speed = 
-//        Sensor.SensorData.newBuilder()
-//            .setValue(speedVal)
-//            .setState(Sensor.SensorState.SENDING);
+      /*
+       * Although speed is available from the SRM Bridge, MyTracks doesn't use the value, and
+       * computes speed from the GPS location data.
+       */
+//    Sensor.SensorData.Builder speed = Sensor.SensorData.newBuilder().setValue(speedVal).setState(
+//        Sensor.SensorState.SENDING);
 
       Sensor.SensorData.Builder cadence = 
         Sensor.SensorData.newBuilder()
@@ -194,18 +198,19 @@ public class AntSrmBridgeSensorManager extends AntSensorManager {
     SharedPreferences prefs = context.getSharedPreferences(
         Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = prefs.edit();
-    editor.putInt(context.getString(R.string.ant_srm_bridge_sensor_id_key),
-        deviceNumber);
-    editor.commit();
+    editor.putInt(context.getString(R.string.ant_srm_bridge_sensor_id_key), deviceNumber);
+    ApiFeatures.getInstance().getApiAdapter().applyPreferenceChanges(editor);    
   }
 
   private void handleMessageResponse(byte[] rawMessage) {
     AntChannelResponseMessage message = 
         new AntChannelResponseMessage(rawMessage);
-    Log.d(TAG, "Received ANT Response: " + AntUtils.antMesgToStr(message.getMessageId()) +
-        "(" + message.getMessageId()+")" +
-        ", Code: " + AntUtils.antEventToStr(message.getMessageCode()) + 
-        "(" + message.getMessageCode() + ")");
+    if (!SystemUtils.isRelease(context)) {
+      Log.d(TAG, "Received ANT Response: " + AntUtils.antMessageToString(message.getMessageId()) +
+          "(" + message.getMessageId() + ")" +
+          ", Code: " + AntUtils.antEventToStr(message.getMessageCode()) + 
+          "(" + message.getMessageCode() + ")");
+    }
     switch (message.getMessageId()) {
       case AntMesg.MESG_EVENT_ID:
         if (message.getMessageCode() == AntDefine.EVENT_RX_SEARCH_TIMEOUT) {

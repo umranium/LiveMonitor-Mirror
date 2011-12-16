@@ -40,7 +40,8 @@ import junit.framework.TestCase;
  */
 public class DocsHelper_AddTrackRowTest extends TestCase {
   private static final long TIME = 1288721514000L;
-  private static final DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);  
+  private static final DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(
+      DateFormat.SHORT, DateFormat.SHORT); 
   
   private static class StringWritingDocsHelper extends DocsHelper {
     String writtenSheetUri = null;
@@ -55,12 +56,7 @@ public class DocsHelper_AddTrackRowTest extends TestCase {
   }
   
   public void testAddTrackRow_imperial() throws Exception {
-    StringWritingDocsHelper docsHelper = new StringWritingDocsHelper() {
-      @Override
-      protected String getDisplayDate(Context context, long time) {
-        return DATE_FORMAT.format(new Date(TIME));
-      }
-    };
+    StringWritingDocsHelper docsHelper = new StringWritingDocsHelper();
     addTrackRow(docsHelper, false);
  
     String expectedData =
@@ -94,12 +90,7 @@ public class DocsHelper_AddTrackRowTest extends TestCase {
   }
 
   public void testAddTrackRow_metric() throws Exception {
-    StringWritingDocsHelper docsHelper = new StringWritingDocsHelper() {
-      @Override
-      protected String getDisplayDate(Context context, long time) {
-        return DATE_FORMAT.format(new Date(TIME));
-      }
-    };
+    StringWritingDocsHelper docsHelper = new StringWritingDocsHelper();
     addTrackRow(docsHelper, true);
 
     // The imperial test verifies that the tags come out in the proper order,
@@ -126,14 +117,14 @@ public class DocsHelper_AddTrackRowTest extends TestCase {
     if (useMetric) {
       AndroidMock.expect(mockResources.getString(R.string.unit_kilometer))
           .andReturn("km");
-      AndroidMock.expect(mockResources.getString(R.string.kilometer_per_hour))
+      AndroidMock.expect(mockResources.getString(R.string.unit_kilometer_per_hour))
           .andReturn("kph");
       AndroidMock.expect(mockResources.getString(R.string.unit_meter))
           .andReturn("meter");
     } else {
       AndroidMock.expect(mockResources.getString(R.string.unit_mile))
           .andReturn("mile");
-      AndroidMock.expect(mockResources.getString(R.string.mile_per_hour))
+      AndroidMock.expect(mockResources.getString(R.string.unit_mile_per_hour))
           .andReturn("mph");
       AndroidMock.expect(mockResources.getString(R.string.unit_feet))
           .andReturn("feet");

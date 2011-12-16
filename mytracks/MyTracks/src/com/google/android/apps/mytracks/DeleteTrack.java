@@ -27,6 +27,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
@@ -77,11 +78,11 @@ public class DeleteTrack extends Activity
     }
 
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
-    builder.setMessage(getString(R.string.track_will_be_permanently_deleted));
-    builder.setTitle(getString(R.string.confirmation_title_are_you_sure));
+    builder.setMessage(getString(R.string.track_list_delete_track_confirm_message));
+    builder.setTitle(getString(R.string.generic_confirm_title));
     builder.setIcon(android.R.drawable.ic_dialog_alert);
-    builder.setPositiveButton(getString(R.string.yes), this);
-    builder.setNegativeButton(getString(R.string.no), this);
+    builder.setPositiveButton(getString(R.string.generic_yes), this);
+    builder.setNegativeButton(getString(R.string.generic_no), this);
     builder.setOnCancelListener(this);
     return builder.create();
   }
@@ -105,7 +106,8 @@ public class DeleteTrack extends Activity
 
     // If the track we just deleted was selected, unselect it.
     String selectedKey = getString(R.string.selected_track_key);
-    SharedPreferences preferences = getSharedPreferences(Constants.SETTINGS_NAME, 0);
+    SharedPreferences preferences = getSharedPreferences(
+        Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
     if (preferences.getLong(selectedKey, -1) == deleteTrackId) {
       Editor editor = preferences.edit().putLong(selectedKey, -1);
       ApiFeatures.getInstance().getApiAdapter().applyPreferenceChanges(editor);

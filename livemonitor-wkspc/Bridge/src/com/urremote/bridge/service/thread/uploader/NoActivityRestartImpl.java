@@ -1,19 +1,23 @@
 package com.urremote.bridge.service.thread.uploader;
 
 import java.io.IOException;
+import java.security.acl.LastOwnerException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
-import android.text.format.DateFormat;
 import android.util.Log;
 
 import com.google.android.apps.mytracks.content.Sensor.SensorDataSet;
 import com.urremote.bridge.common.Constants;
 import com.urremote.bridge.common.CustomUncaughtExceptionHandler;
 import com.urremote.bridge.common.DefSettings;
+import com.urremote.bridge.mapmymaps.ActivityDetails;
 import com.urremote.bridge.mapmymaps.MapMyMapsException;
 import com.urremote.bridge.mapmymaps.MapMyTracksInterfaceApi;
 import com.urremote.bridge.service.InternalServiceMessageHandler;
@@ -25,6 +29,7 @@ public class NoActivityRestartImpl implements UploaderThread {
 	
 	private static final int NUM_HELPER_THREADS = 5;
 	private static final long DATA_WAIT = 30*1000L;
+	private static final DateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("kk:mm:ss"); 
 	
 	private InternalServiceMessageHandler serviceMsgHandler;
 	private SamplingQueue samplingQueue;
@@ -61,6 +66,11 @@ public class NoActivityRestartImpl implements UploaderThread {
 		}
 	}
 	
+	private CharSequence timestampToDate(long timestamp)
+	{
+		return TIMESTAMP_FORMAT.format(new Date(timestamp));
+	}	
+	
 	/**
 	 * The master thread for uploading an activity.
 	 * 
@@ -82,6 +92,7 @@ public class NoActivityRestartImpl implements UploaderThread {
 		private ActivityUploaderHelper[] helpers = null;
 		private Object stopSemaphore = new Object();
 		
+		
 		public ActivityUploader() {
 			super("ActivityMaster");
 		}
@@ -92,6 +103,20 @@ public class NoActivityRestartImpl implements UploaderThread {
 			synchronized (stopSemaphore) {
 				stopSemaphore.notifyAll();
 			}
+		}
+		
+		public ActivityDetails queryLatestActivity() throws IOException, MapMyMapsException {
+			SharedPreferences state = context.getSharedPreferences(
+					Constants.SHARE_PREF, Context.MODE_PRIVATE);
+			List<ActivityDetails> activities = mapMyTracksInterfaceApi.getActivities(DefSettings.getUsername(state));
+			ActivityDetails latestActivity = null;
+			for (ActivityDetails details:activities) {
+//				Log.d(Constants.TAG,"Activity: "+details.id+":"+details.timestamp+": "+details.name);
+				if (latestActivity==null || latestActivity.timestamp<details.timestamp) {
+					latestActivity = details;
+				}
+			}
+			return latestActivity;
 		}
 		
 		@Override
@@ -120,19 +145,42 @@ public class NoActivityRestartImpl implements UploaderThread {
 				serviceMsgHandler.onSystemMessage("Attempting to start MapMyTracks Activity");
 				activityId = null;
 				Class<?> prevExceptionClass = null;
+				long latestStartAttemptTime = 0;
 				while (isRunning && activityId==null) {
 					try {
-						activityId = 
-							mapMyTracksInterfaceApi.startActivity(
-								DefSettings.getActivityTitle(state),
-								DefSettings.getTags(state),
-								DefSettings.isPublic(state),
-								DefSettings.getActivityType(state),
-								pointsToUpload
+						if (latestStartAttemptTime>0) {
+							Log.d(Constants.TAG, "Query latest activity from server");
+							ActivityDetails latestActivity = queryLatestActivity();
+							if (latestActivity!=null) {
+								Log.d(Constants.TAG, "Latest activity was at: "+latestActivity.timestamp+", latest attempt was at: "+latestStartAttemptTime);
+								if (latestActivity.timestamp>=(latestStartAttemptTime/1000L)*1000L) {
+									Log.d(Constants.TAG, "Continuing with activity");
+									activityId = latestActivity.id;
+								} else {
+									Log.d(Constants.TAG, "Activity is too old");
+									latestStartAttemptTime = 0;
+								}
+							} else {
+								Log.d(Constants.TAG, "No activities returned");
+							}
+						} else {
+							latestStartAttemptTime = mapMyTracksInterfaceApi.getServerTime();
+							Log.d(Constants.TAG, "Attempting to start new activity, time="+latestStartAttemptTime);
+							activityId = 
+								mapMyTracksInterfaceApi.startActivity(
+									DefSettings.getActivityTitle(state),
+									DefSettings.compileTags(state),
+									DefSettings.isPublic(state),
+									DefSettings.getActivityType(state),
+									pointsToUpload
 							);
+							
+//							ActivityDetails latestActivity = queryLatestActivity();
+//							Log.d(Constants.TAG, "Latest activity at "+latestActivity.timestamp);
+						}
 					} catch (Exception e) {
+						Log.d(Constants.TAG, "Error while starting MapMyTracks Activity", e);
 						if (prevExceptionClass==null || !prevExceptionClass.equals(e.getClass())) {
-							Log.d(Constants.TAG, "Error while starting MapMyTracks Activity", e);
 							serviceMsgHandler.onSystemMessage("Error starting activity: "+e.getMessage()+", retrying shortly");
 							prevExceptionClass = e.getClass();;
 						}
@@ -235,12 +283,6 @@ public class NoActivityRestartImpl implements UploaderThread {
 				this.sensorDataToUpload.addAll(sensorDataToUpload);
 			}
 		}
-		
-		private CharSequence timestampToDate(long timestamp)
-		{
-			return DateFormat.format("kk:mm:ss", timestamp);
-		}
-		
 		
 		@Override
 		public void run() {

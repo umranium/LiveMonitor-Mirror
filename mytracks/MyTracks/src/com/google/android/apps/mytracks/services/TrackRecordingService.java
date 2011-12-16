@@ -243,7 +243,7 @@ public class TrackRecordingService extends Service {
   public void onCreate() {
     super.onCreate();
     Log.d(TAG, "TrackRecordingService.onCreate");
-    
+
     CustomUncaughtExceptionHandler.setDefaultInterceptHandler(this);
     
     providerUtils = MyTracksProviderUtils.Factory.get(this);
@@ -310,7 +310,7 @@ public class TrackRecordingService extends Service {
   public void onLowMemory() {
     super.onLowMemory();
     
-    CustomUncaughtExceptionHandler.writeToFile("Received Low Memory Event");
+    CustomUncaughtExceptionHandler.writeToFile("Received Low Memory Event");    
   }
   
   private void handleStartCommand(Intent intent, int startId) {
@@ -403,8 +403,8 @@ public class TrackRecordingService extends Service {
         + autoResumeTrackTimeout);
 
     // Check if we haven't exceeded the maximum number of retry attempts.
-    SharedPreferences sharedPreferences =
-        getSharedPreferences(Constants.SETTINGS_NAME, 0);
+    SharedPreferences sharedPreferences = getSharedPreferences(
+        Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
     int retries = sharedPreferences.getInt(
         getString(R.string.auto_resume_track_current_retry_key), 0);
     Log.d(TAG,
@@ -505,8 +505,8 @@ public class TrackRecordingService extends Service {
       PendingIntent contentIntent = PendingIntent.getActivity(
           this, 0 /* requestCode */, new Intent(this, MyTracks.class),
           0 /* flags */);
-      notification.setLatestEventInfo(this, getString(R.string.app_name),
-          getString(R.string.recording_your_track), contentIntent);
+      notification.setLatestEventInfo(this, getString(R.string.my_tracks_app_name),
+          getString(R.string.track_record_notification), contentIntent);
       notification.flags += Notification.FLAG_NO_CLEAR;
       apiLevelAdapter.startForeground(this, notificationManager, 1,
           notification);
@@ -572,8 +572,9 @@ public class TrackRecordingService extends Service {
   }
   
   private String getDefaultActivityType(Context context) {
-    SharedPreferences prefs = context.getSharedPreferences(Constants.SETTINGS_NAME, 0);
-    return prefs.getString(context.getString(R.string.default_category_key), "");
+    SharedPreferences prefs = context.getSharedPreferences(
+        Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
+    return prefs.getString(context.getString(R.string.default_activity_key), "");
   }
 
   /*
@@ -974,12 +975,12 @@ public class TrackRecordingService extends Service {
   private void buildMarker(Waypoint wpt, WaypointCreationRequest request) {
     wpt.setType(Waypoint.TYPE_WAYPOINT);
     if (request.getIconUrl() == null) {
-      wpt.setIcon(getString(R.string.waypoint_icon_url));
+      wpt.setIcon(getString(R.string.marker_waypoint_icon_url));
     } else {
       wpt.setIcon(request.getIconUrl());
     }
     if (request.getName() == null) {
-      wpt.setName(getString(R.string.waypoint));
+      wpt.setName(getString(R.string.marker_type_waypoint));
     } else {
       wpt.setName(request.getName());
     }
@@ -1007,10 +1008,10 @@ public class TrackRecordingService extends Service {
 
     // Set the rest of the waypoint data
     waypoint.setType(Waypoint.TYPE_STATISTICS);
-    waypoint.setName(getString(R.string.statistics));
+    waypoint.setName(getString(R.string.marker_type_statistics));
     waypoint.setStatistics(waypointStatsBuilder.getStatistics());
     waypoint.setDescription(utils.generateWaypointDescription(waypoint));
-    waypoint.setIcon(getString(R.string.stats_icon_url));
+    waypoint.setIcon(getString(R.string.marker_statistics_icon_url));
 
     waypoint.setStartId(providerUtils.getLastLocationId(recordingTrackId));
 
@@ -1065,9 +1066,10 @@ public class TrackRecordingService extends Service {
     Intent broadcastIntent = new Intent()
         .setAction(getString(actionResId))
         .putExtra(getString(R.string.track_id_broadcast_extra), trackId);
-    sendBroadcast(broadcastIntent, getString(R.string.mytracks_notifications_permission));
+    sendBroadcast(broadcastIntent, getString(R.string.permission_notification_value));
     
-    SharedPreferences sharedPreferences = getSharedPreferences(Constants.SETTINGS_NAME, 0);
+    SharedPreferences sharedPreferences = getSharedPreferences(
+        Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
     if (sharedPreferences.getBoolean(getString(R.string.allow_access_key), false)) {
       sendBroadcast(broadcastIntent, getString(R.string.broadcast_notifications_permission));
     }
@@ -1226,7 +1228,7 @@ public class TrackRecordingService extends Service {
         return true;
       } else {
         SharedPreferences sharedPreferences = service.getSharedPreferences(
-            Constants.SETTINGS_NAME, 0);
+            Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
         return sharedPreferences.getBoolean(service.getString(R.string.allow_access_key), false);
       }
     }

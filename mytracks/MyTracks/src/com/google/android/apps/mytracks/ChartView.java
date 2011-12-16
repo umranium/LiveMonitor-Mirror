@@ -38,7 +38,6 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.Scroller;
 
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 
@@ -120,8 +119,13 @@ public class ChartView extends View {
   private ChartValueSeries[] series;
 
   private final ExtremityMonitor xMonitor = new ExtremityMonitor();
-  private static final NumberFormat X_FORMAT = new DecimalFormat("###,###");
-  private static final NumberFormat X_SHORT_FORMAT = new DecimalFormat("#.0");
+  private static final NumberFormat X_FORMAT = NumberFormat.getIntegerInstance();
+  private static final NumberFormat X_SHORT_FORMAT = NumberFormat.getNumberInstance();
+  
+  static {
+    X_SHORT_FORMAT.setMaximumFractionDigits(1);
+    X_SHORT_FORMAT.setMinimumFractionDigits(1);
+  }
 
   /*
    * Paints etc. used when drawing the chart:
@@ -205,44 +209,39 @@ public class ChartView extends View {
     // Create the value series.
     series[ELEVATION_SERIES] =
         new ChartValueSeries(context,
-                             "###,###",
                              R.color.elevation_fill,
                              R.color.elevation_border,
                              new ZoomSettings(MAX_INTERVALS,
                                  new int[] {5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000}),
-                             R.string.elevation_label);
+                             R.string.stat_elevation);
 
     series[SPEED_SERIES] =
         new ChartValueSeries(context,
-                             "###,###",
                              R.color.speed_fill,
                              R.color.speed_border,
                              new ZoomSettings(MAX_INTERVALS, 0, Integer.MIN_VALUE,
                                  new int[] {1, 5, 10, 20, 50}),
-                             R.string.speed);
+                             R.string.stat_speed);
     series[POWER_SERIES] =
         new ChartValueSeries(context,
-                             "###,###",
                              R.color.power_fill,
                              R.color.power_border,
                              new ZoomSettings(MAX_INTERVALS, 0, 1000, new int[] {5, 50, 100, 200}),
-                             R.string.power);
+                             R.string.sensor_state_power);
     series[CADENCE_SERIES] =
         new ChartValueSeries(context,
-                             "###,###",
                              R.color.cadence_fill,
                              R.color.cadence_border,
                              new ZoomSettings(MAX_INTERVALS, 0, Integer.MIN_VALUE,
                                  new int[] {5, 10, 25, 50}),
-                             R.string.cadence);
+                             R.string.sensor_state_cadence);
     series[HEART_RATE_SERIES] =
         new ChartValueSeries(context,
-                             "###,###",
                              R.color.heartrate_fill,
                              R.color.heartrate_border,
                              new ZoomSettings(MAX_INTERVALS, 0, Integer.MIN_VALUE,
                                  new int[] {25, 50}),
-                             R.string.heart_rate);
+                             R.string.sensor_state_heart_rate);
   }
 
   public void clearWaypoints() {
@@ -269,8 +268,8 @@ public class ChartView extends View {
 
   public void setReportSpeed(boolean reportSpeed, Context c) {
     series[SPEED_SERIES].setTitle(c.getString(reportSpeed
-                                              ? R.string.speed
-                                              : R.string.pace_label));
+                                              ? R.string.stat_speed
+                                              : R.string.stat_pace));
   }
 
   private void addDataPointInternal(double[] theData) {
