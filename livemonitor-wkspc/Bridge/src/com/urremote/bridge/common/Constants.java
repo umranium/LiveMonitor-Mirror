@@ -19,7 +19,7 @@ public class Constants {
 	
 	public static final int MINIMUM_RECORDING_DISTANCE = 5;
 	
-	public static final int MINIMUM_BATTERY = 2;
+	public static final int MINIMUM_BATTERY = 5;
 	
 	public static final DateFormat FMT_TAG_TIMESTAMP = DateFormat.getDateInstance(DateFormat.SHORT);
 	
