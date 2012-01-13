@@ -10,6 +10,8 @@ public interface UpdateListener {
 	public void updateSystemMessages();
 	
 	public void onSystemStart();
+	public void onSystemPaused();
+	public void onSystemResumed();
 	public void onSystemStop();
 	
 }

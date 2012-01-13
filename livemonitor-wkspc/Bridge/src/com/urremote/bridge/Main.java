@@ -34,6 +34,9 @@ import com.urremote.bridge.scroller.ScrollerUpdater;
 import com.urremote.bridge.service.ILiveMonitorBinder;
 import com.urremote.bridge.service.LiveMonitorService;
 import com.urremote.bridge.service.UpdateListener;
+import com.urremote.bridge.service.thread.monitor.MyTracksConnection;
+import com.urremote.bridge.tasker.TaskerIntent;
+import com.urremote.bridge.tasker.TaskerUtil;
 
 public class Main extends Activity {
 
@@ -48,6 +51,7 @@ public class Main extends Activity {
 	private ILiveMonitorBinder binder;
 	
 	private Button btnStart;
+	private Button btnPause;
 	private Button btnStop;
 	private Button btnEditAccountSettings;
 	private Button btnEditActivitySettings;
@@ -75,6 +79,7 @@ public class Main extends Activity {
         setContentView(R.layout.main);
         
         btnStart = (Button)this.findViewById(R.id.btn_start);
+        btnPause = (Button)this.findViewById(R.id.btn_pause);
         btnStop = (Button)this.findViewById(R.id.btn_stop);
         btnEditAccountSettings = (Button)this.findViewById(R.id.btn_edit_account_settings);
         btnEditActivitySettings = (Button)this.findViewById(R.id.btn_edit_activity_settings);
@@ -97,15 +102,39 @@ public class Main extends Activity {
 				Log.d(Constants.TAG, "btnStart clicked");
 				if (binder!=null) {
 					try {
-						if (!binder.isRecording()) {
+						if (!binder.isRecording() || binder.isRecordingPaused()) {
 							if (!isGPSEnabled()) {
 								createGpsDisabledAlert();
 							} else {
 								binder.startRecording();
 							}
+						} else {
+							Log.d(Constants.TAG, "Service is already recording");
+						}
+					} catch (Exception e) {
+						Log.e(Constants.TAG, "Error", e);
+					}
+				}
+				else
+					Toast.makeText(Main.this, "Not connected to\nMonitoring Service", Toast.LENGTH_SHORT);
+			}
+		});
+        
+        btnPause.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Log.d(Constants.TAG, "btnPause clicked");
+				if (binder!=null) {
+					try {
+						if (binder.isRecording()) {
+							if (!binder.isRecordingPaused()) {
+								binder.pauseRecording(true);
+							}
+							else
+								Log.d(Constants.TAG, "Service is ALREADY paused");
 						}
 						else
-							Log.d(Constants.TAG, "Service is already recording");
+							Log.d(Constants.TAG, "Service is NOT recording");
 					} catch (Exception e) {
 						Log.e(Constants.TAG, "Error", e);
 					}
@@ -239,9 +268,13 @@ public class Main extends Activity {
 		    	}
         
     	
-    	if (!isMyTracksInstalled()) {
+    	if (!MyTracksConnection.isMyTracksInstalled(this)) {
     		createMyTracksMarketAlert();
-    	}
+    	} else
+	    	if (!MyTracksConnection.hasMyTracksPermission(this)) {
+	    		createMyTracksPermissionAlert();
+	    	}
+    	
     }
     
     @Override
@@ -259,9 +292,12 @@ public class Main extends Activity {
     	if (binder!=null) {
     		binder.setUiActive(isUiActive);
     		updateListener.internalUpdateSystemMessages();
+    		updateListener.internalUpdateSystemState();
     	} else {
-    		this.btnStart.setEnabled(true);
-    		this.btnStart.setEnabled(true);
+    		this.btnStart.setEnabled(false);
+    		this.btnStart.setText("Start");
+    		this.btnPause.setEnabled(false);
+    		this.btnStop.setEnabled(false);
     	}
     	
     }
@@ -313,6 +349,7 @@ public class Main extends Activity {
         	binder.setUiActive(isUiActive);
         	systemMessagesUpdater.setMessageList(binder.getSystemMessages());
         	updateListener.internalUpdateSystemMessages();
+        	updateListener.internalUpdateSystemState();
         }
 
         public void onServiceDisconnected(ComponentName arg0) {
@@ -357,36 +394,67 @@ public class Main extends Activity {
 		
 		@Override
 		public void onSystemStart() {
+			Log.d(Constants.TAG, "Main: Received: onSystemStart");
 			Main.this.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					internalUpdateSystemMessages();
+					internalUpdateSystemState();
+				}
+			});
+		}
+		
+		@Override
+		public void onSystemPaused() {
+			Log.d(Constants.TAG, "Main: Received: onSystemPaused");
+			Main.this.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					internalUpdateSystemState();
+				}
+			});
+		}
+		
+		@Override
+		public void onSystemResumed() {
+			Log.d(Constants.TAG, "Main: Received: onSystemResumed");
+			Main.this.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					internalUpdateSystemState();
 				}
 			});
 		}
 		
 		@Override
 		public void onSystemStop() {
+			Log.d(Constants.TAG, "Main: Received: onSystemStop");
 			Main.this.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					internalUpdateSystemMessages();
+					internalUpdateSystemState();
 				}
 			});
 		}
 		
 		synchronized private void internalUpdateSystemMessages() {
 			systemMessagesUpdater.update();
+		}
+		
+		synchronized private void internalUpdateSystemState() {
 			if (binder!=null) {
-	        	btnStart.setEnabled(!binder.isStarted());
-	         	btnStop.setEnabled(binder.isStarted());
+	        	btnStart.setEnabled(!binder.isRecording() || binder.isRecordingPaused());
+	        	if (binder.isRecordingPaused())
+	        		btnStart.setText("Resume");
+	        	else
+	        		btnStart.setText("Start");
+	        	btnPause.setEnabled(binder.isRecording() && !binder.isRecordingPaused());
+	         	btnStop.setEnabled(binder.isRecording());
 	         	
 				if (binder.isStarted() && !binder.isRecording()) {
 					binder.stopService();
 				}
 			}
 		}
-		
 	}; 
     
     
@@ -442,8 +510,10 @@ public class Main extends Activity {
     	}
     	case MYTRACKS_MARKET_REQ_CODE:
     	{
-    		if (!isMyTracksInstalled()) {
+    		if (!MyTracksConnection.isMyTracksInstalled(this)) {
     			this.finish();
+    		} else {
+    			
     		}
     		break;
     	}
@@ -483,7 +553,7 @@ public class Main extends Activity {
 	
 	private void createMyTracksMarketAlert() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage("This application requires Google MyTracks to be installed.\n" +
+		builder.setMessage("This application requires Google My Tracks to be installed.\n" +
 				"Go to the market to install?")
 				.setCancelable(false)
 				.setPositiveButton("Install",
@@ -491,31 +561,50 @@ public class Main extends Activity {
 							public void onClick(DialogInterface dialog, int id) {
 								showMyTracksMarket();
 							}
-						});
-		builder.setNegativeButton("Exit",
-				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						Main.this.finish();
-					}
-				});
+						})
+				.setNegativeButton("Exit",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							Main.this.finish();
+						}
+					});
+		AlertDialog alert = builder.create();
+		alert.show();
+	}
+	
+	private void createMyTracksPermissionAlert() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage("This application requires Google My Tracks permissions which haven't been granted.\n" +
+				"This could be a result of installing MyTracks AFTER "+getString(R.string.app_name)+".\n" +
+				"Please reinstall "+getString(R.string.app_name)+" to fix this issue."
+				)
+				.setCancelable(false)
+				.setPositiveButton("Reinstall",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							showBridgeMarket();
+						}
+					})
+				.setNegativeButton("Not Now", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							Main.this.finish();
+						}
+					});
 		AlertDialog alert = builder.create();
 		alert.show();
 	}
 	
 	private void showMyTracksMarket() {
-		Intent myTrackMarketIntent = new Intent(Intent.ACTION_VIEW);
-		myTrackMarketIntent.setData(Constants.URI_MYTRACKS_MARKET);
-		startActivityForResult(myTrackMarketIntent, MYTRACKS_MARKET_REQ_CODE);
+		Intent marketIntent = new Intent(Intent.ACTION_VIEW);
+		marketIntent.setData(Constants.URI_MYTRACKS_MARKET);
+		startActivityForResult(marketIntent, MYTRACKS_MARKET_REQ_CODE);
 	}
 	
-	private boolean isMyTracksInstalled() {
-		List<PackageInfo> packs = getPackageManager().getInstalledPackages(0);
-		for (PackageInfo pack:packs) {
-			if (pack.packageName.equals(Constants.MY_TRACKS_PACKAGE)) {
-				return true;
-			}
-		}
-		return false;
+	private void showBridgeMarket() {
+		Intent marketIntent = new Intent(Intent.ACTION_VIEW);
+		marketIntent.setData(Constants.URI_BRIDGE_MARKET);
+		this.finish();
+		startActivity(marketIntent);
 	}
 	
 }

@@ -12,6 +12,8 @@ public class Constants {
 	
 	public static final String TAG = "livemonitor";
 	
+	public static final String BRIDGE_PACKAGE = "com.urremote.bridge";
+	
 	public static final boolean IS_TESTING = false;
 	public static final boolean IS_CRIPLED = false;
 	
@@ -21,7 +23,11 @@ public class Constants {
 	
 	public static final int MINIMUM_BATTERY = 5;
 	
-	public static final DateFormat FMT_TAG_TIMESTAMP = DateFormat.getDateInstance(DateFormat.SHORT);
+	public static final String STD_DATE_FORMAT = "dd-MM-yyyy";
+	public static final String STD_TIME_FORMAT = "HH-mm-ss";
+	public static final String STD_DATE_TIME_FORMAT = STD_DATE_FORMAT+" "+STD_TIME_FORMAT;
+	
+	public static final DateFormat FMT_TAG_TIMESTAMP = new SimpleDateFormat(STD_DATE_FORMAT);//DateFormat.getDateInstance(DateFormat.SHORT);
 	
 	public static final int TIMEOUT_SOCKET = 0; //infinite //60*1000;
 	public static final int TIMEOUT_CONNECTION = 0; //infinite //60*1000;
@@ -62,9 +68,10 @@ public class Constants {
 	public static final String PATH_SD_CARD_APP_LOC = Environment.getExternalStorageDirectory() + File.separator + "Bridge";
 	
 	public static final URI URI_CRASH_REPORT = URI.create("http://remote-invoker.appspot.com/crashreport");
+	public static final Uri URI_BRIDGE_MARKET = Uri.parse("market://details?id="+BRIDGE_PACKAGE);
 	
 	// MYTRACKS 
-	public static final Uri URI_MYTRACKS_MARKET = Uri.parse("market://search?q="+MY_TRACKS_PACKAGE);
+	public static final Uri URI_MYTRACKS_MARKET = Uri.parse("market://details?id="+MY_TRACKS_PACKAGE);
 	
 	//	MAPMYTRACKS
 	public static final Uri URI_MAPMYTRACKS_REGISTER = Uri.parse("http://www.mapmytracks.com/sign-up");

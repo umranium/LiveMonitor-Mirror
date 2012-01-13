@@ -30,7 +30,7 @@ import android.util.Log;
 public class CustomUncaughtExceptionHandler implements
 		UncaughtExceptionHandler {
 	
-	public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
+	private static final DateFormat dateFormat = new SimpleDateFormat(Constants.STD_DATE_TIME_FORMAT);//DateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
 	
 	public static void setInterceptHandler(Context context, Thread thread) {
 		UncaughtExceptionHandler prevHandler = thread.getUncaughtExceptionHandler();

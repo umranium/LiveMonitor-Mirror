@@ -25,6 +25,8 @@ import com.urremote.bridge.common.CustomUncaughtExceptionHandler;
 import com.urremote.bridge.service.InternalServiceMessageHandler;
 import com.urremote.bridge.service.Sample;
 import com.urremote.bridge.service.SamplingQueue;
+import com.urremote.bridge.service.thread.monitor.exceptions.MyTracksNotInstalledException;
+import com.urremote.bridge.service.thread.monitor.exceptions.MyTracksPermissionsNotGrantedException;
 
 public class MonitoringThread {
 	
@@ -40,7 +42,6 @@ public class MonitoringThread {
 	
 	private LocationListener locationListener = new LocationListener() {
 		public void onLocationChanged(Location location) {
-//			latestLocation = location;
 			if (isBetterLocation(location, latestLocation)) {
 				latestLocation = location;
 			}
@@ -71,15 +72,14 @@ public class MonitoringThread {
 		this.locationListenerRegistered = false;
 		
 		this.myTracksConnection = new MyTracksConnection(serviceMsgHandler, context);
-		
-		registerLocationListener();
+//		registerLocationListener();
 	}
 	
 	public void registerLocationListener() {
 		if (this.locationListenerRegistered)
 			return;
 		this.locationListenerRegistered = true;
-		
+		this.latestLocation = null;
 		this.locationManager.requestLocationUpdates(
 				LocationManager.GPS_PROVIDER,
 				0,
@@ -96,6 +96,8 @@ public class MonitoringThread {
 				locationListener
 			);
 		}
+		
+		Log.d(Constants.TAG, "Location Listener Registered");
 	}
 	
 	public void unregisterLocationListener() {
@@ -104,7 +106,9 @@ public class MonitoringThread {
 		this.locationListenerRegistered = false;
 		
 		this.locationManager.removeUpdates(locationListener);
-	} 
+		
+		Log.d(Constants.TAG, "Location Listener Unregistered");
+	}
 	
 	public boolean isLocationListenerRegistered() {
 		return this.locationListenerRegistered;
@@ -115,9 +119,28 @@ public class MonitoringThread {
 		unregisterLocationListener();
 	}
 	
-	public void begin() throws Exception {
-		myTracksConnection.connectToMyTracks();
+	public void begin() throws MyTracksNotInstalledException, MyTracksPermissionsNotGrantedException {
+		myTracksConnection.setShouldBeRecording(true);
+		if (!myTracksConnection.isConnected())
+			myTracksConnection.connectToMyTracks();
 
+		registerLocationListener();
+		
+		startTimerTask();
+	}
+	
+	public void quit(boolean turnOffFromMyTracks) {
+		stopTimerTask();
+		unregisterLocationListener();
+		
+		if (turnOffFromMyTracks) {
+			myTracksConnection.setShouldBeRecording(false);
+			if (myTracksConnection.isConnected())
+				myTracksConnection.disconnectFromMyTracks();
+		}
+	}
+	
+	private void startTimerTask() {
     	if (monitorTimerTask!=null) {
     		monitorTimerTask.cancel();
     	}
@@ -125,13 +148,12 @@ public class MonitoringThread {
 		timer.schedule(monitorTimerTask, Constants.MONITORING_INTERVAL, Constants.MONITORING_INTERVAL);
 	}
 	
-	public void quit() {
+	private void stopTimerTask() {
 		if (monitorTimerTask!=null) {
 			monitorTimerTask.cancel();
 			timer.purge();
 			monitorTimerTask = null;
 		}
-		myTracksConnection.disconnectFromMyTracks();
 	}
 	
 	/**

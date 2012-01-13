@@ -27,7 +27,24 @@
             </LinearLayout>
         </ScrollView>
     </LinearLayout>
-    <LinearLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:id="@+id/layout_settings_btns" android:layout_alignParentBottom="true" android:layout_margin="10px" android:gravity="center">
+
+    <LinearLayout
+        android:id="@+id/layout_settings_btns"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="10px"
+        android:gravity="center"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/txtContinue"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Press the back button to exit this screen"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
     </LinearLayout>
     
 </RelativeLayout>

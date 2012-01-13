@@ -7,7 +7,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.IBinder;
+import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -16,10 +20,17 @@ import com.google.android.apps.mytracks.content.Sensor;
 import com.google.android.apps.mytracks.content.Sensor.SensorState;
 import com.google.android.apps.mytracks.services.ITrackRecordingService;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.urremote.bridge.R;
 import com.urremote.bridge.common.Constants;
 import com.urremote.bridge.service.InternalServiceMessageHandler;
+import com.urremote.bridge.service.thread.monitor.exceptions.MyTracksException;
+import com.urremote.bridge.service.thread.monitor.exceptions.MyTracksNotInstalledException;
+import com.urremote.bridge.service.thread.monitor.exceptions.MyTracksPermissionsNotGrantedException;
 
 public class MyTracksConnection {
+	
+	private static final String MYTRACKS_WRITE_PERMISSION = "com.google.android.apps.mytracks.WRITE_TRACK_DATA"; 
+	private static final String MYTRACKS_READ_PERMISSION = "com.google.android.apps.mytracks.READ_TRACK_DATA"; 
 	
 	private InternalServiceMessageHandler serviceMsgHandler; 
 	private Context context;
@@ -33,9 +44,9 @@ public class MyTracksConnection {
 	private boolean wasMyTracksRecording;
 	private int previousSensorState;
 	private boolean isRecording;
+	private boolean shouldBeRecording;
 	
 	private ArrayList<Sensor.SensorDataSet> bufferdSensorData = new ArrayList<Sensor.SensorDataSet>(10);
-	
 	
 	public MyTracksConnection(InternalServiceMessageHandler serviceMsgHandler,
 			Context context) {
@@ -44,6 +55,7 @@ public class MyTracksConnection {
 		this.context = context;
 		
 		this.requestedTrackRecording = false;
+		this.shouldBeRecording = true;
 		
 		resetMyTracksState();
 	}
@@ -58,14 +70,16 @@ public class MyTracksConnection {
 				if (mytracksService.isRecording()) {
 					serviceMsgHandler.onSystemMessage("MyTracks is already Recording.");
 				} else {
-					Log.d(Constants.TAG, "Launching MyTracks To Start Recording");
+//					Log.d(Constants.TAG, "Launching MyTracks To Start Recording");
 //					Toast.makeText(context, 
 //							"Please start MyTracks Recording.", 
 //							Toast.LENGTH_LONG).show();
 //					serviceMsgHandler.requestLaunchMyTracks();
-					mytracksService.startNewTrack();
-					requestedTrackRecording = true;
-					serviceMsgHandler.onSystemMessage("Requesting MyTracks to Start Recording.");
+					if (shouldBeRecording) {
+						mytracksService.startNewTrack();
+						requestedTrackRecording = true;
+						serviceMsgHandler.onSystemMessage("Requesting MyTracks to Start New Track.");
+					}
 				}
 			} catch (Exception e) {
 				Log.e(Constants.TAG, "Error", e);
@@ -80,12 +94,22 @@ public class MyTracksConnection {
         public void onServiceDisconnected(ComponentName arg0) {
         	serviceMsgHandler.onSystemMessage("Disconnected from MyTracks. MyTracks service probably crashed. Reconnecting briefly");
     		resetMyTracksState();
-        	connectToMyTracks();
+    		try {
+    			connectToMyTracks();
+    		} catch (MyTracksException exception) {
+    			throw new RuntimeException("Error while trying to reconnect to MyTracks", exception);
+    		}
         }
 
     };
 
-    public void connectToMyTracks() {
+    public void connectToMyTracks() throws MyTracksNotInstalledException, MyTracksPermissionsNotGrantedException {
+    	if (!isMyTracksInstalled(context)) {
+    		throw new MyTracksNotInstalledException(context);
+    	}
+    	if (!hasMyTracksPermission(context)) {
+    		throw new MyTracksPermissionsNotGrantedException(context);
+    	}
     	serviceMsgHandler.onSystemMessage("Connecting to MyTracks");
 		Intent intent = new Intent();
 		intent.setComponent(new ComponentName(
@@ -102,8 +126,10 @@ public class MyTracksConnection {
 		synchronized (stateMutex) {
 			if (mytracks!=null && requestedTrackRecording) {
 				try {
-					if (mytracks.isRecording())
+					if (mytracks.isRecording()) {
 						mytracks.endCurrentTrack();
+						serviceMsgHandler.onSystemMessage("Requesting MyTracks to End Current Track.");
+					}
 				} catch (RemoteException e) {
 					Log.e(Constants.TAG, "Error while stopping MyTracks Recording", e);
 				}
@@ -113,6 +139,10 @@ public class MyTracksConnection {
 			resetMyTracksState();
 	    	serviceMsgHandler.onSystemMessage("Disconnected from MyTracks.");
 		}
+	}
+	
+	public boolean isConnected() {
+		return mytracks!=null;
 	}
 	
 	private void resetMyTracksState() {
@@ -152,9 +182,11 @@ public class MyTracksConnection {
 							}
 						}
 					} else {
-						serviceMsgHandler.onSystemMessage("MyTracks is not Recording.\nRe-Requesting MyTracks to start Recording.");
-						mytracks.startNewTrack();
-						requestedTrackRecording = true;
+						if (shouldBeRecording) {
+							serviceMsgHandler.onSystemMessage("MyTracks is not Recording.\nRe-Requesting MyTracks to start Recording.");
+							mytracks.startNewTrack();
+							requestedTrackRecording = true;
+						}
 					}
 					
 					if (firstMyTracksRecording && isRecording) {
@@ -201,4 +233,60 @@ public class MyTracksConnection {
 		}
 	}
 	
+	public boolean getShouldBeRecording() {
+		return shouldBeRecording;
+	}
+	
+	public void setShouldBeRecording(boolean shouldBeRecording) {
+		if (this.shouldBeRecording!=shouldBeRecording) {
+			this.shouldBeRecording = shouldBeRecording;
+			
+			if (mytracks!=null) {
+				if (this.shouldBeRecording) {
+					try {
+						if (!mytracks.isRecording()) {
+							mytracks.startNewTrack();
+							serviceMsgHandler.onSystemMessage("Requesting MyTracks to Start New Track.");
+						}
+					} catch (RemoteException e) {
+						Log.d(Constants.TAG, "Error while retrieving MyTracks data", e);
+					}
+				} else {
+					try {
+						if (mytracks.isRecording()) {
+							mytracks.endCurrentTrack();
+							serviceMsgHandler.onSystemMessage("Requesting MyTracks to End Current Track.");
+						}
+					} catch (RemoteException e) {
+						Log.d(Constants.TAG, "Error while retrieving MyTracks data", e);
+					}
+				}
+			}
+		}
+	}
+	
+	public static boolean hasMyTracksPermission(Context c) {
+		return c.checkPermission(MYTRACKS_READ_PERMISSION, Process.myPid(), Process.myUid())==PackageManager.PERMISSION_GRANTED && 
+				c.checkPermission(MYTRACKS_WRITE_PERMISSION, Process.myPid(), Process.myUid())==PackageManager.PERMISSION_GRANTED;
+	}
+	
+//	public static boolean isMyTracksInstalled(Context c) {
+//		try {
+//			c.getPackageManager().getPackageInfo( Constants.MY_TRACKS_PACKAGE, 0 );
+//			return true;
+//		} catch (NameNotFoundException e) {
+//			return false;
+//		}
+//	}
+	
+	public static boolean isMyTracksInstalled(Context c) {
+		List<PackageInfo> packs = c.getPackageManager().getInstalledPackages(0);
+		for (PackageInfo pack:packs) {
+			if (pack.packageName.equals(Constants.MY_TRACKS_PACKAGE)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 }

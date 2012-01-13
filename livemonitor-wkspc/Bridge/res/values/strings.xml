@@ -2,5 +2,9 @@
 <resources>
     <string name="app_name">Avocado MyTracks-to-MapMyTracks Bridge</string>
     <string name="account_settings_intro">Please provide your MapMyTracks username and password. Click \'register\' if you don\'t have one.</string>
+    <string name="INTENT_START">com.urremote.bridge.intent.START</string>
+    <string name="INTENT_PAUSE">com.urremote.bridge.intent.PAUSE</string>
+    <string name="INTENT_STOP">com.urremote.bridge.intent.STOP</string>
+    <string name="INTENT_EXTRA_MYTRACKS_OFF">mytracks_off</string>
 
 </resources>

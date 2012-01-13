@@ -36,6 +36,7 @@ import com.urremote.bridge.common.HtmlPostUtil.PostResultListener;
 import com.urremote.bridge.common.PrimaryAccountUtil;
 import com.urremote.bridge.service.thread.UploaderThread;
 import com.urremote.bridge.service.thread.monitor.MonitoringThread;
+import com.urremote.bridge.service.thread.monitor.exceptions.MyTracksNotInstalledException;
 import com.urremote.bridge.service.thread.uploader.NoActivityRestartImpl;
 import com.urremote.bridge.service.utils.ServiceForegroundUtil;
 
@@ -68,8 +69,8 @@ public class LiveMonitorService extends Service {
 		public void setUiActive(boolean active) {
 			LiveMonitorService.this.isUiActive = active;
 			if (active || isRecording) {
-				if (!monitoringThread.isLocationListenerRegistered())
-					monitoringThread.registerLocationListener();
+//				if (!monitoringThread.isLocationListenerRegistered())
+//					monitoringThread.registerLocationListener();
 			} else {
 				if (monitoringThread.isLocationListenerRegistered())
 					monitoringThread.unregisterLocationListener();
@@ -80,10 +81,20 @@ public class LiveMonitorService extends Service {
 		public boolean isRecording() {
 			return LiveMonitorService.this.isRecording;
 		}
+		
+		@Override
+		public boolean isRecordingPaused() {
+			return LiveMonitorService.this.isPaused;
+		}
 
 		@Override
 		public void startRecording() throws Exception {
 			LiveMonitorService.this.startRecording();
+		}
+		
+		@Override
+		public void pauseRecording(boolean stopMyTracks) throws Exception {
+			LiveMonitorService.this.pauseRecording(stopMyTracks);
 		}
 
 		@Override
@@ -197,14 +208,26 @@ public class LiveMonitorService extends Service {
 		}
 		
 		@Override
-		public void onSystemStop() {
-			Log.d(Constants.TAG, "C2dmServerEventBasedUpdater::onSystemStop");
+		public void onSystemStart() {
+			Log.d(Constants.TAG, "C2dmServerEventBasedUpdater::onSystemStart");
 			updateC2dmRecordingState();
 		}
 		
 		@Override
-		public void onSystemStart() {
-			Log.d(Constants.TAG, "C2dmServerEventBasedUpdater::onSystemStart");
+		public void onSystemPaused() {
+			Log.d(Constants.TAG, "C2dmServerEventBasedUpdater::onSystemPaused");
+			updateC2dmRecordingState();
+		}
+		
+		@Override
+		public void onSystemResumed() {
+			Log.d(Constants.TAG, "C2dmServerEventBasedUpdater::onSystemResumed");
+			updateC2dmRecordingState();
+		}
+		
+		@Override
+		public void onSystemStop() {
+			Log.d(Constants.TAG, "C2dmServerEventBasedUpdater::onSystemStop");
 			updateC2dmRecordingState();
 		}
 		
@@ -236,6 +259,7 @@ public class LiveMonitorService extends Service {
 	private MessageContainer systemMessages = new MessageContainer(MAX_SYSTEM_MESSAGES);
 	private SystemEventLogger systemEventLogger;
 	private boolean isRecording = false;
+	private boolean isPaused = false;
 	private ServiceForegroundUtil foregroundUtil;
 	private MonitoringThread monitoringThread = null; 
 	private UploaderThread uploaderThread = null;
@@ -256,41 +280,72 @@ public class LiveMonitorService extends Service {
 	
 	synchronized
 	private void startRecording() throws Exception {
-		if (isRecording) return;
 		Log.d(Constants.TAG, this.getClass().getSimpleName()+":startRecording()");
 		
-		serviceMsgHandler.onSystemMessage("Starting Recording...");
-		try {
-			monitoringThread.begin();
-			uploaderThread.begin();
-			isRecording = true;
-			updateHandlers.onSystemStart();
-			serviceMsgHandler.onSystemMessage("***** Recording Started. *****");
-			startService();
-		} catch (Exception e) {
-			serviceMsgHandler.onSystemMessage("Error:"+e.getMessage());
-			throw e;
+		if (isRecording) {
+			if (isPaused) {
+				// resume
+				monitoringThread.begin();
+				isPaused = false;
+				updateHandlers.onSystemResumed();
+				serviceMsgHandler.onSystemMessage("Recording Resumed");
+			} else {
+				// should restart, ignore for now
+			}
+		} else {
+			// start
+			serviceMsgHandler.onSystemMessage("Starting Recording...");
+			try {
+				monitoringThread.begin();
+				uploaderThread.begin();
+				isRecording = true;
+				isPaused = false;
+				updateHandlers.onSystemStart();
+				serviceMsgHandler.onSystemMessage("***** Recording Started. *****");
+				startService();
+			} catch (Exception e) {
+				serviceMsgHandler.onSystemMessage("Error:"+e.getMessage());
+				throw e;
+			}
+		}
+	}
+	
+	synchronized
+	private void pauseRecording(boolean stopMyTracks) throws Exception {
+		Log.d(Constants.TAG, this.getClass().getSimpleName()+":pauseRecording(stopMyTracks="+stopMyTracks+")");
+		
+		if (isRecording) {
+			if (isPaused)  {
+				// ignore
+			} else {
+				// pause
+				monitoringThread.quit(stopMyTracks);
+				isPaused = true;
+				updateHandlers.onSystemPaused();
+				serviceMsgHandler.onSystemMessage("Recording Paused");
+			}
 		}
 	}
 	
 	synchronized
 	private void stopRecording() {
-		if (!isRecording) return;
-		
 		Log.d(Constants.TAG, this.getClass().getSimpleName()+":stopRecording()");
 		
-		serviceMsgHandler.onSystemMessage("Stopping Recording...");
+		if (isRecording) {
+			serviceMsgHandler.onSystemMessage("Stopping Recording...");
+			
+			monitoringThread.quit(true);
+			uploaderThread.quit();
+			isRecording = false;
+			isPaused = false;
+			
+			updateHandlers.onSystemStop();
+			serviceMsgHandler.onSystemMessage("***** Recording Stopped. *****");
+			
+			if (isUiActive)
+				stopService();
+		}
 		
-		monitoringThread.quit();
-		uploaderThread.quit();
-		isRecording = false;
-		
-		serviceMsgHandler.onSystemMessage("***** Recording Stopped. *****");
-		
-		updateHandlers.onSystemStop();
-		
-		if (isUiActive)
-			stopService();
 	}
 	
 	private void startService() {

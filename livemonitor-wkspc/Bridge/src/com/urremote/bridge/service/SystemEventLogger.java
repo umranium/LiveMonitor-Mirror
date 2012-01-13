@@ -30,7 +30,7 @@ public class SystemEventLogger implements UpdateListener {
     		return;
     	}
     	
-		DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT); 
+		DateFormat dateFormatter = new SimpleDateFormat(Constants.STD_DATE_TIME_FORMAT);//DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT); 
 		String filename = dateFormatter.format(new Date(System.currentTimeMillis())).replaceAll("[^A-Za-z0-9]+", "-") + ".log";
     	File outputFile = new File(Constants.PATH_SD_CARD_APP_LOC + File.separator + filename);
     	
@@ -76,14 +76,15 @@ public class SystemEventLogger implements UpdateListener {
 	public void updateSystemMessages() {
 		if (log!=null) {
 			List<SystemMessage> sysMsgs = binder.getSystemMessages();
+			long newlastSystemMessage = lastSystemMessage;
 			for (SystemMessage msg:sysMsgs) {
 				if (msg.timeStamp>lastSystemMessage) {
-					lastSystemMessage = msg.timeStamp;
+					newlastSystemMessage = msg.timeStamp;
 					log.println(msg.timeStamp+":"+msg.message);
-					log.flush();
 				}
 			}
-			
+			log.flush();
+			lastSystemMessage = newlastSystemMessage;
 		}
 	}
 
@@ -91,6 +92,22 @@ public class SystemEventLogger implements UpdateListener {
 	public void onSystemStart() {
 		if (log!=null) {
 			log.println("System Started");
+			log.flush();
+		}
+	}
+	
+	@Override
+	public void onSystemPaused() {
+		if (log!=null) {
+			log.println("System Paused");
+			log.flush();
+		}
+	}
+
+	@Override
+	public void onSystemResumed() {
+		if (log!=null) {
+			log.println("System Resumed");
 			log.flush();
 		}
 	}
@@ -102,5 +119,6 @@ public class SystemEventLogger implements UpdateListener {
 			log.flush();
 		}
 	}
+
 
 }

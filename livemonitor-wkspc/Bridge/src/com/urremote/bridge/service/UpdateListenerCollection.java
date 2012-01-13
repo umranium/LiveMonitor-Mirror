@@ -64,6 +64,20 @@ public class UpdateListenerCollection extends ArrayList<UpdateListener> {
 		}
 	}
 	
+	public void onSystemPaused() {
+		for (UpdateListener upd:this) {
+			upd.onSystemPaused();
+//			upd.getActivity().runOnUiThread(new UpdateInvoker(upd, ON_SYSTEM_START, null));
+		}
+	}
+
+	public void onSystemResumed() {
+		for (UpdateListener upd:this) {
+			upd.onSystemResumed();
+//			upd.getActivity().runOnUiThread(new UpdateInvoker(upd, ON_SYSTEM_START, null));
+		}
+	}
+	
 	public void onSystemStop() {
 		for (UpdateListener upd:this) {
 			upd.onSystemStop();

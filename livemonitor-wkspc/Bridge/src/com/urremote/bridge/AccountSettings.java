@@ -113,8 +113,8 @@ public class AccountSettings extends Activity {
     		switch (resultCode) {
     		case RESULT_OK:
     		{
-				AccountSettings.this.setResult(RESULT_OK);
-				AccountSettings.this.finish();
+				setResult(RESULT_OK);
+				finish();
     			break;
     		}
     		case RESULT_CANCELED:
@@ -168,8 +168,17 @@ public class AccountSettings extends Activity {
 					Long serverTime = mapMyTracksInterfaceApi.getServerTime();
 					if (serverTime!=null) {
 						Log.d(Constants.TAG, "Success. Server time="+serverTime);
-						displayToastFromAnotherThread("Login details verified");
-						finishActivity();
+						
+//						finishActivity();
+						SharedPreferences preferences = AccountSettings.this.getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
+						
+						if (DefSettings.getUsername(preferences).length()==0) {
+							saveState(preferences);
+							displayToastFromAnotherThread("Login details verified and saved.\nPress the back button to continue.");
+						} else {
+							saveState(preferences);
+							displayToastFromAnotherThread("Login details verified and saved.\nPress the back button to return to the application.");
+						}
 					} else {
 						displayToastFromAnotherThread("Invalid login details or unknown verification failure.");
 					}
@@ -186,17 +195,36 @@ public class AccountSettings extends Activity {
 		th.start();
     }
     
-    private void finishActivity()
-    {
-        SharedPreferences preferences = AccountSettings.this.getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
-    	saveState(preferences);
-    	
-		if (showActivitySettingsToo) {
-			showActivitySettings();
+//    private void finishActivity()
+//    {
+//        SharedPreferences preferences = AccountSettings.this.getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
+//    	saveState(preferences);
+//    	
+//		if (showActivitySettingsToo) {
+//			showActivitySettings();
+//		} else {
+//			AccountSettings.this.setResult(RESULT_OK);
+//			AccountSettings.this.finish();
+//		}
+//    }
+    
+    @Override
+    public void onBackPressed() {
+        SharedPreferences preferences = getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
+        boolean hasUsername = DefSettings.getUsername(preferences).length()>0; 
+        
+		if (hasUsername) {
+//			if (showActivitySettingsToo) {
+//				showActivitySettings();
+//			} else {
+				setResult(RESULT_OK);
+				finish();
+//			}
 		} else {
-			AccountSettings.this.setResult(RESULT_OK);
-			AccountSettings.this.finish();
+			Toast.makeText(AccountSettings.this, "No username/password saved, exiting.", Toast.LENGTH_LONG).show();
+			super.onBackPressed();
 		}
+		
     }
     
     private void displayToastFromAnotherThread(final String msg)

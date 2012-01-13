@@ -17,7 +17,9 @@ public interface ILiveMonitorBinder extends IBinder {
 	public int getPendingUploadCount();
 
 	public boolean isRecording();
+	public boolean isRecordingPaused();
 	public void startRecording() throws Exception;
+	public void pauseRecording(boolean stopMyTracks) throws Exception;
 	public void stopRecording();
 	
 	public void registerUpdateListener(UpdateListener handler);

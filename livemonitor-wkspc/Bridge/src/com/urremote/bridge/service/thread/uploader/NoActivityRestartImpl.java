@@ -29,7 +29,7 @@ public class NoActivityRestartImpl implements UploaderThread {
 	
 	private static final int NUM_HELPER_THREADS = 5;
 	private static final long DATA_WAIT = 30*1000L;
-	private static final DateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("kk:mm:ss"); 
+	private static final DateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("HH:mm:ss"); 
 	
 	private InternalServiceMessageHandler serviceMsgHandler;
 	private SamplingQueue samplingQueue;

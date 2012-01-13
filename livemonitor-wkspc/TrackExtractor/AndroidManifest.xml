@@ -2,7 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.urremote.extractor"
     android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionName="1.0"
+    android:installLocation="internalOnly">
 
     <uses-sdk android:minSdkVersion="7" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -22,6 +23,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+		<!-- TASKER -->
+		<receiver android:name=".InvokationIntentsReceiver">
+			<intent-filter>
+				<action android:name="com.urremote.extractor.intent.EXTRACT"></action>
+				<category android:name="com.urremote.extractor" />
+			</intent-filter>
+		</receiver>
     </application>
 
         

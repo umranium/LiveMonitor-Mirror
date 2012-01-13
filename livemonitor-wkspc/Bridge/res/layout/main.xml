@@ -3,7 +3,16 @@
     android:layout_width="fill_parent"
     android:orientation="vertical" android:layout_height="fill_parent">
     <LinearLayout android:layout_height="wrap_content" android:layout_marginLeft="10dp" android:layout_marginRight="10dp" android:layout_marginBottom="10dp" android:layout_marginTop="10dp" android:gravity="center_vertical|fill_horizontal" android:layout_width="fill_parent" android:id="@+id/layout_button_container" android:layout_alignParentTop="true">
+
         <Button android:text="Start" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_weight="0.5" android:id="@+id/btn_start"></Button>
+
+        <Button
+            android:id="@+id/btn_pause"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:text="Pause" />
+
         <Button android:text="Stop" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_weight="0.5" android:id="@+id/btn_stop"></Button>
     </LinearLayout>
     <LinearLayout android:scrollbarAlwaysDrawVerticalTrack="true" android:layout_height="wrap_content" android:layout_marginLeft="10px" android:scrollbars="vertical" android:layout_width="fill_parent" android:id="@+id/layout_content" android:orientation="vertical" android:layout_below="@+id/layout_button_container" android:layout_marginRight="10px">
