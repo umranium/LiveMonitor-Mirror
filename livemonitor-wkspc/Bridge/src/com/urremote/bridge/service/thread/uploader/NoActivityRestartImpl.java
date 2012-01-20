@@ -5,6 +5,7 @@ import java.security.acl.LastOwnerException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -14,12 +15,15 @@ import android.location.Location;
 import android.util.Log;
 
 import com.google.android.apps.mytracks.content.Sensor.SensorDataSet;
+import com.urremote.bridge.LatencyTestThread;
 import com.urremote.bridge.common.Constants;
 import com.urremote.bridge.common.CustomUncaughtExceptionHandler;
 import com.urremote.bridge.common.DefSettings;
 import com.urremote.bridge.mapmymaps.ActivityDetails;
+import com.urremote.bridge.mapmymaps.ActivityType;
 import com.urremote.bridge.mapmymaps.MapMyMapsException;
 import com.urremote.bridge.mapmymaps.MapMyTracksInterfaceApi;
+import com.urremote.bridge.mapmymaps.UnparsableReplyException;
 import com.urremote.bridge.service.InternalServiceMessageHandler;
 import com.urremote.bridge.service.Sample;
 import com.urremote.bridge.service.SamplingQueue;
@@ -167,22 +171,19 @@ public class NoActivityRestartImpl implements UploaderThread {
 							latestStartAttemptTime = mapMyTracksInterfaceApi.getServerTime();
 							Log.d(Constants.TAG, "Attempting to start new activity, time="+latestStartAttemptTime);
 							activityId = 
-								mapMyTracksInterfaceApi.startActivity(
-									DefSettings.getActivityTitle(state),
-									DefSettings.compileTags(state),
-									DefSettings.isPublic(state),
-									DefSettings.getActivityType(state),
-									pointsToUpload
-							);
-							
-//							ActivityDetails latestActivity = queryLatestActivity();
-//							Log.d(Constants.TAG, "Latest activity at "+latestActivity.timestamp);
+									mapMyTracksInterfaceApi.startActivity(
+										DefSettings.getActivityTitle(state),
+										DefSettings.compileTags(state),
+										DefSettings.isPublic(state),
+										DefSettings.getActivityType(state),
+										pointsToUpload
+								);
 						}
 					} catch (Exception e) {
 						Log.d(Constants.TAG, "Error while starting MapMyTracks Activity", e);
 						if (prevExceptionClass==null || !prevExceptionClass.equals(e.getClass())) {
 							serviceMsgHandler.onSystemMessage("Error starting activity: "+e.getMessage()+", retrying shortly");
-							prevExceptionClass = e.getClass();;
+							prevExceptionClass = e.getClass();
 						}
 						
 						try {

@@ -301,8 +301,6 @@ public class MapMyTracksInterfaceApi {
 			ActivityType activityType,
 			List<Location> points) throws MapMyMapsException, IOException
 	{
-//		throw new UnsupportedOperationException();
-		
 		startActivityParamsMap.update("title", title);
 		
 		startActivityParamsMap.update("tags", tags);
@@ -325,7 +323,7 @@ public class MapMyTracksInterfaceApi {
 		if (reply!=null) {
 			String[] type = matchOne(REPLY_TYPE_PAT, reply);
 			if (type==null) {
-				throw new MapMyMapsException("Unparsable reply: "+reply);
+				throw new UnparsableReplyException(reply);
 			}
 			
 			if (type[0].equalsIgnoreCase("activity_started")) {
@@ -403,7 +401,7 @@ public class MapMyTracksInterfaceApi {
 		if (reply!=null) {
 			String[] type = matchOne(REPLY_TYPE_PAT, reply);
 			if (type==null) {
-				throw new MapMyMapsException("Unparsable reply: "+reply);
+				throw new UnparsableReplyException(reply);
 			}
 			
 			if (type[0].equalsIgnoreCase("activity_updated")) {
@@ -423,7 +421,7 @@ public class MapMyTracksInterfaceApi {
 		if (reply!=null) {
 			String[] type = matchOne(REPLY_TYPE_PAT, reply);
 			if (type==null) {
-				throw new MapMyMapsException("Unparsable reply: "+reply);
+				throw new UnparsableReplyException(reply);
 			}
 			
 			if (type[0].equalsIgnoreCase("activity_stopped")) {
@@ -445,7 +443,7 @@ public class MapMyTracksInterfaceApi {
 		if (reply!=null) {
 			String[] type = matchOne(COMPLETE_PAT, reply);
 			if (type==null) {
-				throw new MapMyMapsException("Unparsable reply: "+reply);
+				throw new UnparsableReplyException(reply);
 			}
 			
 			if (type[0].equalsIgnoreCase("yes")) {

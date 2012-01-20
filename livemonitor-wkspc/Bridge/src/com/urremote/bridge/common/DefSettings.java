@@ -58,19 +58,20 @@ public class DefSettings {
 		String timestamp = Constants.FMT_TAG_TIMESTAMP.format(new Date(System.currentTimeMillis())).replace('/', '-');
 		
 		StringBuilder builder = new StringBuilder();
-		boolean first = false;
-		for (TagOptions tag:getTagOptions(state)) {
-			if (first)
-				first = false;
-			else
-				builder.append(",");
-			
-			builder.append(tag.tag);
-			
-			if (tag.timestamp) {
-				builder.append("-").append(timestamp);
+		boolean first = true;
+		for (TagOptions tag:getTagOptions(state))
+			if (!tag.tag.isEmpty()) {
+				if (first)
+					first = false;
+				else
+					builder.append(",");
+				
+				builder.append(tag.tag);
+				
+				if (tag.timestamp) {
+					builder.append("-").append(timestamp);
+				}
 			}
-		}
 		
 		return builder.toString();
 	}

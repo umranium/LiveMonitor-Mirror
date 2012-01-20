@@ -1,8 +1,5 @@
 package com.urremote.bridge;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -12,7 +9,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
-import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -33,9 +29,6 @@ import com.urremote.bridge.R;
 import com.urremote.bridge.common.Constants;
 import com.urremote.bridge.common.CustomUncaughtExceptionHandler;
 import com.urremote.bridge.mapmymaps.ActivityDetails;
-import com.urremote.bridge.mapmymaps.ActivityType;
-import com.urremote.bridge.mapmymaps.MapMyMapsException;
-import com.urremote.bridge.mapmymaps.MapMyTracksInterfaceApi;
 import com.urremote.bridge.scroller.ScrollerMessage;
 import com.urremote.bridge.scroller.ScrollerUpdater;
 import com.urremote.bridge.service.ILiveMonitorBinder;
@@ -72,7 +65,7 @@ public class Main extends Activity {
 	private boolean pendingRegisterUpdateListener = false;
 	
 	private MyUpdateListener updateListener = new MyUpdateListener();
-	
+		
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -282,9 +275,6 @@ public class Main extends Activity {
 	    	if (!MyTracksConnection.hasMyTracksPermission(this)) {
 	    		createMyTracksPermissionAlert();
 	    	}
-    	
-        latencyTestThread = new LatencyTestThread();
-        latencyTestThread.start();
     }
     
     @Override
@@ -325,16 +315,6 @@ public class Main extends Activity {
     	
     	if (binder!=null) {
     		binder.setUiActive(isUiActive);
-    	}
-    }
-    
-    @Override
-    protected void onStop() {
-    	super.onStop();
-    	
-    	if (latencyTestThread!=null) {
-    		latencyTestThread.quit();
-    		latencyTestThread = null;
     	}
     }
     
@@ -627,70 +607,5 @@ public class Main extends Activity {
 		startActivity(marketIntent);
 	}
 	
-	
-	LatencyTestThread latencyTestThread;
-	public static class LatencyTestThread extends Thread {
-		
-		boolean shouldRun = true;
-		
-		public void quit() {
-			shouldRun = false;
-		}
-		
-		@Override
-		public void run() {
-	        MapMyTracksInterfaceApi api = new MapMyTracksInterfaceApi(0, "umran", "?password123");
-	        List<Location> locations = new ArrayList<Location>();
-	        
-	        Location here = new Location("gps");
-	        
-	        //-35.245894,149.12473
-	        here.setLatitude(-35.245894);
-	        here.setLongitude(149.12473);
-	        
-	        locations.add(here);
-	        
-	        
-	        ArrayList<Long> latency = new ArrayList<Long>();
-	        
-	        try {
-	            for (int attempt=1; attempt<=40 && shouldRun; ++attempt) {
-	                long start = System.currentTimeMillis();
-	                try {
-	                    long activityId = api.startActivity("test activity-liest start "+attempt, "latency-test", true, ActivityType.CYCLING, locations);
-	                    Log.d(Constants.TAG, "SUCCESS: Activity ID = "+activityId);
-	                    /*
-	                    List<ActivityDetails> activities = api.getActivities("umran");
-	                    boolean found = false;
-	                    for (ActivityDetails ad:activities) {
-	                        if (ad.id==activityId) {
-	                            found = true;
-	                            break;
-	                        }
-	                    }
-	                    Log.d(Constants.TAG, "Activity Found = "+found);
-	                    */
-	                } catch (MapMyMapsException ex) {
-	                	Log.e(Constants.TAG, "Error", ex);
-	                } catch (IOException ex) {
-	                	Log.e(Constants.TAG, "Error", ex);
-	                }
-	                long stop = System.currentTimeMillis();
-
-	                latency.add(stop-start);
-
-	                Log.d(Constants.TAG, "\tIT TOOK: "+(stop-start));
-	            }
-
-	            Log.d(Constants.TAG, "Durations:");
-	            for (Long lat:latency) {
-	            	Log.d(Constants.TAG, lat.toString());
-	            }
-	        } catch (Exception e) {
-	        	Log.e(Constants.TAG, "Error", e);
-	        }
-		}
-		
-	}
 	
 }
