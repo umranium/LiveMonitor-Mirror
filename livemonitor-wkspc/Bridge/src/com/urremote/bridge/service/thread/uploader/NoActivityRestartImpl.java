@@ -187,7 +187,7 @@ public class NoActivityRestartImpl implements UploaderThread {
 						
 						try {
 							synchronized (stopSemaphore) {
-								stopSemaphore.wait(Constants.INTERVAL_RETRY_UPLOAD);	//	30s
+								stopSemaphore.wait(Constants.INTERVAL_RETRY_UPLOAD);	//	60s
 							}
 						} catch (InterruptedException ex) {
 							//	ignore

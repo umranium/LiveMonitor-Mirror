@@ -6,6 +6,7 @@ package com.urremote.bridge.mapmymaps;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -142,33 +143,63 @@ public class MapMyTracksInterfaceApi {
 		httpPost.setEntity(requestEntity);
 		HttpResponse response = client.execute(httpPost);
 		HttpEntity responseEntity = response.getEntity();
-
-		if (DEBUG) {
-			Log.d(TAG, instanceId+": ----------------------------------------");
-			Log.d(TAG, instanceId+": "+response.getStatusLine().toString());
-		}
-		if (responseEntity != null) {
-			InputStream content = responseEntity.getContent();
+		boolean responseReceived = false;
+		try {
 			if (DEBUG) {
-				Log.d(TAG, instanceId+": "+responseEntity.getContentType().toString());
-				Log.d(TAG, instanceId+": length="+responseEntity.getContentLength());
+				Log.d(TAG, instanceId+": ----------------------------------------");
+				Log.d(TAG, instanceId+": "+response.getStatusLine().toString());
 			}
-			BufferedReader rd = new BufferedReader(new InputStreamReader(content));
-			if (responseEntity.getContentLength()>=0) {
-				StringBuilder buffer = new StringBuilder((int)responseEntity.getContentLength());
-				String line;
-				while ((line = rd.readLine()) != null) {
-					buffer.append(line).append("\n");
+			if (responseEntity != null) {
+				InputStream content = responseEntity.getContent();
+				if (DEBUG) {
+					Log.d(TAG, instanceId+": "+responseEntity.getContentType().toString());
+					Log.d(TAG, instanceId+": length="+responseEntity.getContentLength());
 				}
-				String msg = buffer.toString();
-				if (DEBUG)
-					Log.d(TAG, instanceId+": "+msg);
-				return msg;
+                int intialSize = Math.max(1024, (int) responseEntity.getContentLength());
+                ByteArrayOutputStream baos = new ByteArrayOutputStream(intialSize);
+                int b;
+                while ((b = content.read())!=-1) {
+                    baos.write(b);
+                }
+                
+                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+                BufferedReader rd = new BufferedReader(new InputStreamReader(bais));
+                StringBuilder buffer = new StringBuilder(intialSize);
+                String line;
+                while ((line = rd.readLine()) != null) {
+                    buffer.append(line).append("\n");
+                }
+                String msg = buffer.toString();
+                if (DEBUG) {
+                    Log.d(TAG, instanceId + ": " + msg);
+                }
+                responseReceived = true;
+                return msg;
+                
+                /*
+                BufferedReader rd = new BufferedReader(new InputStreamReader(content));
+                if ((responseEntity.getContentLength() >= 0) || content.available()>0) {
+                    StringBuilder buffer = new StringBuilder(intialSize);
+                    String line;
+                    while ((line = rd.readLine()) != null) {
+                        buffer.append(line).append("\n");
+                    }
+                    String msg = buffer.toString();
+                    if (DEBUG) {
+                        Log.d(TAG, instanceId + ": " + msg);
+                    }
+                    return msg;
+                } else {
+                    return null;
+                }
+                 */
 			} else {
 				return null;
 			}
-		} else {
-			return null;
+		} finally {
+			if (!responseReceived && responseEntity!=null) {
+				responseEntity.getContent().close();
+			}
 		}
 	}
 	
