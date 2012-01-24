@@ -7,6 +7,8 @@ import java.util.List;
 import android.location.Location;
 import android.util.Log;
 
+import com.google.android.apps.mytracks.content.Sensor.SensorData;
+import com.google.android.apps.mytracks.content.Sensor.SensorDataSet;
 import com.urremote.bridge.common.Constants;
 import com.urremote.bridge.mapmymaps.ActivityType;
 import com.urremote.bridge.mapmymaps.MapMyMapsException;
@@ -40,7 +42,11 @@ public class LatencyTestThread extends Thread {
         
         locations.add(here);
         
+        List<SensorDataSet> sensorDataSets = new ArrayList<SensorDataSet>();
+        
         ArrayList<Long> latency = new ArrayList<Long>();
+        
+        String uniqString = "test"+Long.toHexString(System.currentTimeMillis());
         
         try {
             for (int attempt=1; attempt<=TEST_COUNTS && shouldRun; ++attempt) {
@@ -49,11 +55,13 @@ public class LatencyTestThread extends Thread {
                 	long latestStartAttemptTime = api.getServerTime();
                 	Log.d(Constants.TAG, "Attempting to start new activity, time="+latestStartAttemptTime);
                     long activityId = api.startActivity(
-                    		"activityABDE",
-                    		",test",
+                    		"activity",
+                    		"test",
                     		true,
                     		ActivityType.CYCLING,
-                    		locations);
+                    		locations,
+                    		sensorDataSets,
+                    		uniqString);
                     Log.d(Constants.TAG, "SUCCESS: Activity ID = "+activityId);
                     /*
                     List<ActivityDetails> activities = api.getActivities("umran");

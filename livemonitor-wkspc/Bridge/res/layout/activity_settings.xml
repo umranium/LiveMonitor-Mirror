@@ -4,28 +4,166 @@
     android:orientation="vertical" android:layout_height="fill_parent">
     <LinearLayout android:layout_height="fill_parent" android:layout_width="fill_parent" android:id="@+id/layout_settings_content" android:layout_alignParentTop="true" android:layout_above="@+id/layout_settings_btns" android:layout_marginLeft="10px" android:layout_marginRight="10px" android:layout_marginTop="10px" android:orientation="horizontal">
         <ScrollView android:id="@+id/scrollView1" android:layout_width="fill_parent" android:layout_height="fill_parent" android:scrollbars="vertical">
-            <LinearLayout android:orientation="vertical" android:id="@+id/linearLayout1" android:layout_width="fill_parent" android:layout_height="wrap_content">
-                <LinearLayout android:orientation="horizontal" android:id="@+id/layout_activity_title" android:layout_height="wrap_content" android:layout_width="fill_parent">
-                    <TextView android:id="@+id/lbl_activity_title" android:textSize="20dp" android:text="Activity Title" android:layout_height="wrap_content" android:layout_width="120dp"></TextView>
-                    <EditText android:text="EditText" android:id="@+id/txt_activity_title" android:singleLine="true" android:layout_height="wrap_content" android:layout_width="fill_parent" android:layout_weight="1"></EditText>
+
+            <LinearLayout
+                android:id="@+id/linearLayout1"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+
+                <LinearLayout
+                    android:id="@+id/layout_activity_title"
+                    android:layout_width="fill_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal" >
+
+                    <TextView
+                        android:id="@+id/lbl_activity_title"
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:text="Activity Title"
+                        android:textSize="20dp" >
+                    </TextView>
+
+                    <EditText
+                        android:id="@+id/txt_activity_title"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:singleLine="true"
+                        android:text="EditText" >
+                    </EditText>
                 </LinearLayout>
-                <LinearLayout android:orientation="horizontal" android:id="@+id/layout_is_public" android:layout_height="wrap_content" android:layout_width="fill_parent">
-                    <TextView android:id="@+id/lbl_is_public" android:textSize="20dp" android:text="Is Public" android:layout_height="wrap_content" android:layout_width="120dp"></TextView>
-                    <CheckBox android:id="@+id/chk_is_public" android:layout_height="wrap_content" android:layout_width="wrap_content"></CheckBox>
-                </LinearLayout>
-                <LinearLayout android:orientation="horizontal" android:id="@+id/layout_activity_type" android:layout_height="wrap_content" android:layout_width="fill_parent">
-                    <TextView android:id="@+id/lbl_activity_type" android:layout_gravity="left|center_vertical" android:textSize="20dp" android:text="Activity Type" android:layout_height="wrap_content" android:layout_width="120dp"></TextView>
-                    <Spinner android:id="@+id/spn_activity_type" android:layout_height="wrap_content" android:layout_width="fill_parent" android:layout_weight="1"></Spinner>
-                </LinearLayout>
-                <LinearLayout android:orientation="vertical" android:id="@+id/layout_tags" android:layout_height="wrap_content" android:layout_gravity="right" android:layout_width="fill_parent">
-                    <RelativeLayout android:id="@+id/relativeLayout1" android:layout_height="wrap_content" android:layout_width="fill_parent">
-                        <TextView android:id="@+id/lbl_tags" android:layout_width="wrap_content" android:layout_centerVertical="true" android:textSize="20dp" android:layout_alignParentLeft="true" android:text="Tags:" android:layout_height="wrap_content" android:layout_alignLeft="@+id/btn_add_tag"></TextView>
-                        <Button android:layout_alignParentRight="true" android:text="Add" android:layout_height="wrap_content" android:id="@+id/btn_add_tag" android:layout_width="100dp"></Button>
+
+                <LinearLayout
+                    android:id="@+id/layout_activity_title_timestamp"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" >
+
+                    <RelativeLayout
+                        android:id="@+id/relativeLayout2"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center" >
+
+                        <CheckBox
+                            android:id="@+id/chk_title_timestamp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_alignParentRight="true" android:layout_marginRight="10dp"/>
+
+                        <TextView
+                            android:id="@+id/lbl_activity_title_timestamp"
+                            android:layout_width="120dp"
+                            android:layout_height="match_parent"
+                            android:layout_alignParentLeft="true"
+                            android:layout_toLeftOf="@id/chk_title_timestamp"
+                            android:text="Timestamp Title"
+                            android:textSize="20dp" android:gravity="left|center_vertical"/>
+
                     </RelativeLayout>
-                    <LinearLayout android:orientation="vertical" android:id="@+id/lst_tags" android:layout_height="wrap_content" android:layout_width="fill_parent"></LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layout_is_public"
+                    android:layout_width="fill_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal" >
+
+                    <RelativeLayout
+                        android:id="@+id/relativeLayout3"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" >
+
+                        <CheckBox
+                            android:id="@+id/chk_is_public"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_alignParentRight="true" android:layout_marginRight="10dp"/>
+
+                        <TextView
+                            android:id="@+id/lbl_is_public"
+                            android:layout_width="120dp"
+                            android:layout_height="match_parent"
+                            android:text="Is Public"
+                            android:textSize="20dp" android:layout_alignParentLeft="true" android:layout_toLeftOf="@id/chk_is_public" android:gravity="left|center_vertical"/>
+
+                    </RelativeLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layout_activity_type"
+                    android:layout_width="fill_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal" >
+
+                    <TextView
+                        android:id="@+id/lbl_activity_type"
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="left|center_vertical"
+                        android:text="Activity Type"
+                        android:textSize="20dp" >
+                    </TextView>
+
+                    <Spinner
+                        android:id="@+id/spn_activity_type"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" >
+                    </Spinner>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layout_tags"
+                    android:layout_width="fill_parent"
+                    android:layout_height="0dp"
+                    android:layout_gravity="right"
+                    android:layout_weight="1"
+                    android:orientation="vertical" >
+
+                    <RelativeLayout
+                        android:id="@+id/relativeLayout1"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content" >
+
+                        <TextView
+                            android:id="@+id/lbl_tags"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignLeft="@+id/btn_add_tag"
+                            android:layout_alignParentLeft="true"
+                            android:layout_centerVertical="true"
+                            android:text="Tags:"
+                            android:textSize="20dp" >
+                        </TextView>
+
+                        <Button
+                            android:id="@+id/btn_add_tag"
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentRight="true"
+                            android:text="Add" >
+                        </Button>
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:id="@+id/lst_tags"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" >
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
+
         </ScrollView>
+
     </LinearLayout>
 
     <LinearLayout

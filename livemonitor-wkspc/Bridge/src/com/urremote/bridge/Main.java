@@ -269,12 +269,28 @@ public class Main extends Activity {
 		    	}
         
     	
+//    	latencyTestThread = new LatencyTestThread();
+//    	latencyTestThread.start();
+    	
     	if (!MyTracksConnection.isMyTracksInstalled(this)) {
     		createMyTracksMarketAlert();
     	} else
 	    	if (!MyTracksConnection.hasMyTracksPermission(this)) {
 	    		createMyTracksPermissionAlert();
 	    	}
+    	
+    }
+    
+//    private LatencyTestThread latencyTestThread = null;
+    
+    @Override
+    protected void onStop() {
+    	super.onStop();
+    	
+//    	if (latencyTestThread!=null) {
+//    		latencyTestThread.quit();
+//    		latencyTestThread = null;
+//    	}
     }
     
     @Override

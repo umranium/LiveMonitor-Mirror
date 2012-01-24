@@ -19,6 +19,7 @@ import com.urremote.bridge.LatencyTestThread;
 import com.urremote.bridge.common.Constants;
 import com.urremote.bridge.common.CustomUncaughtExceptionHandler;
 import com.urremote.bridge.common.DefSettings;
+import com.urremote.bridge.common.PhoneInfo;
 import com.urremote.bridge.mapmymaps.ActivityDetails;
 import com.urremote.bridge.mapmymaps.ActivityType;
 import com.urremote.bridge.mapmymaps.MapMyMapsException;
@@ -39,6 +40,7 @@ public class NoActivityRestartImpl implements UploaderThread {
 	private SamplingQueue samplingQueue;
 	private Context context;
 	private ActivityUploader activityUploader;
+	private PhoneInfo phoneInfo;
 	
 	public NoActivityRestartImpl(
 			Context context,
@@ -48,6 +50,7 @@ public class NoActivityRestartImpl implements UploaderThread {
 		this.context = context;
 		this.serviceMsgHandler = criticalErrorHandler;
 		this.samplingQueue = samplingQueue;
+		this.phoneInfo = new PhoneInfo(context);
 	}
 	
 	/* (non-Javadoc)
@@ -88,6 +91,7 @@ public class NoActivityRestartImpl implements UploaderThread {
 	 */
 	class ActivityUploader extends Thread {
 		
+		private String uniqueToken;
 		private MapMyTracksInterfaceApi mapMyTracksInterfaceApi;
 		private List<Location> pointsToUpload = new ArrayList<Location>();
 		private List<SensorDataSet> sensorDataToUpload = new ArrayList<SensorDataSet>();
@@ -96,9 +100,10 @@ public class NoActivityRestartImpl implements UploaderThread {
 		private ActivityUploaderHelper[] helpers = null;
 		private Object stopSemaphore = new Object();
 		
-		
 		public ActivityUploader() {
 			super("ActivityMaster");
+			
+			uniqueToken = phoneInfo.getIMEI()+":"+Long.toHexString(System.currentTimeMillis());
 		}
 		
 		public void quit() {
@@ -134,6 +139,11 @@ public class NoActivityRestartImpl implements UploaderThread {
 					DefSettings.getUsername(state),
 					DefSettings.getPassword(state)
 					);
+			
+			String activityTitle = DefSettings.compileActivityTitle(state);
+			String activityTags = DefSettings.compileTags(state);
+			boolean isPublic = DefSettings.isPublic(state);
+			ActivityType activityType = DefSettings.getActivityType(state);
 			
 			isRunning = true;
 			try {
@@ -172,11 +182,13 @@ public class NoActivityRestartImpl implements UploaderThread {
 							Log.d(Constants.TAG, "Attempting to start new activity, time="+latestStartAttemptTime);
 							activityId = 
 									mapMyTracksInterfaceApi.startActivity(
-										DefSettings.getActivityTitle(state),
-										DefSettings.compileTags(state),
-										DefSettings.isPublic(state),
-										DefSettings.getActivityType(state),
-										pointsToUpload
+										activityTitle,
+										activityTags,
+										isPublic,
+										activityType,
+										pointsToUpload,
+										sensorDataToUpload,
+										uniqueToken
 								);
 						}
 					} catch (Exception e) {
@@ -200,6 +212,7 @@ public class NoActivityRestartImpl implements UploaderThread {
 					serviceMsgHandler.onSystemMessage("MapMyTracks Activity Started");
 					
 					pointsToUpload.clear();
+					sensorDataToUpload.clear();
 					
 					helpers = new ActivityUploaderHelper[NUM_HELPER_THREADS];
 					for (int i=0; i<NUM_HELPER_THREADS; ++i) {

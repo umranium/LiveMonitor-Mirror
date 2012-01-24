@@ -39,10 +39,25 @@ public class DefSettings {
 	public static String getPassword(SharedPreferences state) {
 		return state.getString(Constants.KEY_PASSWORD, "");
 	}
+	
+	public static boolean isActivityTitleTimestamped(SharedPreferences state) {
+		return state.getBoolean(Constants.KEY_ACTIVITY_TITLE_TIMESTAMP, true);
+	}
 
 	public static String getActivityTitle(SharedPreferences state) {
 		return state.getString(Constants.KEY_ACTIVITY_TITLE, "activity");
 	}
+	
+	public static String compileActivityTitle(SharedPreferences state) {
+		String title = state.getString(Constants.KEY_ACTIVITY_TITLE, "activity");
+		if (isActivityTitleTimestamped(state)) {
+			String timestamp = Constants.FMT_TITLE_TIMESTAMP.format(new Date(System.currentTimeMillis())).replace('/', '-');
+			return title + "-" + timestamp.replaceAll("\\s+", "_");
+		} else {
+			return title;
+		}
+	}
+	
 
 	public static boolean isPublic(SharedPreferences state) {
 		return state.getBoolean(Constants.KEY_IS_PUBLIC, false);

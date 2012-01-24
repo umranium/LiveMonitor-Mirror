@@ -15,7 +15,6 @@ public class Constants {
 	public static final String BRIDGE_PACKAGE = "com.urremote.bridge";
 	
 	public static final boolean IS_TESTING = false;
-	public static final boolean IS_CRIPLED = false;
 	
 	public static final long MONITORING_INTERVAL = 1000L;
 	
@@ -27,6 +26,7 @@ public class Constants {
 	public static final String STD_TIME_FORMAT = "HH-mm-ss";
 	public static final String STD_DATE_TIME_FORMAT = STD_DATE_FORMAT+" "+STD_TIME_FORMAT;
 	
+	public static final DateFormat FMT_TITLE_TIMESTAMP = new SimpleDateFormat(STD_DATE_TIME_FORMAT);//DateFormat.getDateInstance(DateFormat.SHORT);
 	public static final DateFormat FMT_TAG_TIMESTAMP = new SimpleDateFormat(STD_DATE_FORMAT);//DateFormat.getDateInstance(DateFormat.SHORT);
 	
 	public static final int TIMEOUT_SOCKET = 0; //infinite //60*1000;
@@ -58,6 +58,7 @@ public class Constants {
 	public static final String KEY_USERNAME			= "username";
 	public static final String KEY_PASSWORD			= "password";
 	public static final String KEY_ACTIVITY_TITLE	= "activity_title";
+	public static final String KEY_ACTIVITY_TITLE_TIMESTAMP	= "activity_title_timestamp";
 	public static final String KEY_IS_PUBLIC		= "is_public";
 	public static final String KEY_ACTIVITY_TYPE	= "activity_type";
 	public static final String KEY_TAGS				= "tags";

@@ -53,7 +53,7 @@ public class MapMyTracksInterfaceApi {
 	
 	public static final String APP_NAME = "get Avocado Activity Classifier";
 	
-	public static final boolean DEBUG = false;//Constants.IS_TESTING; 
+	public static final boolean DEBUG = true;//Constants.IS_TESTING; 
 	public static final String TAG = "livemonitor-html";
 	
 	private static final Pattern SERVER_TIME_PAT = Pattern.compile("<server_time>\\s*(\\d+)\\s*</server_time>");
@@ -105,7 +105,12 @@ public class MapMyTracksInterfaceApi {
 		startActivityParamsMap.add("privacy", "");
 		startActivityParamsMap.add("activity", "");
 		startActivityParamsMap.add("source", APP_NAME);
+		startActivityParamsMap.add("version", "1");
 		startActivityParamsMap.add("points", "");
+		startActivityParamsMap.add("hr", "");
+		startActivityParamsMap.add("cad", "");
+		startActivityParamsMap.add("pwr", "");
+		startActivityParamsMap.add("unique_token", "");
 		
 		updateActivityParamsMap = new ReusableNameValuePairMap();
 		updateActivityParamsMap.add("request", "update_activity");
@@ -299,13 +304,15 @@ public class MapMyTracksInterfaceApi {
 			String tags,
 			boolean isPublic,
 			ActivityType activityType,
-			List<Location> points) throws MapMyMapsException, IOException
+			List<Location> points,
+			List<SensorDataSet> sensorDatas,
+			String uniqueToken) throws MapMyMapsException, IOException
 	{
 		startActivityParamsMap.update("title", title);
-		
 		startActivityParamsMap.update("tags", tags);
 		startActivityParamsMap.update("privacy", isPublic?"public":"private");
 		startActivityParamsMap.update("activity", activityType.toString());
+		startActivityParamsMap.update("unique_token", uniqueToken);
 		
 		StringBuilder locBuilder = new StringBuilder();
 		for (Location lp:points) {
@@ -318,7 +325,39 @@ public class MapMyTracksInterfaceApi {
 			locBuilder.append(timeStamp).append(" ");
 		}
 		startActivityParamsMap.update("points", locBuilder.toString());
-		
+		/*
+		if (sensorDatas!=null && !sensorDatas.isEmpty()) {
+			StringBuilder hrBuilder = new StringBuilder();
+			StringBuilder cadBuilder = new StringBuilder();
+			StringBuilder pwrBuilder = new StringBuilder();
+			for (SensorDataSet sd:sensorDatas)
+			if (sd.hasCreationTime()) {
+				double timeSecs = (double)sd.getCreationTime() / 1000.0;
+				long timeStamp = Math.round(timeSecs);
+				
+				if (sd.hasHeartRate()) {
+					hrBuilder.append(sd.getHeartRate().getValue()).append(" ")
+							.append(timeStamp).append(" ");
+				}
+				if (sd.hasCadence()) {
+					cadBuilder.append(sd.getCadence().getValue()).append(" ")
+							.append(timeStamp).append(" ");
+				}
+				if (sd.hasPower()) {
+					pwrBuilder.append(sd.getPower().getValue()).append(" ")
+							.append(timeStamp).append(" ");
+				}
+			}
+			
+			startActivityParamsMap.update("hr", hrBuilder.toString());
+			startActivityParamsMap.update("cad", cadBuilder.toString());
+			startActivityParamsMap.update("pwr", pwrBuilder.toString());
+		} else {
+			startActivityParamsMap.update("hr", "");
+			startActivityParamsMap.update("cad", "");
+			startActivityParamsMap.update("pwr", "");
+		}
+		*/
 		String reply = sendPost(startActivityParamsMap);
 		if (reply!=null) {
 			String[] type = matchOne(REPLY_TYPE_PAT, reply);
@@ -386,15 +425,11 @@ public class MapMyTracksInterfaceApi {
 			
 			updateActivityParamsMap.update("hr", hrBuilder.toString());
 			updateActivityParamsMap.update("cad", cadBuilder.toString());
-			if (!Constants.IS_CRIPLED) {
-				updateActivityParamsMap.update("pwr", pwrBuilder.toString());
-			}
+			updateActivityParamsMap.update("pwr", pwrBuilder.toString());
 		} else {
 			updateActivityParamsMap.update("hr", "");
 			updateActivityParamsMap.update("cad", "");
-			if (!Constants.IS_CRIPLED) {
-				updateActivityParamsMap.update("pwr", "");
-			}
+			updateActivityParamsMap.update("pwr", "");
 		}
 		
 		String reply = sendPost(updateActivityParamsMap);
@@ -413,7 +448,6 @@ public class MapMyTracksInterfaceApi {
 		} else
 			throw new MapMyMapsException("Server did not reply. Service appears to be down.");
 	}
-	
 	
 	public Boolean stopActivity() throws MapMyMapsException, IOException
 	{
