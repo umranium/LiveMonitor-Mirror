@@ -329,75 +329,78 @@ public class DisplayWalkingGraphs extends javax.swing.JFrame {
                         if (startTime<minTime)
                             minTime = startTime;
                     }
+                    
+                    float[] features = extractor.extractUnrotated(activity.data, windowStart);
+                    
+                    if (features==null) {
+                        System.out.println("Activity="+(activityId+1)+"("+activity.name+") Start="+windowStart+", didn't survive the rotation");
+                        continue;
+                    }
+                    
+                    boolean invalidSample = false;
+//                    for (int i=0; i<FeatureExtractor.NUM_FEATURES; ++i) {
+//                        if (features[i]<WALKING_STATISTIC_MEAN[i]-WALKING_STATISTIC_STDDEV[i] ||
+//                                features[i]>WALKING_STATISTIC_MEAN[i]+WALKING_STATISTIC_STDDEV[i]) {
+//                            invalidSample = true;
+//                            break;
+//                        }
+//                    }
+                    if (invalidSample) {
+                        System.out.println("Activity="+(activityId+1)+" Start="+windowStart+", doesn't meet the statistics for walking.");
+                        continue;
+                    }
 
                     for (int i=0; i<WINDOW_SIZE; ++i) {
                         threeDimSamples[i][0] = activity.data[i+windowStart][0];
                         threeDimSamples[i][1] = activity.data[i+windowStart][1];
                         threeDimSamples[i][2] = activity.data[i+windowStart][2];
                     }
+                    
+                    double[][] displayData = new double[dimensionNames.length+1][WINDOW_SIZE];
 
-                    if (rstvh.rotateToWorldCoordinates(threeDimSamples)) {
-                        boolean invalidSample = false;
-                        float[] features = extractor.extractRotated(threeDimSamples, 0);
-//                        for (int i=0; i<FeatureExtractor.NUM_FEATURES; ++i) {
-//                            if (features[i]<WALKING_STATISTIC_MEAN[i]-WALKING_STATISTIC_STDDEV[i] ||
-//                                    features[i]>WALKING_STATISTIC_MEAN[i]+WALKING_STATISTIC_STDDEV[i]) {
-//                                invalidSample = true;
-//                                break;
-//                            }
-//                        }
-                        if (invalidSample) {
-                            System.out.println("Activity="+(activityId+1)+" Start="+windowStart+", doesn't meet the statistics for walking.");
-                            continue;
-                        }
+                    for (int i=0; i<WINDOW_SIZE; ++i) {
+                        double time = activity.time[i+windowStart] / 1000.0;
 
-//                        System.out.println("\t\t\t\t\t\t\t\tver mean>> "+features[FeatureExtractor.FEATURE_MEAN_VER]);
+                        displayData[0][i] = time - minTime;
 
-                        double[][] displayData = new double[dimensionNames.length+1][WINDOW_SIZE];
-                        
-                        for (int i=0; i<WINDOW_SIZE; ++i) {
-                            double time = activity.time[i+windowStart] / 1000.0;
-
-                            displayData[0][i] = time - minTime;
-
-                            //  combine x & y to hor
-                            displayData[1][i] =
-                                    Math.sqrt(  threeDimSamples[i][0]*threeDimSamples[i][0] +
-                                                threeDimSamples[i][1]*threeDimSamples[i][1] );
-                            //  vert = z - gravity
+                        //  combine x & y to hor
+                        displayData[1][i] =
+                                Math.sqrt(  threeDimSamples[i][0]*threeDimSamples[i][0] +
+                                            threeDimSamples[i][1]*threeDimSamples[i][1] );
+                        //  vert = z - gravity
 //                            displayData[2][i] = threeDimSamples[i][2] - 9.81;
-                            displayData[2][i] = threeDimSamples[i][2] - rstvh.getGravity();
+                        displayData[2][i] = threeDimSamples[i][2] - rstvh.getGravity();
 //                            displayData[2][i] = Math.sin(displayData[0][i]*Math.PI);
-                        }
+                    }
 
 
-                        StringBuilder comments = new StringBuilder();
+                    StringBuilder comments = new StringBuilder();
 
 
-                        DefaultXYDataset dataset = new DefaultXYDataset();
-                        
-                        double epsilon = 0.01;
-                        double[] vertDistDI = accel2dist(displayData[2], displayData[0], WINDOW_SIZE);
-                        double[] vertDistFFT = accel2distFFT(displayData[2], displayData[0], WINDOW_SIZE);
-                        double[][] simplifiedCurveDI = simplifyCurveRDP(vertDistDI, displayData[0], WINDOW_SIZE, epsilon);
-                        double[][] simplifiedCurveFFT = simplifyCurveRDP(vertDistFFT, displayData[0], WINDOW_SIZE, epsilon);
-                        double velocityDI = calcAvgHeightShift(simplifiedCurveDI[1], simplifiedCurveDI[1].length) / 0.038;
-                        double velocityFFT = calcAvgHeightShift(simplifiedCurveFFT[1], simplifiedCurveFFT[1].length) / 0.038;
+                    DefaultXYDataset dataset = new DefaultXYDataset();
 
-                        System.out.println("velocityFFT = " + velocityFFT);
-                        
-                        dataset.addSeries("RDF DI epsilon="+epsilon, simplifiedCurveDI);
-                        dataset.addSeries("RDF FFT epsilon="+epsilon, simplifiedCurveFFT);
+                    double epsilon = 0.01;
+                    double[] vertDistDI = accel2dist(displayData[2], displayData[0], WINDOW_SIZE);
+                    double[] vertDistFFT = accel2distFFT(displayData[2], displayData[0], WINDOW_SIZE);
+                    double[][] simplifiedCurveDI = simplifyCurveRDP(vertDistDI, displayData[0], WINDOW_SIZE, epsilon);
+                    double[][] simplifiedCurveFFT = simplifyCurveRDP(vertDistFFT, displayData[0], WINDOW_SIZE, epsilon);
+                    double velocityDI = calcAvgHeightShift(simplifiedCurveDI[1], simplifiedCurveDI[1].length) / 0.038;
+                    double velocityFFT = calcAvgHeightShift(simplifiedCurveFFT[1], simplifiedCurveFFT[1].length) / 0.038;
 
-                        dataset.addSeries("VERT DIST (Double integration) vel="+velocityDI, new double[][] {
-                            displayData[0],
-                            accel2dist(displayData[2], displayData[0], WINDOW_SIZE)
-                        });
+                    System.out.println("velocityFFT = " + velocityFFT);
 
-                        dataset.addSeries("VERT DIST (FFT) vel="+velocityFFT, new double[][] {
-                            displayData[0],
-                            accel2distFFT(displayData[2], displayData[0], WINDOW_SIZE)
-                        });
+                    dataset.addSeries("RDF DI epsilon="+epsilon, simplifiedCurveDI);
+                    dataset.addSeries("RDF FFT epsilon="+epsilon, simplifiedCurveFFT);
+
+                    dataset.addSeries("VERT DIST (Double integration) vel="+velocityDI, new double[][] {
+                        displayData[0],
+                        accel2dist(displayData[2], displayData[0], WINDOW_SIZE)
+                    });
+
+                    dataset.addSeries("VERT DIST (FFT) vel="+velocityFFT, new double[][] {
+                        displayData[0],
+                        accel2distFFT(displayData[2], displayData[0], WINDOW_SIZE)
+                    });
 
 //                        dataset.addSeries("TIME INTERVALS", new double[][] {
 //                            displayData[0],
@@ -409,10 +412,7 @@ public class DisplayWalkingGraphs extends javax.swing.JFrame {
 //                            scale(displayData[2], WINDOW_SIZE, 0.1)
 //                        });
 
-                        dataSets.add(new DisplayData("Activity="+(activityId+1)+"("+activity.name+") Start="+windowStart+",\n"+comments.toString(), dataset));
-                    } else {
-                        System.out.println("Activity="+(activityId+1)+"("+activity.name+") Start="+windowStart+", didn't survive the rotation");
-                    }
+                    dataSets.add(new DisplayData("Activity="+(activityId+1)+"("+activity.name+") Start="+windowStart+",\n"+comments.toString(), dataset));
                 }
             }
 

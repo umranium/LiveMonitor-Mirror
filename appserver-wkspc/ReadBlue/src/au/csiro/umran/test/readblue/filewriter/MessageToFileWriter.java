@@ -20,11 +20,11 @@ public class MessageToFileWriter extends AbstractChainedMessageListener {
 	}
 
 	@Override
-	public void onMessage(byte[] message, int length) {
+	public void onMessage(long timeStamp, byte[] message, int length) {
 		WriteMessage msg = null;
 		try {
 			msg = this.writerThread.getQueue().takeEmptyInstance();
-			msg.assign(System.currentTimeMillis(), message, length);
+			msg.assign(timeStamp, message, length);
 			this.writerThread.getQueue().returnFilledInstance(msg);
 			msg = null;
 		} catch (InterruptedException e) {
@@ -39,7 +39,7 @@ public class MessageToFileWriter extends AbstractChainedMessageListener {
 			}
 		}
 		
-		super.onMessage(message, length);
+		super.onMessage(timeStamp, message, length);
 	}
 	
 }

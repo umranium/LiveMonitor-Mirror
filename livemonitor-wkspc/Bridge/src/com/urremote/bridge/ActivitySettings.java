@@ -32,7 +32,7 @@ import com.urremote.bridge.mapmymaps.ActivityType;
 public class ActivitySettings extends Activity {
 
 	private TextView txtActivityTitle;
-	private CheckBox chkTimestampTitle;
+//	private CheckBox chkTimestampTitle;
 	private CheckBox chkIsPublic;
 	private Spinner spnActivityType;
 	private ArrayAdapter<ActivityType> spnActivityTypeAdapter;
@@ -45,7 +45,7 @@ public class ActivitySettings extends Activity {
         setContentView(R.layout.activity_settings);
         
         txtActivityTitle = (TextView)this.findViewById(R.id.txt_activity_title);
-        chkTimestampTitle = (CheckBox)this.findViewById(R.id.chk_title_timestamp);
+//        chkTimestampTitle = (CheckBox)this.findViewById(R.id.chk_title_timestamp);
         chkIsPublic = (CheckBox)this.findViewById(R.id.chk_is_public);
         spnActivityType = (Spinner)this.findViewById(R.id.spn_activity_type);
         spnActivityTypeAdapter = new ArrayAdapter<ActivityType>(this, R.layout.activity_type_spn_item);
@@ -64,12 +64,12 @@ public class ActivitySettings extends Activity {
 			}
 		});
         
-        chkTimestampTitle.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				save();
-			}
-		});
+//        chkTimestampTitle.setOnClickListener(new View.OnClickListener() {
+//			@Override
+//			public void onClick(View v) {
+//				save();
+//			}
+//		});
         
         chkIsPublic.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -133,7 +133,7 @@ public class ActivitySettings extends Activity {
     private void loadState(SharedPreferences state)
     {
 		txtActivityTitle.setText(DefSettings.getActivityTitle(state));
-		chkTimestampTitle.setChecked(DefSettings.isActivityTitleTimestamped(state));
+//		chkTimestampTitle.setChecked(DefSettings.isActivityTitleTimestamped(state));
 		chkIsPublic.setChecked(DefSettings.isPublic(state));
 		spnActivityType.setSelection(spnActivityTypeAdapter.getPosition(DefSettings.getActivityType(state)));
 		
@@ -149,7 +149,7 @@ public class ActivitySettings extends Activity {
     	Editor editor = state.edit();
     	editor.putBoolean(Constants.KEY_ACTIVITY_SETTINGS_AVAILABLE, true);
     	editor.putString(Constants.KEY_ACTIVITY_TITLE, new String(new StringBuilder(txtActivityTitle.getText())));
-    	editor.putBoolean(Constants.KEY_ACTIVITY_TITLE_TIMESTAMP, chkTimestampTitle.isChecked());
+//    	editor.putBoolean(Constants.KEY_ACTIVITY_TITLE_TIMESTAMP, chkTimestampTitle.isChecked());
     	editor.putBoolean(Constants.KEY_IS_PUBLIC, chkIsPublic.isChecked());
     	editor.putInt(Constants.KEY_ACTIVITY_TYPE, ((ActivityType)spnActivityType.getSelectedItem()).ordinal());
     	

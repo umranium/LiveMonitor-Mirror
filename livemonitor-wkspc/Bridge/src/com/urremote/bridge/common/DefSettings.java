@@ -60,7 +60,7 @@ public class DefSettings {
 	
 
 	public static boolean isPublic(SharedPreferences state) {
-		return state.getBoolean(Constants.KEY_IS_PUBLIC, false);
+		return state.getBoolean(Constants.KEY_IS_PUBLIC, true);
 	}
 	
 	public static ActivityType getActivityType(SharedPreferences state) {

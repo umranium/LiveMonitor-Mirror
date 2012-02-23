@@ -3,8 +3,8 @@
 
 package com.google.android.apps.mytracks.content;
 
-public final class Sensor {
-  private Sensor() {}
+public final class CopyOfOldSensor {
+  private CopyOfOldSensor() {}
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistryLite registry) {
   }
@@ -73,9 +73,9 @@ public final class Sensor {
     // required .com.google.android.apps.mytracks.content.SensorState state = 1 [default = NONE];
     public static final int STATE_FIELD_NUMBER = 1;
     private boolean hasState;
-    private com.google.android.apps.mytracks.content.Sensor.SensorState state_;
+    private com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorState state_;
     public boolean hasState() { return hasState; }
-    public com.google.android.apps.mytracks.content.Sensor.SensorState getState() { return state_; }
+    public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorState getState() { return state_; }
     
     // optional int32 value = 2;
     public static final int VALUE_FIELD_NUMBER = 2;
@@ -85,7 +85,7 @@ public final class Sensor {
     public int getValue() { return value_; }
     
     private void initFields() {
-      state_ = com.google.android.apps.mytracks.content.Sensor.SensorState.NONE;
+      state_ = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorState.NONE;
     }
     public final boolean isInitialized() {
       if (!hasState) return false;
@@ -121,41 +121,41 @@ public final class Sensor {
       return size;
     }
     
-    public static com.google.android.apps.mytracks.content.Sensor.SensorData parseFrom(
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data).buildParsed();
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorData parseFrom(
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data, extensionRegistry)
                .buildParsed();
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorData parseFrom(byte[] data)
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data).buildParsed();
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorData parseFrom(
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data, extensionRegistry)
                .buildParsed();
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorData parseFrom(java.io.InputStream input)
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return newBuilder().mergeFrom(input).buildParsed();
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorData parseFrom(
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return newBuilder().mergeFrom(input, extensionRegistry)
                .buildParsed();
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorData parseDelimitedFrom(java.io.InputStream input)
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       Builder builder = newBuilder();
       if (builder.mergeDelimitedFrom(input)) {
@@ -164,7 +164,7 @@ public final class Sensor {
         return null;
       }
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorData parseDelimitedFrom(
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -175,12 +175,12 @@ public final class Sensor {
         return null;
       }
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorData parseFrom(
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return newBuilder().mergeFrom(input).buildParsed();
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorData parseFrom(
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -190,26 +190,26 @@ public final class Sensor {
     
     public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.google.android.apps.mytracks.content.Sensor.SensorData prototype) {
+    public static Builder newBuilder(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData prototype) {
       return newBuilder().mergeFrom(prototype);
     }
     public Builder toBuilder() { return newBuilder(this); }
     
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageLite.Builder<
-          com.google.android.apps.mytracks.content.Sensor.SensorData, Builder> {
-      private com.google.android.apps.mytracks.content.Sensor.SensorData result;
+          com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData, Builder> {
+      private com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData result;
       
       // Construct using com.google.android.apps.mytracks.content.Sensor.SensorData.newBuilder()
       private Builder() {}
       
       private static Builder create() {
         Builder builder = new Builder();
-        builder.result = new com.google.android.apps.mytracks.content.Sensor.SensorData();
+        builder.result = new com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData();
         return builder;
       }
       
-      protected com.google.android.apps.mytracks.content.Sensor.SensorData internalGetResult() {
+      protected com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData internalGetResult() {
         return result;
       }
       
@@ -218,7 +218,7 @@ public final class Sensor {
           throw new IllegalStateException(
             "Cannot call clear() after build().");
         }
-        result = new com.google.android.apps.mytracks.content.Sensor.SensorData();
+        result = new com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData();
         return this;
       }
       
@@ -226,21 +226,21 @@ public final class Sensor {
         return create().mergeFrom(result);
       }
       
-      public com.google.android.apps.mytracks.content.Sensor.SensorData getDefaultInstanceForType() {
-        return com.google.android.apps.mytracks.content.Sensor.SensorData.getDefaultInstance();
+      public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData getDefaultInstanceForType() {
+        return com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.getDefaultInstance();
       }
       
       public boolean isInitialized() {
         return result.isInitialized();
       }
-      public com.google.android.apps.mytracks.content.Sensor.SensorData build() {
+      public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData build() {
         if (result != null && !isInitialized()) {
           throw newUninitializedMessageException(result);
         }
         return buildPartial();
       }
       
-      private com.google.android.apps.mytracks.content.Sensor.SensorData buildParsed()
+      private com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData buildParsed()
           throws com.google.protobuf.InvalidProtocolBufferException {
         if (!isInitialized()) {
           throw newUninitializedMessageException(
@@ -249,18 +249,18 @@ public final class Sensor {
         return buildPartial();
       }
       
-      public com.google.android.apps.mytracks.content.Sensor.SensorData buildPartial() {
+      public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData buildPartial() {
         if (result == null) {
           throw new IllegalStateException(
             "build() has already been called on this Builder.");
         }
-        com.google.android.apps.mytracks.content.Sensor.SensorData returnMe = result;
+        com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData returnMe = result;
         result = null;
         return returnMe;
       }
       
-      public Builder mergeFrom(com.google.android.apps.mytracks.content.Sensor.SensorData other) {
-        if (other == com.google.android.apps.mytracks.content.Sensor.SensorData.getDefaultInstance()) return this;
+      public Builder mergeFrom(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData other) {
+        if (other == com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.getDefaultInstance()) return this;
         if (other.hasState()) {
           setState(other.getState());
         }
@@ -287,7 +287,7 @@ public final class Sensor {
             }
             case 8: {
               int rawValue = input.readEnum();
-              com.google.android.apps.mytracks.content.Sensor.SensorState value = com.google.android.apps.mytracks.content.Sensor.SensorState.valueOf(rawValue);
+              com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorState value = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorState.valueOf(rawValue);
               if (value != null) {
                 setState(value);
               }
@@ -306,10 +306,10 @@ public final class Sensor {
       public boolean hasState() {
         return result.hasState();
       }
-      public com.google.android.apps.mytracks.content.Sensor.SensorState getState() {
+      public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorState getState() {
         return result.getState();
       }
-      public Builder setState(com.google.android.apps.mytracks.content.Sensor.SensorState value) {
+      public Builder setState(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorState value) {
         if (value == null) {
           throw new NullPointerException();
         }
@@ -319,7 +319,7 @@ public final class Sensor {
       }
       public Builder clearState() {
         result.hasState = false;
-        result.state_ = com.google.android.apps.mytracks.content.Sensor.SensorState.NONE;
+        result.state_ = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorState.NONE;
         return this;
       }
       
@@ -346,7 +346,7 @@ public final class Sensor {
     
     static {
       defaultInstance = new SensorData(true);
-      com.google.android.apps.mytracks.content.Sensor.internalForceInit();
+      com.google.android.apps.mytracks.content.CopyOfOldSensor.internalForceInit();
       defaultInstance.initFields();
     }
     
@@ -380,36 +380,36 @@ public final class Sensor {
     // optional .com.google.android.apps.mytracks.content.SensorData heart_rate = 2;
     public static final int HEART_RATE_FIELD_NUMBER = 2;
     private boolean hasHeartRate;
-    private com.google.android.apps.mytracks.content.Sensor.SensorData heartRate_;
+    private com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData heartRate_;
     public boolean hasHeartRate() { return hasHeartRate; }
-    public com.google.android.apps.mytracks.content.Sensor.SensorData getHeartRate() { return heartRate_; }
+    public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData getHeartRate() { return heartRate_; }
     
     // optional .com.google.android.apps.mytracks.content.SensorData cadence = 3;
     public static final int CADENCE_FIELD_NUMBER = 3;
     private boolean hasCadence;
-    private com.google.android.apps.mytracks.content.Sensor.SensorData cadence_;
+    private com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData cadence_;
     public boolean hasCadence() { return hasCadence; }
-    public com.google.android.apps.mytracks.content.Sensor.SensorData getCadence() { return cadence_; }
+    public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData getCadence() { return cadence_; }
     
     // optional .com.google.android.apps.mytracks.content.SensorData power = 4;
     public static final int POWER_FIELD_NUMBER = 4;
     private boolean hasPower;
-    private com.google.android.apps.mytracks.content.Sensor.SensorData power_;
+    private com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData power_;
     public boolean hasPower() { return hasPower; }
-    public com.google.android.apps.mytracks.content.Sensor.SensorData getPower() { return power_; }
+    public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData getPower() { return power_; }
     
     // optional .com.google.android.apps.mytracks.content.SensorData battery_level = 5;
     public static final int BATTERY_LEVEL_FIELD_NUMBER = 5;
     private boolean hasBatteryLevel;
-    private com.google.android.apps.mytracks.content.Sensor.SensorData batteryLevel_;
+    private com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData batteryLevel_;
     public boolean hasBatteryLevel() { return hasBatteryLevel; }
-    public com.google.android.apps.mytracks.content.Sensor.SensorData getBatteryLevel() { return batteryLevel_; }
+    public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData getBatteryLevel() { return batteryLevel_; }
     
     private void initFields() {
-      heartRate_ = com.google.android.apps.mytracks.content.Sensor.SensorData.getDefaultInstance();
-      cadence_ = com.google.android.apps.mytracks.content.Sensor.SensorData.getDefaultInstance();
-      power_ = com.google.android.apps.mytracks.content.Sensor.SensorData.getDefaultInstance();
-      batteryLevel_ = com.google.android.apps.mytracks.content.Sensor.SensorData.getDefaultInstance();
+      heartRate_ = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.getDefaultInstance();
+      cadence_ = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.getDefaultInstance();
+      power_ = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.getDefaultInstance();
+      batteryLevel_ = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.getDefaultInstance();
     }
     public final boolean isInitialized() {
       if (hasHeartRate()) {
@@ -477,41 +477,41 @@ public final class Sensor {
       return size;
     }
     
-    public static com.google.android.apps.mytracks.content.Sensor.SensorDataSet parseFrom(
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data).buildParsed();
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorDataSet parseFrom(
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data, extensionRegistry)
                .buildParsed();
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorDataSet parseFrom(byte[] data)
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data).buildParsed();
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorDataSet parseFrom(
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data, extensionRegistry)
                .buildParsed();
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorDataSet parseFrom(java.io.InputStream input)
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return newBuilder().mergeFrom(input).buildParsed();
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorDataSet parseFrom(
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return newBuilder().mergeFrom(input, extensionRegistry)
                .buildParsed();
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorDataSet parseDelimitedFrom(java.io.InputStream input)
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       Builder builder = newBuilder();
       if (builder.mergeDelimitedFrom(input)) {
@@ -520,7 +520,7 @@ public final class Sensor {
         return null;
       }
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorDataSet parseDelimitedFrom(
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -531,12 +531,12 @@ public final class Sensor {
         return null;
       }
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorDataSet parseFrom(
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return newBuilder().mergeFrom(input).buildParsed();
     }
-    public static com.google.android.apps.mytracks.content.Sensor.SensorDataSet parseFrom(
+    public static com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -546,26 +546,26 @@ public final class Sensor {
     
     public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.google.android.apps.mytracks.content.Sensor.SensorDataSet prototype) {
+    public static Builder newBuilder(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet prototype) {
       return newBuilder().mergeFrom(prototype);
     }
     public Builder toBuilder() { return newBuilder(this); }
     
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageLite.Builder<
-          com.google.android.apps.mytracks.content.Sensor.SensorDataSet, Builder> {
-      private com.google.android.apps.mytracks.content.Sensor.SensorDataSet result;
+          com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet, Builder> {
+      private com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet result;
       
       // Construct using com.google.android.apps.mytracks.content.Sensor.SensorDataSet.newBuilder()
       private Builder() {}
       
       private static Builder create() {
         Builder builder = new Builder();
-        builder.result = new com.google.android.apps.mytracks.content.Sensor.SensorDataSet();
+        builder.result = new com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet();
         return builder;
       }
       
-      protected com.google.android.apps.mytracks.content.Sensor.SensorDataSet internalGetResult() {
+      protected com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet internalGetResult() {
         return result;
       }
       
@@ -574,7 +574,7 @@ public final class Sensor {
           throw new IllegalStateException(
             "Cannot call clear() after build().");
         }
-        result = new com.google.android.apps.mytracks.content.Sensor.SensorDataSet();
+        result = new com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet();
         return this;
       }
       
@@ -582,21 +582,21 @@ public final class Sensor {
         return create().mergeFrom(result);
       }
       
-      public com.google.android.apps.mytracks.content.Sensor.SensorDataSet getDefaultInstanceForType() {
-        return com.google.android.apps.mytracks.content.Sensor.SensorDataSet.getDefaultInstance();
+      public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet getDefaultInstanceForType() {
+        return com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet.getDefaultInstance();
       }
       
       public boolean isInitialized() {
         return result.isInitialized();
       }
-      public com.google.android.apps.mytracks.content.Sensor.SensorDataSet build() {
+      public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet build() {
         if (result != null && !isInitialized()) {
           throw newUninitializedMessageException(result);
         }
         return buildPartial();
       }
       
-      private com.google.android.apps.mytracks.content.Sensor.SensorDataSet buildParsed()
+      private com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet buildParsed()
           throws com.google.protobuf.InvalidProtocolBufferException {
         if (!isInitialized()) {
           throw newUninitializedMessageException(
@@ -605,18 +605,18 @@ public final class Sensor {
         return buildPartial();
       }
       
-      public com.google.android.apps.mytracks.content.Sensor.SensorDataSet buildPartial() {
+      public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet buildPartial() {
         if (result == null) {
           throw new IllegalStateException(
             "build() has already been called on this Builder.");
         }
-        com.google.android.apps.mytracks.content.Sensor.SensorDataSet returnMe = result;
+        com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet returnMe = result;
         result = null;
         return returnMe;
       }
       
-      public Builder mergeFrom(com.google.android.apps.mytracks.content.Sensor.SensorDataSet other) {
-        if (other == com.google.android.apps.mytracks.content.Sensor.SensorDataSet.getDefaultInstance()) return this;
+      public Builder mergeFrom(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet other) {
+        if (other == com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorDataSet.getDefaultInstance()) return this;
         if (other.hasCreationTime()) {
           setCreationTime(other.getCreationTime());
         }
@@ -655,7 +655,7 @@ public final class Sensor {
               break;
             }
             case 18: {
-              com.google.android.apps.mytracks.content.Sensor.SensorData.Builder subBuilder = com.google.android.apps.mytracks.content.Sensor.SensorData.newBuilder();
+              com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.Builder subBuilder = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.newBuilder();
               if (hasHeartRate()) {
                 subBuilder.mergeFrom(getHeartRate());
               }
@@ -664,7 +664,7 @@ public final class Sensor {
               break;
             }
             case 26: {
-              com.google.android.apps.mytracks.content.Sensor.SensorData.Builder subBuilder = com.google.android.apps.mytracks.content.Sensor.SensorData.newBuilder();
+              com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.Builder subBuilder = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.newBuilder();
               if (hasCadence()) {
                 subBuilder.mergeFrom(getCadence());
               }
@@ -673,7 +673,7 @@ public final class Sensor {
               break;
             }
             case 34: {
-              com.google.android.apps.mytracks.content.Sensor.SensorData.Builder subBuilder = com.google.android.apps.mytracks.content.Sensor.SensorData.newBuilder();
+              com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.Builder subBuilder = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.newBuilder();
               if (hasPower()) {
                 subBuilder.mergeFrom(getPower());
               }
@@ -682,7 +682,7 @@ public final class Sensor {
               break;
             }
             case 42: {
-              com.google.android.apps.mytracks.content.Sensor.SensorData.Builder subBuilder = com.google.android.apps.mytracks.content.Sensor.SensorData.newBuilder();
+              com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.Builder subBuilder = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.newBuilder();
               if (hasBatteryLevel()) {
                 subBuilder.mergeFrom(getBatteryLevel());
               }
@@ -717,10 +717,10 @@ public final class Sensor {
       public boolean hasHeartRate() {
         return result.hasHeartRate();
       }
-      public com.google.android.apps.mytracks.content.Sensor.SensorData getHeartRate() {
+      public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData getHeartRate() {
         return result.getHeartRate();
       }
-      public Builder setHeartRate(com.google.android.apps.mytracks.content.Sensor.SensorData value) {
+      public Builder setHeartRate(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData value) {
         if (value == null) {
           throw new NullPointerException();
         }
@@ -728,16 +728,16 @@ public final class Sensor {
         result.heartRate_ = value;
         return this;
       }
-      public Builder setHeartRate(com.google.android.apps.mytracks.content.Sensor.SensorData.Builder builderForValue) {
+      public Builder setHeartRate(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.Builder builderForValue) {
         result.hasHeartRate = true;
         result.heartRate_ = builderForValue.build();
         return this;
       }
-      public Builder mergeHeartRate(com.google.android.apps.mytracks.content.Sensor.SensorData value) {
+      public Builder mergeHeartRate(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData value) {
         if (result.hasHeartRate() &&
-            result.heartRate_ != com.google.android.apps.mytracks.content.Sensor.SensorData.getDefaultInstance()) {
+            result.heartRate_ != com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.getDefaultInstance()) {
           result.heartRate_ =
-            com.google.android.apps.mytracks.content.Sensor.SensorData.newBuilder(result.heartRate_).mergeFrom(value).buildPartial();
+            com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.newBuilder(result.heartRate_).mergeFrom(value).buildPartial();
         } else {
           result.heartRate_ = value;
         }
@@ -746,7 +746,7 @@ public final class Sensor {
       }
       public Builder clearHeartRate() {
         result.hasHeartRate = false;
-        result.heartRate_ = com.google.android.apps.mytracks.content.Sensor.SensorData.getDefaultInstance();
+        result.heartRate_ = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.getDefaultInstance();
         return this;
       }
       
@@ -754,10 +754,10 @@ public final class Sensor {
       public boolean hasCadence() {
         return result.hasCadence();
       }
-      public com.google.android.apps.mytracks.content.Sensor.SensorData getCadence() {
+      public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData getCadence() {
         return result.getCadence();
       }
-      public Builder setCadence(com.google.android.apps.mytracks.content.Sensor.SensorData value) {
+      public Builder setCadence(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData value) {
         if (value == null) {
           throw new NullPointerException();
         }
@@ -765,16 +765,16 @@ public final class Sensor {
         result.cadence_ = value;
         return this;
       }
-      public Builder setCadence(com.google.android.apps.mytracks.content.Sensor.SensorData.Builder builderForValue) {
+      public Builder setCadence(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.Builder builderForValue) {
         result.hasCadence = true;
         result.cadence_ = builderForValue.build();
         return this;
       }
-      public Builder mergeCadence(com.google.android.apps.mytracks.content.Sensor.SensorData value) {
+      public Builder mergeCadence(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData value) {
         if (result.hasCadence() &&
-            result.cadence_ != com.google.android.apps.mytracks.content.Sensor.SensorData.getDefaultInstance()) {
+            result.cadence_ != com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.getDefaultInstance()) {
           result.cadence_ =
-            com.google.android.apps.mytracks.content.Sensor.SensorData.newBuilder(result.cadence_).mergeFrom(value).buildPartial();
+            com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.newBuilder(result.cadence_).mergeFrom(value).buildPartial();
         } else {
           result.cadence_ = value;
         }
@@ -783,7 +783,7 @@ public final class Sensor {
       }
       public Builder clearCadence() {
         result.hasCadence = false;
-        result.cadence_ = com.google.android.apps.mytracks.content.Sensor.SensorData.getDefaultInstance();
+        result.cadence_ = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.getDefaultInstance();
         return this;
       }
       
@@ -791,10 +791,10 @@ public final class Sensor {
       public boolean hasPower() {
         return result.hasPower();
       }
-      public com.google.android.apps.mytracks.content.Sensor.SensorData getPower() {
+      public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData getPower() {
         return result.getPower();
       }
-      public Builder setPower(com.google.android.apps.mytracks.content.Sensor.SensorData value) {
+      public Builder setPower(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData value) {
         if (value == null) {
           throw new NullPointerException();
         }
@@ -802,16 +802,16 @@ public final class Sensor {
         result.power_ = value;
         return this;
       }
-      public Builder setPower(com.google.android.apps.mytracks.content.Sensor.SensorData.Builder builderForValue) {
+      public Builder setPower(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.Builder builderForValue) {
         result.hasPower = true;
         result.power_ = builderForValue.build();
         return this;
       }
-      public Builder mergePower(com.google.android.apps.mytracks.content.Sensor.SensorData value) {
+      public Builder mergePower(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData value) {
         if (result.hasPower() &&
-            result.power_ != com.google.android.apps.mytracks.content.Sensor.SensorData.getDefaultInstance()) {
+            result.power_ != com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.getDefaultInstance()) {
           result.power_ =
-            com.google.android.apps.mytracks.content.Sensor.SensorData.newBuilder(result.power_).mergeFrom(value).buildPartial();
+            com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.newBuilder(result.power_).mergeFrom(value).buildPartial();
         } else {
           result.power_ = value;
         }
@@ -820,7 +820,7 @@ public final class Sensor {
       }
       public Builder clearPower() {
         result.hasPower = false;
-        result.power_ = com.google.android.apps.mytracks.content.Sensor.SensorData.getDefaultInstance();
+        result.power_ = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.getDefaultInstance();
         return this;
       }
       
@@ -828,10 +828,10 @@ public final class Sensor {
       public boolean hasBatteryLevel() {
         return result.hasBatteryLevel();
       }
-      public com.google.android.apps.mytracks.content.Sensor.SensorData getBatteryLevel() {
+      public com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData getBatteryLevel() {
         return result.getBatteryLevel();
       }
-      public Builder setBatteryLevel(com.google.android.apps.mytracks.content.Sensor.SensorData value) {
+      public Builder setBatteryLevel(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData value) {
         if (value == null) {
           throw new NullPointerException();
         }
@@ -839,16 +839,16 @@ public final class Sensor {
         result.batteryLevel_ = value;
         return this;
       }
-      public Builder setBatteryLevel(com.google.android.apps.mytracks.content.Sensor.SensorData.Builder builderForValue) {
+      public Builder setBatteryLevel(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.Builder builderForValue) {
         result.hasBatteryLevel = true;
         result.batteryLevel_ = builderForValue.build();
         return this;
       }
-      public Builder mergeBatteryLevel(com.google.android.apps.mytracks.content.Sensor.SensorData value) {
+      public Builder mergeBatteryLevel(com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData value) {
         if (result.hasBatteryLevel() &&
-            result.batteryLevel_ != com.google.android.apps.mytracks.content.Sensor.SensorData.getDefaultInstance()) {
+            result.batteryLevel_ != com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.getDefaultInstance()) {
           result.batteryLevel_ =
-            com.google.android.apps.mytracks.content.Sensor.SensorData.newBuilder(result.batteryLevel_).mergeFrom(value).buildPartial();
+            com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.newBuilder(result.batteryLevel_).mergeFrom(value).buildPartial();
         } else {
           result.batteryLevel_ = value;
         }
@@ -857,7 +857,7 @@ public final class Sensor {
       }
       public Builder clearBatteryLevel() {
         result.hasBatteryLevel = false;
-        result.batteryLevel_ = com.google.android.apps.mytracks.content.Sensor.SensorData.getDefaultInstance();
+        result.batteryLevel_ = com.google.android.apps.mytracks.content.CopyOfOldSensor.SensorData.getDefaultInstance();
         return this;
       }
       
@@ -866,7 +866,7 @@ public final class Sensor {
     
     static {
       defaultInstance = new SensorDataSet(true);
-      com.google.android.apps.mytracks.content.Sensor.internalForceInit();
+      com.google.android.apps.mytracks.content.CopyOfOldSensor.internalForceInit();
       defaultInstance.initFields();
     }
     

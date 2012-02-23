@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -27,6 +28,8 @@ public class Main extends Activity {
 	
 	private Button btnStartScan;
 	private Button btnStopScan;
+	private Button btnStartRecording;
+	private Button btnStopRecording;
 	private ListView lstMessages;
 	private ArrayAdapter<SystemMessage> lstMessagesAdapter;
 	private ListView lstConnectableDevices;
@@ -35,6 +38,8 @@ public class Main extends Activity {
 	private Looper looper;
 	private Handler handler;
 	private ReadBlueServiceBinder serviceBinder;
+	
+	private UpdateMessagesRunnable updateMessagesRunnable;
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -63,9 +68,34 @@ public class Main extends Activity {
 			}
 		});
 
+		btnStartRecording = (Button) findViewById(R.id.btn_start_record);
+		btnStartRecording.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (serviceBinder!=null)
+					serviceBinder.startRecording();
+			}
+		});
+		
+		btnStopRecording = (Button) findViewById(R.id.btn_stop_record);
+		btnStopRecording.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (serviceBinder!=null)
+					serviceBinder.stopRecording();
+			}
+		});
+		
 		lstMessages = (ListView) findViewById(R.id.lst_messages);
 		lstMessagesAdapter = new ArrayAdapter<SystemMessage>(this, R.layout.msg_item);
 		lstMessages.setAdapter(lstMessagesAdapter);
+		lstMessages.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View vew, int pos,
+					long id) {
+				Log.d(Constants.TAG, "Messages List Clicked");
+			}
+		});
 
 		lstConnectableDevices = (ListView) findViewById(R.id.lst_connectable_devices);
 		lstConnectableDevicesAdapter = new ArrayAdapter<ConnectableDevice>(
@@ -75,6 +105,7 @@ public class Main extends Activity {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View vew, int pos,
 					long id) {
+				Log.d(Constants.TAG, "Connectable Device Item Clicked");
 				ConnectableDevice connectableDevice = lstConnectableDevicesAdapter
 						.getItem(pos);
 				connectTo(connectableDevice);
@@ -115,6 +146,9 @@ public class Main extends Activity {
 		if (serviceBinder!=null) {
 			serviceBinder.registerEventHandler(serviceEventHandler);
 		}
+		
+		updateMessagesRunnable = new UpdateMessagesRunnable();
+		updateMessagesRunnable.run();
 	}
 	
 	@Override
@@ -124,12 +158,22 @@ public class Main extends Activity {
 		if (serviceBinder!=null) {
 			serviceBinder.registerEventHandler(null);
 		}
+		
+		if (updateMessagesRunnable!=null) {
+			updateMessagesRunnable.disable();
+			updateMessagesRunnable = null;
+		}
 	}
 	
 	private void connectTo(ConnectableDevice connectableDevice) {
 		if (serviceBinder!=null) {
 			serviceBinder.toggleDeviceConnection(connectableDevice);
 		}
+	}
+	
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		return true;
 	}
 	
 	@Override
@@ -168,6 +212,26 @@ public class Main extends Activity {
 		}
 		
 	};
+	
+	private class UpdateMessagesRunnable implements Runnable {
+		
+		boolean enabled = true;
+		
+		public void disable() {
+			enabled = false;
+		}
+		
+		@Override
+		public void run() {
+			if (enabled) {
+				serviceEventHandler.onMessagesUpdated();
+				lstConnectableDevicesAdapter.notifyDataSetChanged();
+				handler.postDelayed(this, 500L);
+			}
+		}
+		
+		
+	}
 
 	private ServiceEventHandler serviceEventHandler = new ServiceEventHandler() {
 		
@@ -226,8 +290,10 @@ public class Main extends Activity {
 						
 						for (int l=messages.size(), i=0; i<l; ++i) {
 							SystemMessage msg = messages.get(i);
-							if (msg.timeStamp>latestMsgInUi) {
-								lstMessagesAdapter.add(msg);
+							if (msg!=null) {
+								if (msg.timeStamp>latestMsgInUi) {
+									lstMessagesAdapter.add(msg);
+								}
 							}
 						}
 					}
@@ -253,6 +319,10 @@ public class Main extends Activity {
 					}
 					
 					lstConnectableDevicesAdapter.notifyDataSetChanged();
+					
+					boolean hasItems = lstConnectableDevicesAdapter.getCount()>0;
+					btnStartRecording.setEnabled(hasItems);
+					btnStopRecording.setEnabled(hasItems);
 				}
 			});
 			

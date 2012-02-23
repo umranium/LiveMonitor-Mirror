@@ -35,7 +35,8 @@
                         android:text="EditText" >
                     </EditText>
                 </LinearLayout>
-
+                
+                 <!--
                 <LinearLayout
                     android:id="@+id/layout_activity_title_timestamp"
                     android:layout_width="match_parent"
@@ -66,7 +67,8 @@
                     </RelativeLayout>
 
                 </LinearLayout>
-
+				-->
+				
                 <LinearLayout
                     android:id="@+id/layout_is_public"
                     android:layout_width="fill_parent"

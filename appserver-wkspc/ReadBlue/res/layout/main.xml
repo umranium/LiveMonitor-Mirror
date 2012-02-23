@@ -4,14 +4,38 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     >
+
     <LinearLayout android:layout_height="wrap_content" android:id="@+id/linearLayout1" android:layout_width="fill_parent" android:layout_marginLeft="10px" android:layout_marginRight="10px">
         <Button android:text="Start Scan" android:layout_width="fill_parent" android:layout_weight="1" android:id="@+id/btn_start_scan" android:layout_height="wrap_content"></Button>
         <Button android:text="Stop Scan" android:layout_width="fill_parent" android:layout_weight="1" android:id="@+id/btn_stop_scan" android:layout_height="wrap_content"></Button>
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/LinearLayout01"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10px"
+        android:layout_marginRight="10px" >
+
+        <Button
+            android:id="@+id/btn_start_record"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Start Recording" />
+
+        <Button
+            android:id="@+id/btn_stop_record"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Stop Recording" />
+    </LinearLayout>
+
     <LinearLayout android:layout_height="wrap_content" android:id="@+id/linearLayout3" android:layout_width="fill_parent">
         <ListView android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/lst_connectable_devices" android:layout_margin="2px" android:background="#404080"></ListView>
     </LinearLayout>
     <LinearLayout android:layout_height="fill_parent" android:layout_width="fill_parent" android:id="@+id/LinearLayout2">
-        <ListView android:layout_width="fill_parent" android:layout_height="fill_parent" android:id="@+id/lst_messages" android:transcriptMode="alwaysScroll" android:stackFromBottom="true" android:layout_margin="2px"></ListView>
+        <ListView android:layout_width="fill_parent" android:layout_height="fill_parent" android:id="@+id/lst_messages" android:transcriptMode="alwaysScroll" android:stackFromBottom="true" android:layout_margin="2px" android:animationCache="true" android:clickable="false"></ListView>
     </LinearLayout>
 </LinearLayout>

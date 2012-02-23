@@ -3,6 +3,15 @@ package au.csiro.umran.test.readblue;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -12,11 +21,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Adapter;
+import au.csiro.umran.test.readblue.utils.TwoWayBlockingQueue;
 
 public class ReadBlueService extends Service {
 	
+	private static final long SYSTEM_MSG_REFRESH_DELAY = 500L;
 	private static final int MAX_MSG_COUNT = 30;	
 	
 	private class InternReadBlueServiceBinder extends Binder implements ReadBlueServiceBinder {
@@ -49,6 +62,20 @@ public class ReadBlueService extends Service {
 		@Override
 		public boolean isScanning() {
 			return scanning;
+		}
+		
+		@Override
+		public void startRecording() {
+			for (ConnectableDevice device:connectableDevices) {
+				device.startRecording();
+			}
+		}
+		
+		@Override
+		public void stopRecording() {
+			for (ConnectableDevice device:connectableDevices) {
+				device.stopRecording();
+			}
 		}
 
 		@Override
@@ -88,17 +115,47 @@ public class ReadBlueService extends Service {
 
 		@Override
 		public synchronized void addMessage(String msg) {
-			Log.v(Constants.TAG, "Message: "+msg);
-			messages.add(new SystemMessage(System.currentTimeMillis(), msg));
-			while (messages.size()>MAX_MSG_COUNT)
-				messages.remove(0);
-			if (eventHandler!=null) {
-				eventHandler.onMessagesUpdated();
+//			Log.v(Constants.TAG, "Message: "+msg);
+			
+			if (msg==null) {
+				throw new RuntimeException("Null message received!");
 			}
+			
+			synchronized (messages) {
+				long time = System.currentTimeMillis();
+				messages.add(new SystemMessage(time, msg));
+				while (messages.size()>MAX_MSG_COUNT)
+					messages.remove(0);
+//				mainLooperHandler.postDelayed(new SystemMessagesUpdate(time), SYSTEM_MSG_REFRESH_DELAY); // execute update after a second
+//				latestUpdateRequest = time;
+			}
+			
 		}
-
-
 	}
+	
+//	private long latestUpdateRequest = 0;
+//	private long latestUpdate = 0;
+//	private class SystemMessagesUpdate implements Runnable {
+//		private long time;
+//		
+//		public SystemMessagesUpdate(long time) {
+//			this.time = time;
+//		}
+//		
+//		@Override
+//		public void run() {
+//			// execute either if this is the latest update (i.e. the system is idle),
+//			//		or it has been more than a second since the last update
+//			if (time==latestUpdateRequest || time-latestUpdate>=SYSTEM_MSG_REFRESH_DELAY) {
+//				synchronized (messages) {
+//					if (eventHandler!=null) {
+//						eventHandler.onMessagesUpdated();
+//						latestUpdate = time;
+//					}
+//				}
+//			}
+//		}
+//	}
 	
 	private InternReadBlueServiceBinder binder = new InternReadBlueServiceBinder();
 	
@@ -108,6 +165,8 @@ public class ReadBlueService extends Service {
 	private List<ConnectableDevice> connectableDevices;
 	private List<SystemMessage> messages;
 	private ServiceEventHandler eventHandler;
+	
+	private Handler mainLooperHandler;
 	
 	private BluetoothAdapter bluetoothAdapter;
 	
@@ -123,7 +182,16 @@ public class ReadBlueService extends Service {
 		this.scanning = false;
 		this.connectableDevices = new ArrayList<ConnectableDevice>();
 		this.messages = new ArrayList<SystemMessage>();
-
+		this.mainLooperHandler = new Handler(this.getMainLooper());
+//		this.executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
+//			@Override
+//			public Thread newThread(Runnable r) {
+//				Thread t = new Thread(r, "Executor-Thread");
+//				t.setPriority(Thread.MIN_PRIORITY);
+//				return t;
+//			}
+//		});
+		
 		bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (bluetoothAdapter == null) {
 			this.scanningEnabled = false;
@@ -138,6 +206,8 @@ public class ReadBlueService extends Service {
 		if (this.scanning) {
 			stopScanning(false);
 		}
+		
+//		executor.shutdown();
 		
 		Log.d(Constants.TAG, "Service destroyed");
 	}
@@ -249,6 +319,10 @@ public class ReadBlueService extends Service {
 	
 	private void toggleDeviceConnection(ConnectableDevice connectableDevice) {
 		synchronized (connectableDevice) {
+			if (this.scanning) {
+				this.stopScanning(true);
+			}
+			
 			if (connectableDevice.isConnected()) {
 				Log.d(Constants.TAG, "Device "+connectableDevice.getDevice().getName()+" is connected. Disconnecting.");
 				connectableDevice.disconnect();
@@ -275,7 +349,7 @@ public class ReadBlueService extends Service {
 				// Get the BluetoothDevice object from the Intent
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 				
-				ConnectableDevice connectableDevice = new ConnectableDevice(device);
+				ConnectableDevice connectableDevice = new ConnectableDevice(bluetoothAdapter, device);
 				binder.addMessage("Device Found: " + connectableDevice.toString());
 
 				if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
@@ -303,5 +377,6 @@ public class ReadBlueService extends Service {
 			}
 		}
 	};
+	
 	
 }

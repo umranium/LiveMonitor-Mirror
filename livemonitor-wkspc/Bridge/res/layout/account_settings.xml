@@ -37,7 +37,7 @@
              android:id="@+id/btn_settings_register"
              android:layout_width="100dp"
              android:layout_height="wrap_content"
-             android:text="Register" />
+             android:text="Register"/>
         <Button
         	android:layout_height="wrap_content"
         	android:id="@+id/btn_settings_done"

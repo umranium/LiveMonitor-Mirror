@@ -51,7 +51,7 @@ public class Main extends Activity {
 	private ILiveMonitorBinder binder;
 	
 	private Button btnStart;
-	private Button btnPause;
+//	private Button btnPause;
 	private Button btnStop;
 	private Button btnEditAccountSettings;
 	private Button btnEditActivitySettings;
@@ -79,7 +79,7 @@ public class Main extends Activity {
         setContentView(R.layout.main);
         
         btnStart = (Button)this.findViewById(R.id.btn_start);
-        btnPause = (Button)this.findViewById(R.id.btn_pause);
+//        btnPause = (Button)this.findViewById(R.id.btn_pause);
         btnStop = (Button)this.findViewById(R.id.btn_stop);
         btnEditAccountSettings = (Button)this.findViewById(R.id.btn_edit_account_settings);
         btnEditActivitySettings = (Button)this.findViewById(R.id.btn_edit_activity_settings);
@@ -120,29 +120,29 @@ public class Main extends Activity {
 			}
 		});
         
-        btnPause.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Log.d(Constants.TAG, "btnPause clicked");
-				if (binder!=null) {
-					try {
-						if (binder.isRecording()) {
-							if (!binder.isRecordingPaused()) {
-								binder.pauseRecording(true);
-							}
-							else
-								Log.d(Constants.TAG, "Service is ALREADY paused");
-						}
-						else
-							Log.d(Constants.TAG, "Service is NOT recording");
-					} catch (Exception e) {
-						Log.e(Constants.TAG, "Error", e);
-					}
-				}
-				else
-					Toast.makeText(Main.this, "Not connected to\nMonitoring Service", Toast.LENGTH_SHORT);
-			}
-		});
+//        btnPause.setOnClickListener(new View.OnClickListener() {
+//			@Override
+//			public void onClick(View v) {
+//				Log.d(Constants.TAG, "btnPause clicked");
+//				if (binder!=null) {
+//					try {
+//						if (binder.isRecording()) {
+//							if (!binder.isRecordingPaused()) {
+//								binder.pauseRecording(true);
+//							}
+//							else
+//								Log.d(Constants.TAG, "Service is ALREADY paused");
+//						}
+//						else
+//							Log.d(Constants.TAG, "Service is NOT recording");
+//					} catch (Exception e) {
+//						Log.e(Constants.TAG, "Error", e);
+//					}
+//				}
+//				else
+//					Toast.makeText(Main.this, "Not connected to\nMonitoring Service", Toast.LENGTH_SHORT);
+//			}
+//		});
         
         btnStop.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -312,7 +312,7 @@ public class Main extends Activity {
     	} else {
     		this.btnStart.setEnabled(false);
     		this.btnStart.setText("Start");
-    		this.btnPause.setEnabled(false);
+//    		this.btnPause.setEnabled(false);
     		this.btnStop.setEnabled(false);
     	}
     	    	
@@ -463,7 +463,7 @@ public class Main extends Activity {
 	        		btnStart.setText("Resume");
 	        	else
 	        		btnStart.setText("Start");
-	        	btnPause.setEnabled(binder.isRecording() && !binder.isRecordingPaused());
+//	        	btnPause.setEnabled(binder.isRecording() && !binder.isRecordingPaused());
 	         	btnStop.setEnabled(binder.isRecording());
 	         	
 				if (binder.isStarted() && !binder.isRecording()) {

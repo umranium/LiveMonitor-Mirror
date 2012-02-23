@@ -2,17 +2,24 @@ package au.csiro.umran.test.readblue;
 
 import java.io.IOException;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
 public class ConnectableDevice {
 	
+	private BluetoothAdapter adapter;
 	private BluetoothDevice device;
 	private DeviceConnection connection;
 
-	public ConnectableDevice(BluetoothDevice device) {
+	public ConnectableDevice(BluetoothAdapter adapter, BluetoothDevice device) {
+		this.adapter = adapter;
 		this.device = device;
 		this.connection = null;
+	}
+	
+	public BluetoothAdapter getAdapter() {
+		return adapter;
 	}
 	
 	public BluetoothDevice getDevice() {
@@ -48,13 +55,23 @@ public class ConnectableDevice {
 		return connection==null?"not connected":connection.getConnectionState();
 	}
 	
+	public void startRecording() {
+		if (connection!=null)
+			connection.startRecording();
+	}
+	
+	public void stopRecording() {
+		if (connection!=null)
+			connection.stopRecording();
+	}
+	
 	@Override
 	public String toString() {
 		String connectionState = "";
 		if (isConnected()) {
 			connectionState = " ["+getConnectionState()+"]";
 		}
-		return String.format("%-20s (%20s)", device.getName(),
+		return String.format("%-15s (%18s)", device.getName(),
 				device.getAddress())+connectionState;
 	}
 }

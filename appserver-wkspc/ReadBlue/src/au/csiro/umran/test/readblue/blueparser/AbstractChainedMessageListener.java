@@ -9,9 +9,9 @@ public class AbstractChainedMessageListener implements OnMessageListener {
 	}
 
 	@Override
-	public void onMessage(byte[] message, int length) {
+	public void onMessage(long timeStamp, byte[] message, int length) {
 		if (messageListener!=null) {
-			messageListener.onMessage(message, length);
+			messageListener.onMessage(timeStamp, message, length);
 		}
 	}
 

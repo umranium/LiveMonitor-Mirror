@@ -9,6 +9,8 @@ import android.os.Environment;
 
 public class FileUtils {
 	
+	private static final DateFormat FNAME_FMT = new SimpleDateFormat("yyyy-MM-dd-hh-mm-ss");
+	
 	public static void ensureParentFolderExists(File file) {
 		
 		File parent = file.getParentFile();
@@ -23,7 +25,7 @@ public class FileUtils {
 	}
 	
 	private static String timeToFileName(long time) {
-		DateFormat fmt = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
+		DateFormat fmt = FNAME_FMT;//SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
 		
 		return fmt.format(new Date(time)).replaceAll("[\\W]+", "_");
 	}

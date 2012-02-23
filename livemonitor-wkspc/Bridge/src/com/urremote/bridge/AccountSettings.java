@@ -38,6 +38,74 @@ public class AccountSettings extends Activity {
 	private boolean showActivitySettingsToo = false;
 	
 	private Handler mainLooperHandler;
+	
+	private ProgressDialog verificationProgressDlg;
+	private VerificationThread verificationThread;
+	
+	private class VerificationThread extends Thread {
+		
+		CharSequence username;
+		CharSequence password;
+		MapMyTracksInterfaceApi mapMyTracksInterfaceApi;
+		boolean quit = false;
+		
+		public VerificationThread(CharSequence username, CharSequence password) {
+			this.username = username;
+			this.password = password;
+	    	this.mapMyTracksInterfaceApi = new MapMyTracksInterfaceApi(
+	    			-1,
+	    			new String(new StringBuilder(username)), 
+	    			new String(new StringBuilder(password)));
+		}
+		
+		public void quit() {
+			quit = true;
+			mapMyTracksInterfaceApi.shutdown();
+			this.interrupt();
+		}
+		
+		@Override
+		public void run() {
+			CustomUncaughtExceptionHandler.setInterceptHandler(AccountSettings.this, Thread.currentThread());
+			
+	    	try {
+				Long serverTime = mapMyTracksInterfaceApi.getServerTime();
+				if (!quit) {
+					if (serverTime!=null) {
+						Log.d(Constants.TAG, "Success. Server time="+serverTime);
+						
+	//					finishActivity();
+						SharedPreferences preferences = AccountSettings.this.getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
+						
+						if (DefSettings.getUsername(preferences).length()==0) {
+							saveState(preferences);
+							displayToastFromAnotherThread("Login details verified and saved.\nPress the back button to continue.");
+						} else {
+							saveState(preferences);
+							displayToastFromAnotherThread("Login details verified and saved.\nPress the back button to return to the application.");
+						}
+					} else {
+						displayToastFromAnotherThread("Invalid login details or unknown verification failure.");
+					}
+				}
+			} catch (IOException e) {
+				if (!quit) {
+					Log.d(Constants.TAG, "Error while attempting to verify login details", e);
+					displayToastFromAnotherThread("Error: "+e.getMessage());
+				}
+			} finally {
+				mapMyTracksInterfaceApi.shutdown();
+				if (verificationThread!=null) {
+					verificationThread = null;
+				}
+				if (verificationProgressDlg!=null) {
+					verificationProgressDlg.dismiss();
+					verificationProgressDlg = null;
+				}
+				Log.d(Constants.TAG, "Verification Thread Finished");
+			}
+		}
+	}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -82,7 +150,7 @@ public class AccountSettings extends Activity {
     	
     	setResult(RESULT_CANCELED);
     }
-    
+        
     private void loadState(SharedPreferences state)
     {
 		txtUsername.setText(DefSettings.getUsername(state));
@@ -132,67 +200,38 @@ public class AccountSettings extends Activity {
     	}
     }
     
-    
     private void verifyAccount(CharSequence username, CharSequence password)
     {
-    	final MapMyTracksInterfaceApi mapMyTracksInterfaceApi = new MapMyTracksInterfaceApi(
-    			-1,
-    			new String(new StringBuilder(username)), 
-    			new String(new StringBuilder(password)));
-    	
-		final ProgressDialog dialog = ProgressDialog.show(this, 
+    	createVerificationProgressDlg();
+    	verificationThread = new VerificationThread(username, password);
+    	verificationThread.start();
+    }
+    
+    private void createVerificationProgressDlg() {
+    	Log.i(Constants.TAG, "Creating Verification Dialog");
+    	verificationProgressDlg = ProgressDialog.show(this, 
 				"Verifying details",
 				"Verifying login details with the server.\nPlease wait...");
-		dialog.setCancelable(true);
-		dialog.setOnCancelListener(new OnCancelListener() {
+    	verificationProgressDlg.setCancelable(true);
+    	verificationProgressDlg.setOnCancelListener(new OnCancelListener() {
 			@Override
 			public void onCancel(DialogInterface dialog) {
 				Log.d(Constants.TAG, "Verification ProgressDialog Cancelled");
-				mapMyTracksInterfaceApi.shutdown();
+				if (verificationThread!=null) {
+					Log.d(Constants.TAG, "Requesting to cancel Verification Thread");
+					verificationThread.quit();
+				}
 			}
 		});
-		dialog.setOnDismissListener(new OnDismissListener() {
+    	verificationProgressDlg.setOnDismissListener(new OnDismissListener() {
 			@Override
 			public void onDismiss(DialogInterface dialog) {
 				Log.d(Constants.TAG, "Verification ProgressDialog Dismissed");
-				mapMyTracksInterfaceApi.shutdown();
+//				if (verificationThread!=null) {
+//					verificationThread.quit();
+//				}
 			}
 		});
-		
-		Thread th = new Thread() {
-			@Override
-			public void run() {
-				CustomUncaughtExceptionHandler.setInterceptHandler(AccountSettings.this, Thread.currentThread());
-				
-		    	try {
-					Long serverTime = mapMyTracksInterfaceApi.getServerTime();
-					if (serverTime!=null) {
-						Log.d(Constants.TAG, "Success. Server time="+serverTime);
-						
-//						finishActivity();
-						SharedPreferences preferences = AccountSettings.this.getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
-						
-						if (DefSettings.getUsername(preferences).length()==0) {
-							saveState(preferences);
-							displayToastFromAnotherThread("Login details verified and saved.\nPress the back button to continue.");
-						} else {
-							saveState(preferences);
-							displayToastFromAnotherThread("Login details verified and saved.\nPress the back button to return to the application.");
-						}
-					} else {
-						displayToastFromAnotherThread("Invalid login details or unknown verification failure.");
-					}
-				} catch (IOException e) {
-					Log.d(Constants.TAG, "Error while attempting to verify login details", e);
-					displayToastFromAnotherThread("Error: "+e.getMessage());
-				} finally {
-					Log.d(Constants.TAG, "Dismissing Verification ProgressDialog");
-					dialog.dismiss();
-				}
-			}
-		};
-		
-		th.start();
     }
     
 //    private void finishActivity()

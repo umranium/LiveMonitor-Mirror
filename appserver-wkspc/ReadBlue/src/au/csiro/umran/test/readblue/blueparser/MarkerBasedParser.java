@@ -2,6 +2,12 @@ package au.csiro.umran.test.readblue.blueparser;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+
+import android.util.Log;
+import au.csiro.umran.test.readblue.ByteUtils;
+import au.csiro.umran.test.readblue.Constants;
+import au.csiro.umran.test.readblue.DeviceConnection;
 
 /**
  * 
@@ -10,17 +16,21 @@ import java.io.InputStream;
  * 
  * @author abd01c
  */
-public class BlueParser {
+public class MarkerBasedParser implements Parser {
 	
 	//	avoid expanding buffers by 1, use larger increments
 	private static final int BUFFER_INCREMENTS = 64;
 	
 	private byte[] marker;
+	private int messageLength;
+	private DeviceConnection deviceConnection;
+	private String deviceName;
 	private InputStream inputStream;
 	private int inputBufferSize;
 	private byte[] inputBuffer;
 	private int inputWriteLocation;
 	private int inputReadLocation;
+	private int bytesInInputBuffer = 0;
 	
 	private int outputBufferSize;
 	private byte[] outputBuffer;
@@ -29,10 +39,18 @@ public class BlueParser {
 	private boolean includeMarkerInOutput;
 	private OnMessageListener onMessageListener;
 	
+	private boolean firstMarkerFound;
 	private boolean priorMarkerHasBeenFound;
 	
-	public BlueParser(byte[] marker, InputStream inputStream, int inputBufferSize, int outputBufferSize, boolean includeMarkerInOutput, OnMessageListener onMessageListener) {
+	private long latestReadTimestamp;
+	
+	private boolean quit;
+	
+	public MarkerBasedParser(byte[] marker, int messageLength, DeviceConnection deviceConnection, InputStream inputStream, int inputBufferSize, int outputBufferSize, boolean includeMarkerInOutput, OnMessageListener onMessageListener) {
 		this.marker = marker;
+		this.messageLength = messageLength;
+		this.deviceConnection = deviceConnection;
+		this.deviceName = deviceConnection.getConnectableDevice().getDevice().getName().replaceAll("\\s+", "_");
 		this.inputStream = inputStream;
 		this.inputBufferSize = inputBufferSize;
 		this.outputBufferSize = outputBufferSize;
@@ -42,6 +60,7 @@ public class BlueParser {
 		this.inputReadLocation = 0;
 		this.inputWriteLocation = 0;
 		this.outputWriteLocation = 0;
+		this.firstMarkerFound = false;
 		this.priorMarkerHasBeenFound = false;
 
 		this.includeMarkerInOutput = includeMarkerInOutput;
@@ -51,12 +70,33 @@ public class BlueParser {
 				outputBuffer[i] = marker[i];
 			this.outputWriteLocation = this.marker.length;
 		}
+		
+		try {
+			while (this.inputStream.available()>0)
+				this.inputStream.read();
+		} catch (IOException e) {
+			Log.e(Constants.TAG, "Error while discarding initial stream contents", e);
+		}
+		latestReadTimestamp = 0;
+		bytesInInputBuffer = 0;
+		quit = false;
 	}
 	
+	/* (non-Javadoc)
+	 * @see au.csiro.umran.test.readblue.blueparser.Parser#quit()
+	 */
+	@Override
+	public void quit() {
+		this.quit = true;
+	}
+	
+	/* (non-Javadoc)
+	 * @see au.csiro.umran.test.readblue.blueparser.Parser#process()
+	 */
+	@Override
 	public void process() throws IOException
 	{
-		int totalRead = 0;
-		while (totalRead<marker.length) {
+		while (bytesInInputBuffer<marker.length && !quit) {
 			int maxLen; 
 			if (inputReadLocation>inputWriteLocation) {
 				//	actual empty bytes = inputReadLocation - inputWriteLocation
@@ -74,20 +114,35 @@ public class BlueParser {
 				maxLen = inputBufferSize - inputWriteLocation;
 			}
 			
-			int readCount = inputStream.read(inputBuffer, inputWriteLocation, maxLen);
-			totalRead += readCount;
+			int readCount = 0;
+			if (inputStream.available()>0) {
+				try {
+					readCount = inputStream.read(inputBuffer, inputWriteLocation, maxLen);
+				} catch (IOException e) {
+					Log.e(Constants.TAG, "Error while reading from device input", e);
+				}
+			}
+			if (readCount>0) {
+				latestReadTimestamp = System.currentTimeMillis();
+//				Log.d(deviceName, "Input: "+ByteUtils.bytesToString(inputBuffer, inputWriteLocation, readCount));
+			}
+			bytesInInputBuffer += readCount;
 			inputWriteLocation += readCount;
 			if (inputWriteLocation>=inputBufferSize)
 				inputWriteLocation -= inputBufferSize;
 		}
 		
-		while (inputWriteLocation!=inputReadLocation) {
+		while (bytesInInputBuffer>0 && !quit) {
 			//	this byte is the start of a marker
 			boolean markerFound = false;
 			// special condition, when the marker appears to be found, but is incomplete
 			boolean markerFoundIncomplete = false;
 			
-			if (inputBuffer[inputReadLocation]==marker[0]) {
+			if (inputBuffer[inputReadLocation]==marker[0] &&
+					(!firstMarkerFound || outputWriteLocation>=messageLength))	
+							// avoid finding markers before the end of the message
+							//		(unless we're looking for the first marker)
+			{
 				markerFound = true;
 				int readAheadLoc = inputReadLocation;
 				for (int i=1; i<marker.length; ++i) {
@@ -118,16 +173,20 @@ public class BlueParser {
 			if (markerFound) {
 				//	check if this msg, was started with a marker
 				if (priorMarkerHasBeenFound) {
-					onMessageListener.onMessage(outputBuffer, outputWriteLocation);
+//					Log.d(deviceName, "Output: "+ByteUtils.bytesToString(outputBuffer, 0, outputWriteLocation));
+					onMessageListener.onMessage(latestReadTimestamp, outputBuffer, outputWriteLocation);
 				}
 				if (includeMarkerInOutput)
 					outputWriteLocation = marker.length;
 				else
 					outputWriteLocation = 0;
+				
 				inputReadLocation += marker.length;
+				bytesInInputBuffer -= marker.length;
 				if (inputReadLocation>=inputBufferSize)
 					inputReadLocation -= inputBufferSize;
 				priorMarkerHasBeenFound = true;
+				firstMarkerFound = true;
 			}
 			else {
 				if (priorMarkerHasBeenFound) {
@@ -138,11 +197,18 @@ public class BlueParser {
 						expandOutputBuffer(outputWriteLocation);
 					}
 				}
+				
 				++inputReadLocation;
+				--bytesInInputBuffer;
 				if (inputReadLocation>=inputBufferSize)
 					inputReadLocation -= inputBufferSize;
 			}
 		}
+	}
+	
+	@Override
+	public long getLastestReadTime() {
+		return latestReadTimestamp;
 	}
 	
 	//	since the output buffer is not a circular buffer,

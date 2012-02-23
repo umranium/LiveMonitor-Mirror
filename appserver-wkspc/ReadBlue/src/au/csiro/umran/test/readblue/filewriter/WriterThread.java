@@ -31,6 +31,7 @@ public class WriterThread extends Thread {
 	private final Object waitPendingExit = new Object();
 	
 	public WriterThread(File outputFile) throws IOException {
+		super("WriterThread:"+outputFile.getName());
 		this.queue = new WriteQueue(QUEUE_CAPACITY);
 		this.outputFile = outputFile;
 		this.writer = new BufferedWriter(new FileWriter(outputFile));
@@ -55,12 +56,6 @@ public class WriterThread extends Thread {
 				} catch (InterruptedException e) {
 				}
 			}
-		}
-		
-		try {
-			this.writer.close();
-		} catch (IOException e) {
-			Log.e(Constants.TAG, "Error while closing file: "+outputFile, e);
 		}
 	}
 	
@@ -89,6 +84,12 @@ public class WriterThread extends Thread {
 				isRunning = false;
 				throw new RuntimeException("Error while writting message to file: "+outputFile, e);
 			} finally {
+				try {
+					this.writer.close();
+				} catch (IOException e) {
+					Log.e(Constants.TAG, "Error while closing file: "+outputFile, e);
+				}
+				
 				if (msg!=null) {
 					try {
 						this.queue.returnEmptyInstance(msg);

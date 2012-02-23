@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <string name="app_name">Avocado-TrackExtractor</string>
-    
-    <string name="INTENT_EXTRACT">com.urremote.extractor.intent.EXTRACT</string>
-
-</resources>

@@ -31,7 +31,7 @@ public class RunningNumberChecker extends AbstractChainedMessageListener {
 	}
 	
 	@Override
-	public void onMessage(byte[] message, int length) {
+	public void onMessage(long timeStamp, byte[] message, int length) {
 		if (length<lengthOfRunningNumber) {
 			throw new RuntimeException("Message is shorter than the expected running number! ("+length+"<"+lengthOfRunningNumber+")");
 		}
@@ -55,7 +55,7 @@ public class RunningNumberChecker extends AbstractChainedMessageListener {
 			}
 		}
 		
-		super.onMessage(message, length);
+		super.onMessage(timeStamp, message, length);
 	}
 
 }

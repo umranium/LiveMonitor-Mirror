@@ -30,6 +30,7 @@ import com.google.android.apps.mytracks.content.TracksColumns;
 import com.google.android.apps.mytracks.content.Waypoint;
 import com.google.android.apps.mytracks.content.WaypointCreationRequest;
 import com.google.android.apps.mytracks.content.WaypointsColumns;
+import com.google.android.apps.mytracks.services.sensors.InternalSensorsManager;
 import com.google.android.apps.mytracks.services.sensors.SensorManager;
 import com.google.android.apps.mytracks.services.sensors.SensorManagerFactory;
 import com.google.android.apps.mytracks.services.tasks.PeriodicTaskExecutor;
@@ -227,6 +228,8 @@ public class TrackRecordingService extends Service {
   private ExecutorService executorService;
 
   private ServiceBinder binder = new ServiceBinder(this);
+  
+  private InternalSensorsManager internalSensorsManager;
 
   /*
    * Application lifetime events:
@@ -279,6 +282,9 @@ public class TrackRecordingService extends Service {
       prefManager.setRecordingTrack(recordingTrackId = -1);
     }
     showNotification();
+    
+    internalSensorsManager = new InternalSensorsManager(this);
+    internalSensorsManager.init();
   }
 
   /*
@@ -390,6 +396,9 @@ public class TrackRecordingService extends Service {
 
     // Shutdown the executor service last to avoid sending events to a dead executor.
     executorService.shutdown();
+    
+    internalSensorsManager.done();
+    
     super.onDestroy();
   }
 
@@ -545,11 +554,13 @@ public class TrackRecordingService extends Service {
         "Preparing to register location listener w/ TrackRecordingService...");
     try {
       long desiredInterval = locationListenerPolicy.getDesiredPollingInterval();
+      
       locationManager.requestLocationUpdates(
           LocationManager.GPS_PROVIDER, desiredInterval,
           locationListenerPolicy.getMinDistance(),
           // , 0 /* minDistance, get all updates to properly time pauses */
           locationListener);
+      
       currentRecordingInterval = desiredInterval;
       Log.d(TAG,
           "...location listener now registered w/ TrackRecordingService @ "
@@ -741,10 +752,14 @@ public class TrackRecordingService extends Service {
       if (lastLocation != null) {
         distanceToLast = location.distanceTo(lastLocation);
       }
-      boolean hasSensorData = sensorManager != null
+      boolean hasSensorData =
+          /*
+          sensorManager != null
           && sensorManager.isEnabled()
           && sensorManager.getSensorDataSet() != null
           && sensorManager.isDataValid();
+          */
+          true;
 
       // If the user has been stationary for two recording just record the first
       // two and ignore the rest. This code will only have an effect if the
@@ -840,13 +855,33 @@ public class TrackRecordingService extends Service {
 
     // Insert the new location:
     try {
+      Log.d(Constants.TAG, "Inserting Location");
+      
       Location locationToInsert = location;
+      SensorDataSet sd = null;
       if (sensorManager != null && sensorManager.isEnabled()) {
-        SensorDataSet sd = sensorManager.getSensorDataSet();
-        if (sd != null && sensorManager.isDataValid()) {
-          locationToInsert = new MyTracksLocation(location, sd);
-        }
+        sd = sensorManager.getSensorDataSet();
+//        if (sd != null && sensorManager.isDataValid()) {
+//          locationToInsert = new MyTracksLocation(location, sd);
+//        }
+        //SensorDataSet.newBuilder().
       }
+      
+      SensorDataSet internalSensorsDataSet = internalSensorsManager.read();
+      if (sd!=null && sensorManager.isDataValid()) {
+        sd = SensorDataSet.newBuilder().mergeFrom(sd).mergeFrom(internalSensorsDataSet).build();
+        
+//        Log.d(Constants.TAG, "hasAccel()="+sd.hasAccel()+", hasMagneticField()="+sd.hasMagneticField());
+      } else {
+        sd = internalSensorsDataSet;
+
+//        Log.d(Constants.TAG, "hasAccel()="+sd.hasAccel()+", hasMagneticField()="+sd.hasMagneticField());
+      }
+      
+      if (sd != null) {
+        locationToInsert = new MyTracksLocation(location, sd);
+      }
+      
       Uri pointUri = providerUtils.insertTrackPoint(locationToInsert, trackId);
       int pointId = Integer.parseInt(pointUri.getLastPathSegment());
 

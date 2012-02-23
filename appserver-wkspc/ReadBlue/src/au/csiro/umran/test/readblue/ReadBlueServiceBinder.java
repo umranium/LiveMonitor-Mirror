@@ -12,6 +12,9 @@ public interface ReadBlueServiceBinder {
 	boolean isScanning();
 	Object getWaitForScanningMutex();
 	
+	void startRecording();
+	void stopRecording();
+	
 	
 	List<ConnectableDevice> getConnectableDevices();
 	void toggleDeviceConnection(ConnectableDevice device);

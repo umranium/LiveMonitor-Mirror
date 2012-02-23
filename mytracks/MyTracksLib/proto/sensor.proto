@@ -42,6 +42,26 @@ message SensorData {
   optional int32 value = 2;
 };
 
+// The state and possible reading for one integer sensor.
+message SensorDataDouble {
+  required SensorState state = 1 [default = NONE];
+  
+  // Value is only defined if state = SENDING.
+  optional int64 timestamp = 2;
+  optional double value = 3;
+};
+
+// The state and possible reading for one integer sensor.
+message SensorDataTriple {
+  required SensorState state = 1 [default = NONE];
+  
+  // Value is only defined if state = SENDING.
+  optional int64 timestamp = 2;
+  optional float x = 3;
+  optional float y = 4;
+  optional float z = 5;
+};
+
 // A message to encapsulate sensor readings associated with a track point.
 message SensorDataSet {
   // This is a required field.
@@ -51,4 +71,10 @@ message SensorDataSet {
   optional SensorData cadence = 3;
   optional SensorData power = 4;
   optional SensorData battery_level = 5;
+  
+  optional SensorDataDouble speed = 6;
+  optional SensorDataTriple accel = 7;
+  optional SensorDataTriple magnetic_field = 8;
+  optional SensorDataTriple gyro = 9;
+  optional SensorDataTriple gravity = 10;
 }
