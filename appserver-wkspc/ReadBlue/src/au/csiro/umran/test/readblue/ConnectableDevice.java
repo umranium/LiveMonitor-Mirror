@@ -26,7 +26,7 @@ public class ConnectableDevice {
 		return device;
 	}
 	
-	public void establishConnection(ReadBlueServiceBinder binder) throws IOException {
+	public void connect(ReadBlueServiceBinder binder) throws IOException {
 		if (connection!=null) {
 			Log.d(Constants.TAG, "Device "+device.getName()+" has a preexisting connection. Disconnecting first.");
 			disconnect();
@@ -34,8 +34,7 @@ public class ConnectableDevice {
 		
 		Log.d(Constants.TAG, "Establishing a DeviceConnection.");
 		connection = new DeviceConnection(binder, this);
-		connection.start();
-		Log.d(Constants.TAG, "DeviceConnection established.");
+		connection.connect();
 	}
 	
 	public void disconnect() {

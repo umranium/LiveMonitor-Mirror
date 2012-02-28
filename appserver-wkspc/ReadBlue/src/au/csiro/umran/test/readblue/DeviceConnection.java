@@ -2,27 +2,25 @@ package au.csiro.umran.test.readblue;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.UUID;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.os.Handler;
 import android.util.Log;
-import au.csiro.umran.test.readblue.blueparser.LengthBasedParser;
-import au.csiro.umran.test.readblue.blueparser.Parser;
-import au.csiro.umran.test.readblue.blueparser.MarkerBasedParser;
-import au.csiro.umran.test.readblue.blueparser.OnMessageListener;
-import au.csiro.umran.test.readblue.filewriter.MessageToFileWriter;
-import au.csiro.umran.test.readblue.runcheck.RunningNumberChecker;
+import au.csiro.umran.test.readblue.blueparser.ParsedMsg;
+import au.csiro.umran.test.readblue.blueparser.ParserThread;
+import au.csiro.umran.test.readblue.filewriter.WriterThread;
+import au.csiro.umran.test.readblue.utils.TwoWayBlockingQueue;
 
-public class DeviceConnection extends Thread {
+public class DeviceConnection {
 
 	private static final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	private static final byte[] MARKER = new byte[] {(byte)0x52,(byte)0x48};
 	private static final int MESSAGE_LENGTH = 9;
 	private static final Object BLUETOOTH_SERVICE_OPEN_MUTEX = new Object();
+	
+	private static final int BUFFERED_MSG_COUNT = 500*60*5; // 5min @ 500Hz
+	private static final int BUFFER_MSG_LENGTH = 32;
 	
 	private ReadBlueServiceBinder binder;
 	private ConnectableDevice device;
@@ -30,67 +28,23 @@ public class DeviceConnection extends Thread {
 	private boolean socketIsOpen = false;
 	private boolean connectionIsClosing;
 	private File deviceFile;
-	private MessageToFileWriter fileWriter;
-	private boolean record = false;
-	private Parser blueParser;
+	private boolean recording = false;
+	private ParserThread parserThread;
+	private MessageReceiverThread messageReceiverThread;
+	private TwoWayBlockingQueue<ParsedMsg> msgQueue;
+	private WriterThread writerThread;
 	
-	private final Object waitForThreadToExit = new Object();
-	
-
-	private OnMessageListener onMessageListener = new OnMessageListener() {
-		@Override
-		synchronized public void onMessage(long timeStamp, byte[] message, int length) {
-			binder.addMessage(ByteUtils.bytesToString(message, 0, length));
-		}
-	};
-
 	public DeviceConnection(ReadBlueServiceBinder binder, ConnectableDevice device)
 			throws IOException {
-		super("DeviceConnection:"+device.getDevice().getName());
 		this.binder = binder;
 		this.device = device;
 		this.socket = createSocket(device.getDevice());
 		this.deviceFile = null;
-		this.fileWriter = null;
-
-		
-		this.setPriority(Thread.MAX_PRIORITY);
-		
-		this.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-			@Override
-			public void uncaughtException(Thread thread, Throwable ex) {
-				Log.e(Constants.TAG, ex.getMessage(), ex);
-			}
-		});
+		this.writerThread = null;
 	}
 	
 	public ConnectableDevice getConnectableDevice() {
 		return device;
-	}
-
-	public void close() {
-		Log.d(Constants.TAG, "Closing connection to device: "+device.getDevice().getName());
-		
-		connectionIsClosing = true;
-
-		if (blueParser!=null) {
-			blueParser.quit();
-		}
-		
-		Log.d(Constants.TAG, "Refresh Connectable Device Adapter");
-		refreshConnectableDeviceAdapter();
-		
-		if (isAlive() && !Thread.currentThread().equals(DeviceConnection.this)) {
-			Log.d(Constants.TAG, "Waiting for thread exit");
-			synchronized (waitForThreadToExit) {
-				try {
-					waitForThreadToExit.wait();
-				} catch (InterruptedException e) {
-				}
-			}
-		}
-
-		Log.d(Constants.TAG, "Thread exit.");
 	}
 
 	public String getConnectionState() {
@@ -102,8 +56,8 @@ public class DeviceConnection extends Thread {
 			}
 		} else {
 			if (socketIsOpen) {
-				if (record)
-					return "recording"+((blueParser!=null)?(":"+blueParser.getLastestReadTime()):"");
+				if (recording)
+					return "recording"+((parserThread!=null)?(":"+parserThread.getParser().getLastestReadTime()):"");
 				else
 					return "connected";
 			} else {
@@ -125,24 +79,30 @@ public class DeviceConnection extends Thread {
 		binder.addMessage(msg);
 	}
 	
-	private void connectSocket() throws IOException {
+	public void connect() throws IOException {
 		int serviceDisconveryRetries = 0;
 		synchronized (BLUETOOTH_SERVICE_OPEN_MUTEX) {
 			while (!connectionIsClosing) {
 				try {
-						if (this.device.getAdapter().isDiscovering()) {
-							Log.d(Constants.TAG, "Cancelling discovery");
-							this.device.getAdapter().cancelDiscovery();
-						}
-						
-						Log.d(Constants.TAG, "Connecting to device");
-						this.socket.connect();
-						Log.d(Constants.TAG, "Device connected.");
+					if (this.device.getAdapter().isDiscovering()) {
+						Log.d(Constants.TAG, "Cancelling discovery");
+						this.device.getAdapter().cancelDiscovery();
+					}
+					
+					Log.d(Constants.TAG, "Connecting to device");
+					this.socket.connect();
+					socketIsOpen = true;
+					Log.d(Constants.TAG, "Device connected.");
+					
 					return;
 				} catch (IOException ioe) {
 					if (ioe.getMessage().equalsIgnoreCase("Service discovery failed") && serviceDisconveryRetries<1000) {
 						++serviceDisconveryRetries;
-						Thread.yield();
+						try {
+							Thread.sleep(1000L);
+						} catch (InterruptedException e) {
+							// ignore
+						}
 						continue;
 					} else {
 						throw ioe;
@@ -152,41 +112,81 @@ public class DeviceConnection extends Thread {
 		}
 	}
 	
-	public void startRecording() {
-		record = true;
+	public void close() {
+		Log.d(Constants.TAG, "Closing connection to device: "+device.getDevice().getName());
+		
+		connectionIsClosing = true;
+		
+		stopRecording();
+		try {
+			this.socket.close();
+			socketIsOpen = false;
+		} catch (IOException e) {
+			Log.e(Constants.TAG, "Error while closing socket to device: "+device.getDevice().getName(), e);
+		}
+
+		Log.d(Constants.TAG, "Refresh Connectable Device Adapter");
+		refreshConnectableDeviceAdapter();
+
 	}
-	
-	public void stopRecording() {
-		record = false;
-		if (blueParser!=null) {
-			this.interrupt();
-			blueParser.quit();
+
+	public void startRecording() {
+		try {
+			msgQueue = new TwoWayBlockingQueue<ParsedMsg>(BUFFERED_MSG_COUNT) {
+				@Override
+				protected ParsedMsg getNewInstance() {
+					return new ParsedMsg(BUFFER_MSG_LENGTH);
+				}
+			};
+			openWriter();
+			this.messageReceiverThread = new MessageReceiverThread(msgQueue, binder, writerThread);
+			this.parserThread = new ParserThread("ParserThread:"+device.getDevice().getName(), MARKER, this, socket.getInputStream(), msgQueue);
+			recording = true;
+		} catch (IOException e) {
+			Log.e(Constants.TAG, "Error while initializing recording: "+device.getDevice().getName(), e);
+			this.close();
+		} finally {
+			if (!recording) {
+				closeWriter();
+			}
 		}
 	}
 	
+	public void stopRecording() {
+		recording = false;
+		if (this.parserThread!=null) {
+			this.parserThread.quit();
+			this.parserThread = null;
+		}
+		if (this.messageReceiverThread!=null) {
+			this.messageReceiverThread.quit();
+			this.messageReceiverThread = null;
+		}
+		closeWriter();
+		msgQueue = null;
+	}
+	
 	public boolean isRecording() {
-		return record;
+		return recording;
 	}
 	
 	private void openWriter() throws IOException {
 		this.deviceFile = FileUtils.getFileForDevice(device.getDevice().getName());
 		FileUtils.ensureParentFolderExists(deviceFile);
-		this.fileWriter = new MessageToFileWriter(onMessageListener,
-				deviceFile);
+		this.writerThread = new WriterThread(this, deviceFile);
 	}
 	
 	private void closeWriter() {
-		if (this.fileWriter != null) {
+		if (this.writerThread != null) {
 			Log.d(Constants.TAG, "Closing file writer");
-			try {
+			if (deviceFile.exists())
 				displayMsgFromSepThread("Data saved at " + deviceFile);
-				this.fileWriter.close();
-				this.fileWriter = null;
-			} catch (IOException e) {
-			}
+			this.writerThread.quit();
+			this.writerThread = null;
 		}
 	}
 	
+	/*
 	@Override
 	public void run() {
 		try {
@@ -298,5 +298,8 @@ public class DeviceConnection extends Thread {
 			Log.d(Constants.TAG, "Waiting threads notified");
 		}
 	}
-
+	*/
+	
+	 
+	
 }

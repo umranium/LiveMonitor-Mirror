@@ -126,36 +126,10 @@ public class ReadBlueService extends Service {
 				messages.add(new SystemMessage(time, msg));
 				while (messages.size()>MAX_MSG_COUNT)
 					messages.remove(0);
-//				mainLooperHandler.postDelayed(new SystemMessagesUpdate(time), SYSTEM_MSG_REFRESH_DELAY); // execute update after a second
-//				latestUpdateRequest = time;
 			}
 			
 		}
 	}
-	
-//	private long latestUpdateRequest = 0;
-//	private long latestUpdate = 0;
-//	private class SystemMessagesUpdate implements Runnable {
-//		private long time;
-//		
-//		public SystemMessagesUpdate(long time) {
-//			this.time = time;
-//		}
-//		
-//		@Override
-//		public void run() {
-//			// execute either if this is the latest update (i.e. the system is idle),
-//			//		or it has been more than a second since the last update
-//			if (time==latestUpdateRequest || time-latestUpdate>=SYSTEM_MSG_REFRESH_DELAY) {
-//				synchronized (messages) {
-//					if (eventHandler!=null) {
-//						eventHandler.onMessagesUpdated();
-//						latestUpdate = time;
-//					}
-//				}
-//			}
-//		}
-//	}
 	
 	private InternReadBlueServiceBinder binder = new InternReadBlueServiceBinder();
 	
@@ -183,14 +157,6 @@ public class ReadBlueService extends Service {
 		this.connectableDevices = new ArrayList<ConnectableDevice>();
 		this.messages = new ArrayList<SystemMessage>();
 		this.mainLooperHandler = new Handler(this.getMainLooper());
-//		this.executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
-//			@Override
-//			public Thread newThread(Runnable r) {
-//				Thread t = new Thread(r, "Executor-Thread");
-//				t.setPriority(Thread.MIN_PRIORITY);
-//				return t;
-//			}
-//		});
 		
 		bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (bluetoothAdapter == null) {
@@ -207,7 +173,10 @@ public class ReadBlueService extends Service {
 			stopScanning(false);
 		}
 		
-//		executor.shutdown();
+		for (ConnectableDevice device:connectableDevices) {
+			device.disconnect();
+		}
+		connectableDevices.clear();
 		
 		Log.d(Constants.TAG, "Service destroyed");
 	}
@@ -260,9 +229,7 @@ public class ReadBlueService extends Service {
 
 		//	disconnect from currently connected devices
 		for (ConnectableDevice connectableDevice:connectableDevices) {
-			if (connectableDevice.isConnected()) {
-				connectableDevice.disconnect();
-			}
+			connectableDevice.disconnect();
 		}
 		connectableDevices.clear();
 		if (eventHandler!=null) {
@@ -329,7 +296,7 @@ public class ReadBlueService extends Service {
 			} else {
 				Log.d(Constants.TAG, "Device "+connectableDevice.getDevice().getName()+" is not connected. Connecting.");
 				try {
-					connectableDevice.establishConnection(binder);
+					connectableDevice.connect(binder);
 				} catch (IOException e) {
 					Log.e(Constants.TAG, "Error while trying to establish connection to device", e);
 					binder.addMessage("Error: "+e.getMessage());
