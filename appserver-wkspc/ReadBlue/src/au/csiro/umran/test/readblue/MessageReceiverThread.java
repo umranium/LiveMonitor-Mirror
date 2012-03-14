@@ -1,9 +1,10 @@
 package au.csiro.umran.test.readblue;
 
+import java.io.IOException;
+
+import android.content.Context;
 import android.util.Log;
-import au.csiro.umran.test.readblue.blueparser.ParsedMsg;
-import au.csiro.umran.test.readblue.filewriter.WriteMessage;
-import au.csiro.umran.test.readblue.filewriter.WriterThread;
+import au.csiro.umran.test.readblue.filewriter.Writer;
 import au.csiro.umran.test.readblue.utils.TwoWayBlockingQueue;
 
 /**
@@ -16,12 +17,14 @@ import au.csiro.umran.test.readblue.utils.TwoWayBlockingQueue;
  */
 class MessageReceiverThread extends QuitableThread {
 	
+	private DeviceConnection connection;
 	private TwoWayBlockingQueue<ParsedMsg> queue;
 	private ReadBlueServiceBinder binder;
-	private WriterThread writerThread;
+	private Writer writerThread;
 	
-	public MessageReceiverThread(TwoWayBlockingQueue<ParsedMsg> queue, ReadBlueServiceBinder binder, WriterThread writerThread) {
-		super("MessageReceiverThread");
+	public MessageReceiverThread(Context context, DeviceConnection connection, TwoWayBlockingQueue<ParsedMsg> queue, ReadBlueServiceBinder binder, Writer writerThread) {
+		super(context, "MessageReceiverThread:"+connection.getConnectableDevice().getDevice().getName());
+		this.connection = connection;
 		this.queue = queue;
 		this.binder = binder;
 		this.writerThread = writerThread;
@@ -31,28 +34,19 @@ class MessageReceiverThread extends QuitableThread {
 	
 	@Override
 	public void doAction() {
-		ParsedMsg parsedMsg = this.queue.peekFilledInstance();
-		if (parsedMsg!=null) {
+		if (this.queue.peekFilledInstance()!=null) {
+			ParsedMsg parsedMsg = null;
 			try {
-				binder.addMessage(ByteUtils.bytesToString(parsedMsg.msg, 0, parsedMsg.msgLen));
-				
-				WriteMessage writeMsg = null;
-				try {
-					writeMsg = this.writerThread.getQueue().takeEmptyInstance();
-					writeMsg.assign(parsedMsg.time, parsedMsg.msg, parsedMsg.msgLen);
-					this.writerThread.getQueue().returnFilledInstance(writeMsg);
-					writeMsg = null;
-				} catch (InterruptedException e) {
-					// ignore
-				} finally {
-					if (parsedMsg!=null) {
-						try {
-							this.writerThread.getQueue().returnEmptyInstance(writeMsg);
-						} catch (InterruptedException e) {
-							// ignore
-						}
-					}
-				}
+				parsedMsg = this.queue.takeFilledInstance();
+				//binder.addMessage(ByteUtils.bytesToString(parsedMsg.msg, 0, parsedMsg.msgLen));
+				writerThread.writeToFile(parsedMsg);
+				this.queue.returnEmptyInstance(parsedMsg);
+				parsedMsg = null;
+			} catch (IOException e) {
+				Log.e(Constants.TAG, "Error while writing to device data to file: "+connection.getConnectableDevice().getDevice().getName(), e);
+				quit();
+			} catch (InterruptedException e) {
+				// ignore
 			} finally {
 				if (parsedMsg!=null) {
 					try {

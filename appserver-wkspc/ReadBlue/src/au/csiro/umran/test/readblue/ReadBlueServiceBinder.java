@@ -22,5 +22,7 @@ public interface ReadBlueServiceBinder {
 	
 	List<SystemMessage> getMessages();
 	void addMessage(String msg);
+	
+	void playSoundAlert();
 
 }

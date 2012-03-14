@@ -72,8 +72,14 @@ public class Main extends Activity {
 		btnStartRecording.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (serviceBinder!=null)
-					serviceBinder.startRecording();
+				if (serviceBinder!=null) {
+					handler.post(new Runnable() {
+						public void run() {
+							if (serviceBinder!=null)
+								serviceBinder.startRecording();
+						}
+					});
+				}
 			}
 		});
 		
@@ -81,8 +87,14 @@ public class Main extends Activity {
 		btnStopRecording.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (serviceBinder!=null)
-					serviceBinder.stopRecording();
+				if (serviceBinder!=null) {
+					handler.post(new Runnable() {
+						public void run() {
+							if (serviceBinder!=null)
+								serviceBinder.stopRecording();
+						}
+					});
+				}
 			}
 		});
 		
@@ -106,9 +118,13 @@ public class Main extends Activity {
 			public void onItemClick(AdapterView<?> parent, View vew, int pos,
 					long id) {
 				Log.d(Constants.TAG, "Connectable Device Item Clicked");
-				ConnectableDevice connectableDevice = lstConnectableDevicesAdapter
+				final ConnectableDevice connectableDevice = lstConnectableDevicesAdapter
 						.getItem(pos);
-				connectTo(connectableDevice);
+				handler.post(new Runnable() {
+					public void run() {
+						connectTo(connectableDevice);
+					}
+				});
 			}
 		});
 		
@@ -120,6 +136,7 @@ public class Main extends Activity {
 		Intent serviceIntent = new Intent(this, ReadBlueService.class);
 		this.bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
 		
+		CustomUncaughtExceptionHandler.setInterceptHandler(this, Thread.currentThread());
 	}
 	
 	@Override
@@ -196,6 +213,50 @@ public class Main extends Activity {
 		}
 	}
 	
+	private void updateMessages() {
+		if (serviceBinder!=null) {
+			List<SystemMessage> messages = serviceBinder.getMessages();
+			
+			//	remove from the top
+			
+			long earliestMsgInService = 0;
+			
+			if (!messages.isEmpty()) {
+				earliestMsgInService = messages.get(0).timeStamp;
+			}
+			
+			List<SystemMessage> filterOff = new ArrayList<SystemMessage>();
+			for (int i=0; i<lstMessagesAdapter.getCount(); ++i) {
+				SystemMessage msg = lstMessagesAdapter.getItem(i); 
+				if (msg.timeStamp<earliestMsgInService) {
+					filterOff.add(msg);
+				} else {
+					break;
+				}
+			}
+			
+			for (SystemMessage msg:filterOff)
+				lstMessagesAdapter.remove(msg);
+			
+			// add to the bottom
+			
+			long latestMsgInUi = 0;
+			
+			if (!lstMessagesAdapter.isEmpty()) {
+				latestMsgInUi = lstMessagesAdapter.getItem(lstMessagesAdapter.getCount()-1).timeStamp;
+			}
+			
+			for (int l=messages.size(), i=0; i<l; ++i) {
+				SystemMessage msg = messages.get(i);
+				if (msg!=null) {
+					if (msg.timeStamp>latestMsgInUi) {
+						lstMessagesAdapter.add(msg);
+					}
+				}
+			}
+		}
+	}
+	
 	private ServiceConnection serviceConnection = new ServiceConnection() {
 		
 		@Override
@@ -224,12 +285,11 @@ public class Main extends Activity {
 		@Override
 		public void run() {
 			if (enabled) {
-				serviceEventHandler.onMessagesUpdated();
+				updateMessages();
 				lstConnectableDevicesAdapter.notifyDataSetChanged();
-				handler.postDelayed(this, 500L);
+				handler.postDelayed(this, 1000L);
 			}
 		}
-		
 		
 	}
 
@@ -253,50 +313,11 @@ public class Main extends Activity {
 		
 		@Override
 		public void onMessagesUpdated() {
+			Log.d(Constants.TAG, "onMessagesUpdated()");
 			handler.post(new Runnable() {
 				@Override
 				public void run() {
-					if (serviceBinder!=null) {
-						List<SystemMessage> messages = serviceBinder.getMessages();
-						
-						//	remove from the top
-						
-						long earliestMsgInService = 0;
-						
-						if (!messages.isEmpty()) {
-							earliestMsgInService = messages.get(0).timeStamp;
-						}
-						
-						List<SystemMessage> filterOff = new ArrayList<SystemMessage>();
-						for (int i=0; i<lstMessagesAdapter.getCount(); ++i) {
-							SystemMessage msg = lstMessagesAdapter.getItem(i); 
-							if (msg.timeStamp<earliestMsgInService) {
-								filterOff.add(msg);
-							} else {
-								break;
-							}
-						}
-						
-						for (SystemMessage msg:filterOff)
-							lstMessagesAdapter.remove(msg);
-						
-						// add to the bottom
-						
-						long latestMsgInUi = 0;
-						
-						if (!lstMessagesAdapter.isEmpty()) {
-							latestMsgInUi = lstMessagesAdapter.getItem(lstMessagesAdapter.getCount()-1).timeStamp;
-						}
-						
-						for (int l=messages.size(), i=0; i<l; ++i) {
-							SystemMessage msg = messages.get(i);
-							if (msg!=null) {
-								if (msg.timeStamp>latestMsgInUi) {
-									lstMessagesAdapter.add(msg);
-								}
-							}
-						}
-					}
+					updateMessages();
 				}
 			});
 		}
@@ -323,6 +344,8 @@ public class Main extends Activity {
 					boolean hasItems = lstConnectableDevicesAdapter.getCount()>0;
 					btnStartRecording.setEnabled(hasItems);
 					btnStopRecording.setEnabled(hasItems);
+					
+					onScanningStateChanged();
 				}
 			});
 			

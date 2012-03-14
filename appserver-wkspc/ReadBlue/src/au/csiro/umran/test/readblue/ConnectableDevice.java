@@ -4,15 +4,18 @@ import java.io.IOException;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.util.Log;
 
 public class ConnectableDevice {
 	
+	private Context context;
 	private BluetoothAdapter adapter;
 	private BluetoothDevice device;
 	private DeviceConnection connection;
 
-	public ConnectableDevice(BluetoothAdapter adapter, BluetoothDevice device) {
+	public ConnectableDevice(Context context, BluetoothAdapter adapter, BluetoothDevice device) {
+		this.context = context;
 		this.adapter = adapter;
 		this.device = device;
 		this.connection = null;
@@ -33,7 +36,7 @@ public class ConnectableDevice {
 		}
 		
 		Log.d(Constants.TAG, "Establishing a DeviceConnection.");
-		connection = new DeviceConnection(binder, this);
+		connection = new DeviceConnection(context, binder, this);
 		connection.connect();
 	}
 	
@@ -48,6 +51,14 @@ public class ConnectableDevice {
 	
 	public boolean isConnected() {
 		return connection!=null;
+	}
+	
+	public boolean isRecording() {
+		return connection!=null && connection.isRecording();
+	}
+	
+	public DeviceConnection getConnection() {
+		return connection;
 	}
 	
 	public String getConnectionState() {

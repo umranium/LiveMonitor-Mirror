@@ -10,13 +10,19 @@ import android.util.Log;
 import au.csiro.umran.test.readblue.ByteUtils;
 import au.csiro.umran.test.readblue.Constants;
 import au.csiro.umran.test.readblue.DeviceConnection;
+import au.csiro.umran.test.readblue.ParsedMsg;
+import au.csiro.umran.test.readblue.ReadBlueServiceBinder;
 import au.csiro.umran.test.readblue.utils.CircularByteBuffer;
 import au.csiro.umran.test.readblue.utils.TwoWayBlockingQueue;
 
 /**
  * 
  * A parser that makes use of a circular buffer, to read bytes from an input stream,
- * searching for a particular series of bytes (i.e. a marker).
+ * searching for a particular series of bytes (i.e. a marker). Initially, the parser
+ * gathers input and determines the length of the messages and offset to the first
+ * message based on the locations of the markers that appear in the input. 
+ * Once the length of the message is determined, the length is used to parse the input
+ * stream. 
  * 
  * @author abd01c
  */
@@ -27,7 +33,10 @@ public class MarkerBasedParser implements Parser {
 	private static final int BUFFER_INCREMENTS = 64;
 	private static final int RUNNING_NUMBER_LENGTH = 2;
 	
+	private String tag;
+	
 	private byte[] marker;
+	private ReadBlueServiceBinder binder;
 	private DeviceConnection deviceConnection;
 	private String deviceName;
 	private InputStream inputStream;
@@ -35,22 +44,25 @@ public class MarkerBasedParser implements Parser {
 	
 	private TwoWayBlockingQueue<ParsedMsg> outputQueue;
 	private LengthOffsetFinder lengthOffsetFinder;
-	private RunningNumberChecker runningNumberChecker;
+	private PacketVerifier runningNumberChecker;
 	
 	private long latestReadTimestamp;
 	
 	private boolean firstRun;
 	private boolean quit;
 	
-	public MarkerBasedParser(byte[] marker, DeviceConnection deviceConnection, InputStream inputStream, TwoWayBlockingQueue<ParsedMsg> outputQueue) {
+	public MarkerBasedParser(byte[] marker, ReadBlueServiceBinder binder, DeviceConnection deviceConnection, InputStream inputStream, TwoWayBlockingQueue<ParsedMsg> outputQueue) {
+		this.tag = Constants.TAG + "-" + deviceConnection.getConnectableDevice().getDevice().getName().replaceAll("\\W+", "_");
+		
 		this.marker = marker;
+		this.binder = binder;
 		this.deviceConnection = deviceConnection;
 		this.deviceName = deviceConnection.getConnectableDevice().getDevice().getName().replaceAll("\\s+", "_");
 		this.inputStream = inputStream;
 		this.inputBuffer = new CircularByteBuffer(INITIAL_INPUT_BUFFER_SIZE, BUFFER_INCREMENTS);
 		this.outputQueue = outputQueue;
 		this.lengthOffsetFinder = new LengthOffsetFinder(this.inputBuffer, this.marker);
-		this.runningNumberChecker = new RunningNumberChecker(RUNNING_NUMBER_LENGTH);
+		this.runningNumberChecker = new PacketVerifier(this.marker, RUNNING_NUMBER_LENGTH);
 		
 		firstRun = true;
 		quit = false;
@@ -66,58 +78,89 @@ public class MarkerBasedParser implements Parser {
 	{
 		if (firstRun) {
 			firstRun = false;
-			reset();
+			resetStream();
 		}
 		
 		readFromStream();
 		
-		// if offset & length hasn't been confirmed yet..
-		if (!lengthOffsetFinder.isMessageLengthOffsetConfirmed()) {
-			//	find offset and location
-			lengthOffsetFinder.process();
+		if (inputBuffer.getContentLength()>0) {
+			//Log.d(Constants.TAG, "Input Contents:"+bufferContents2Str());
 			
-			//	if confirmed, move read location by offset
-			if (lengthOffsetFinder.isMessageLengthOffsetConfirmed()) {
-				inputBuffer.advanceReadLocation(lengthOffsetFinder.getMessageOffset());
+			// if offset & length hasn't been confirmed yet..
+			if (!lengthOffsetFinder.isMessageLengthOffsetConfirmed()) {
+				//Log.d(Constants.TAG, "length and offset not confirmed yet");
+				
+				//	find offset and location
+				lengthOffsetFinder.process();
+				
+				//	if confirmed, move read location by offset
+				if (lengthOffsetFinder.isMessageLengthOffsetConfirmed()) {
+					inputBuffer.advanceReadLocation(lengthOffsetFinder.getMessageOffset());
+				}
 			}
-		}
-		
-		//	if length has been confirmed, parse
-		if (lengthOffsetFinder.isMessageLengthOffsetConfirmed()) {
-			int msgLen = lengthOffsetFinder.getMessageLength();
 			
-			while (inputBuffer.getContentLength()>=msgLen && !quit) {
-				ParsedMsg msg = null;
+			//	if length has been confirmed, parse
+			if (lengthOffsetFinder.isMessageLengthOffsetConfirmed()) {
+				int msgLen = lengthOffsetFinder.getMessageLength();
+				
 				try {
-					msg = outputQueue.takeEmptyInstance();
-					if (msgLen>msg.msg.length) {
-						throw new RuntimeException("Message bucket (length="+msg.msg.length+") too small to contain parsed message (length="+msgLen+")");
-					}
-					msg.msgLen = msgLen;
-					msg.time = latestReadTimestamp;
-					inputBuffer.copyOut(msg.msg, msgLen);
-					verifyOutputMessage(msg.msg, msgLen);
-					inputBuffer.advanceReadLocation(msgLen);
-					outputQueue.returnFilledInstance(msg);
-					msg = null;
-				} catch (InterruptedException e) {
-					// ignore
-				} finally {
-					if (msg!=null) {
+					while (inputBuffer.getContentLength()>=msgLen && !quit) {
+						ParsedMsg msg = null;
 						try {
-							outputQueue.returnEmptyInstance(msg);
+							msg = outputQueue.takeEmptyInstance();
+							if (msgLen>msg.msg.length) {
+								throw new IOException("Message bucket (length="+msg.msg.length+") too small to contain parsed message (length="+msgLen+")");
+							}
+							msg.msgLen = msgLen;
+							msg.time = latestReadTimestamp;
+							inputBuffer.copyOut(msg.msg, msgLen);
+							verifyOutputMessage(msg.msg, msgLen);
+							inputBuffer.advanceReadLocation(msgLen);
+							outputQueue.returnFilledInstance(msg);
+							//Log.d(Constants.TAG, "msg parsed");
+							msg = null;
 						} catch (InterruptedException e) {
 							// ignore
+						} finally {
+							if (msg!=null) {
+								try {
+									outputQueue.returnEmptyInstance(msg);
+								} catch (InterruptedException e) {
+									// ignore
+								}
+							}
 						}
 					}
-				}
+				} catch (PacketVerificationException e) {
+					byte[] contents = inputBuffer.copyOut();
+					String errmsg = e.getMessage()+"\nInput Buffer Contents: "+ByteUtils.bytesToString(contents, 0, contents.length);
+					binder.addMessage(errmsg);
+					binder.playSoundAlert();
+					Log.w(Constants.TAG, errmsg, e);
+					binder.addMessage("Connection from "+this.deviceConnection.getConnectableDevice().getDevice().getName()+" lost.");
+					this.deviceConnection.close();
+					binder.addMessage("Attempting to reconnect to "+this.deviceConnection.getConnectableDevice().getDevice().getName());
+					this.deviceConnection.connect(true);
+				} 
 			}
 		}
 	}
 	
+//	private String bufferContents2Str()
+//	{
+//		return bufferContents2Str(inputBuffer);
+//	}
+//	
+//	private static String bufferContents2Str(CircularByteBuffer inputBuffer)
+//	{
+//		byte[] v = inputBuffer.copyOut();
+//		return inputBuffer.getContentLength()+": "+ByteUtils.bytesToString(v, 0, v.length);
+//	}
+	
 	private void readFromStream() throws IOException {
 		//	get number of bytes readable from the stream
 		int available = inputStream.available();
+				
 		//	make sure we have enough space to write bytes into the buffer
 		if (available>0)
 			inputBuffer.ensureWritableSpace(available);
@@ -143,17 +186,11 @@ public class MarkerBasedParser implements Parser {
 		return latestReadTimestamp;
 	}
 	
-	private void verifyOutputMessage(byte[] msg, int length) {
-		for (int i=0; i<marker.length; ++i) {
-			if (msg[i]!=marker[i]) {
-				throw new RuntimeException("Invalid start of message: "+ByteUtils.bytesToString(msg, 0, length)+", expected marker "+ByteUtils.bytesToString(marker, 0, marker.length));
-			}
-		}
-		
+	private void verifyOutputMessage(byte[] msg, int length) throws PacketVerificationException {
 		runningNumberChecker.check(msg, length);
 	}
 	
-	private void reset() {
+	private void resetStream() {
 		try {
 			while (this.inputStream.available()>0)
 				this.inputStream.read();
@@ -182,12 +219,14 @@ public class MarkerBasedParser implements Parser {
 		}
 		
 		void process() {
+			//Log.d(Constants.TAG, "marker indexes: "+markerIndexes);
 			if (markerIndexes.isEmpty()) {
-				while (inputBuffer.getContentLength()>0 && markerIndexes.isEmpty()) {
+				while (inputBuffer.getContentLength()>=marker.length && markerIndexes.isEmpty()) {
 					//	move to a position where the first byte is the same as that of the marker, or end of contents is reached
 					while (inputBuffer.getContentLength()>0 && inputBuffer.get(0)!=marker[0]) {
 						inputBuffer.advanceReadLocation(1);
 					}
+					
 					//	if we have enough content to check for one marker (also meaning that our first byte is the same as that of the marker)
 					if (inputBuffer.getContentLength()>=marker.length) {
 						if (isMarkerAt(0)) {
@@ -240,7 +279,7 @@ public class MarkerBasedParser implements Parser {
 		 */
 		boolean isMarkerAt(int inputBufferStart)
 		{
-			boolean isMarker = false;
+			boolean isMarker = true;
 			for (int j=1; j<marker.length; ++j) {
 				if (inputBuffer.get(inputBufferStart+j)!=marker[j]) {
 					isMarker = false;
@@ -250,52 +289,58 @@ public class MarkerBasedParser implements Parser {
 			return isMarker;
 		}
 		
-		void determineMsgLenOffset() {
-			int lastMarkerLoc = markerIndexes.get(markerIndexes.size()-1);
-			boolean setupChecked[][] = new boolean[lastMarkerLoc+1][lastMarkerLoc];
-			HashSet<Integer> markerLocations = new HashSet<Integer>(markerIndexes);
-			
-			ArrayList<OffsetLengthDetails> details = new ArrayList<OffsetLengthDetails>(markerIndexes.size());
-			
-			for (int first=0; first<markerIndexes.size()-2; ++first) {
-				for (int second=first+1; second<markerIndexes.size()-1; ++second) {
-					int dist = markerIndexes.get(second) - markerIndexes.get(first);
-					
-					if (!setupChecked[first][dist]) {
-						setupChecked[second][dist] = true;
-						
-						int count = 0;
-						for (int loc=second+dist; loc<lastMarkerLoc; ++loc) {
-							setupChecked[loc][dist] = true;
-							
-							if (markerLocations.contains(loc)) {
-								//	found another marker (good!!!)
-								++count;
-							} else {
-								//	found a missing location (means this isn't a valid setup)
-								count = -1;
-								break;
-							}
-						}
-						
-						if (count>0) {
-							details.add(new OffsetLengthDetails(first, dist, count));
-						}
-					}
-				}
-			}
-			
-			if (!details.isEmpty()) {
-				Collections.sort(details);
-				
-				if ((details.size()==1 && details.get(0).count>=REQ_MARKERS) ||
-						details.get(0).count-details.get(1).count>=REQ_MARKERS) {
-					messageLengthOffsetConfirmed = true;
-					messageOffset = details.get(0).offset;
-					messageLength = details.get(0).length;
-				}
-			}
-		}
+	    void determineMsgLenOffset() {
+	        //Log.d(Constants.TAG, "Determining Msg Length & Offset");
+
+	        int lastMarkerLoc = markerIndexes.get(markerIndexes.size() - 1);
+	        boolean setupChecked[][] = new boolean[lastMarkerLoc + 1][lastMarkerLoc];
+	        HashSet<Integer> markerLocations = new HashSet<Integer>(markerIndexes);
+
+	        ArrayList<OffsetLengthDetails> details = new ArrayList<OffsetLengthDetails>(markerIndexes.size());
+
+	        for (int firstIndex = 0; firstIndex < markerIndexes.size() - 2; ++firstIndex) {
+	            for (int secondIndex = firstIndex + 1; secondIndex < markerIndexes.size() - 1; ++secondIndex) {
+	                int firstItem = markerIndexes.get(firstIndex);
+	                int secondItem = markerIndexes.get(secondIndex);
+	                int dist = secondItem - firstItem;
+
+	                if (!setupChecked[firstItem][dist]) {
+	                    setupChecked[secondItem][dist] = true;
+
+	                    int count = 0;
+	                    for (int loc = secondItem + dist; loc < lastMarkerLoc; loc+=dist) {
+	                        setupChecked[loc][dist] = true;
+	                        
+	                        if (markerLocations.contains(loc)) {
+	                            //	found another marker (good!!!)
+	                            ++count;
+	                        } else {
+	                            //	found a missing location (means this isn't a valid setup)
+	                            count = -1;
+	                            break;
+	                        }
+	                    }
+
+	                    if (count > 0) {
+	                        details.add(new OffsetLengthDetails(firstItem, dist, count));
+	                    }
+	                }
+	            }
+	        }
+
+	        if (!details.isEmpty()) {
+	            Collections.sort(details);
+
+	            //Log.d(Constants.TAG, details.toString());
+
+	            if ((details.size() == 1 && details.get(0).count >= REQ_MARKERS)
+	                    || details.get(0).count - details.get(1).count >= REQ_MARKERS) {
+	                messageLengthOffsetConfirmed = true;
+	                messageOffset = details.get(0).offset;
+	                messageLength = details.get(0).length;
+	            }
+	        }
+	    }
 		
 	}
 	
@@ -315,56 +360,9 @@ public class MarkerBasedParser implements Parser {
 			return -(this.count-another.count);	// sort, larger first
 		}
 		
-	}
-	
-	private static class RunningNumberChecker {
-		private byte[] currentNumber;
-		private int lengthOfRunningNumber;
-		private boolean numberInitialized;
-		
-		public RunningNumberChecker(int lengthOfRunningNumber) {
-			this.currentNumber = new byte[lengthOfRunningNumber];
-			this.lengthOfRunningNumber = lengthOfRunningNumber;
-			this.numberInitialized = false;
-		}
-		
-		private void incrRunningNumber()
-		{
-			int val;
-			for (int i=0; i<lengthOfRunningNumber; ++i) {
-				val = (currentNumber[i] & 0xFF);
-				++val;
-				currentNumber[i] = (byte)(val & 0xFF);
-				if (val<=0xFF) {
-					break;
-				}
-			}
-		}
-		
-		public void check(byte[] message, int length)
-		{
-			if (length<lengthOfRunningNumber) {
-				throw new RuntimeException("Message is shorter than the expected running number! ("+length+"<"+lengthOfRunningNumber+")");
-			}
-			
-			if (!numberInitialized) {
-				for (int i=1; i<=lengthOfRunningNumber; ++i) {
-					currentNumber[lengthOfRunningNumber-i] = message[length-i];
-				}
-				numberInitialized = true;
-			} else {
-				incrRunningNumber();
-				
-				// check if running number is as expected
-				for (int i=1; i<=lengthOfRunningNumber; ++i) {
-					if (currentNumber[lengthOfRunningNumber-i] != message[length-i]) {
-						throw new RuntimeException("Unexpected Running Number. Found:["+
-									ByteUtils.bytesToString(message, length-lengthOfRunningNumber, lengthOfRunningNumber)+
-									"], Expected:["+
-									ByteUtils.bytesToString(currentNumber, 0, lengthOfRunningNumber)+"]");
-					}
-				}
-			}
+		@Override
+		public String toString() {
+			return "{off:"+offset+", len="+length+", count="+count+"}";
 		}
 	}
 	

@@ -2,14 +2,15 @@ package au.csiro.umran.test.readblue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.util.Log;
-import au.csiro.umran.test.readblue.blueparser.ParsedMsg;
 import au.csiro.umran.test.readblue.blueparser.ParserThread;
-import au.csiro.umran.test.readblue.filewriter.WriterThread;
+import au.csiro.umran.test.readblue.filewriter.Writer;
 import au.csiro.umran.test.readblue.utils.TwoWayBlockingQueue;
 
 public class DeviceConnection {
@@ -18,10 +19,14 @@ public class DeviceConnection {
 	private static final byte[] MARKER = new byte[] {(byte)0x52,(byte)0x48};
 	private static final int MESSAGE_LENGTH = 9;
 	private static final Object BLUETOOTH_SERVICE_OPEN_MUTEX = new Object();
+	private static final TreeSet<String> IGNORABLE_ERRORS = new TreeSet<String>() {
+		{
+			this.add("Service discovery failed");
+			this.add("Unable to start Service Discovery");
+		}
+	};
 	
-	private static final int BUFFERED_MSG_COUNT = 500*60*5; // 5min @ 500Hz
-	private static final int BUFFER_MSG_LENGTH = 32;
-	
+	private Context context;
 	private ReadBlueServiceBinder binder;
 	private ConnectableDevice device;
 	private BluetoothSocket socket;
@@ -29,18 +34,30 @@ public class DeviceConnection {
 	private boolean connectionIsClosing;
 	private File deviceFile;
 	private boolean recording = false;
+	private ParsedMsgQueue msgQueue;
 	private ParserThread parserThread;
 	private MessageReceiverThread messageReceiverThread;
-	private TwoWayBlockingQueue<ParsedMsg> msgQueue;
-	private WriterThread writerThread;
+	private Writer writer;
 	
-	public DeviceConnection(ReadBlueServiceBinder binder, ConnectableDevice device)
-			throws IOException {
+	public DeviceConnection(Context context, ReadBlueServiceBinder binder, ConnectableDevice device) {
+		this.context = context;
 		this.binder = binder;
 		this.device = device;
-		this.socket = createSocket(device.getDevice());
+		this.socket = null;
 		this.deviceFile = null;
-		this.writerThread = null;
+		this.writer = null;
+		this.msgQueue = new ParsedMsgQueue();
+
+	}
+	
+	@Override
+	protected void finalize() throws Throwable {
+		Log.v(Constants.TAG, "DeviceConnection Finalized");
+		if (socket!=null && socketIsOpen) {
+			Log.v(Constants.TAG, "Socket closed");
+			socket.close();
+		}
+		super.finalize();
 	}
 	
 	public ConnectableDevice getConnectableDevice() {
@@ -67,8 +84,7 @@ public class DeviceConnection {
 	}
 	
 	private static BluetoothSocket createSocket(BluetoothDevice device) throws IOException {
-		//return device.createInsecureRfcommSocketToServiceRecord(SPP_UUID);
-		return device.createRfcommSocketToServiceRecord(SPP_UUID);
+		return device.createInsecureRfcommSocketToServiceRecord(SPP_UUID);
 	}
 
 	private void refreshConnectableDeviceAdapter() {
@@ -79,7 +95,30 @@ public class DeviceConnection {
 		binder.addMessage(msg);
 	}
 	
-	public void connect() throws IOException {
+	public void connect() {
+		connect(false);
+	}
+	
+	public void connect(final boolean startRecording) {
+		Thread th = new Thread("AsyncConnectThread") {
+			public void run() {
+				CustomUncaughtExceptionHandler.setInterceptHandler(context, this);
+				
+				connectionIsClosing = false;
+				
+				try {
+					asyncConnect(startRecording);
+				} catch (IOException e) {
+					Log.e(Constants.TAG, "Error while trying to establish connection to device", e);
+					binder.addMessage("Error: "+e.getMessage());
+				}
+			};
+		};
+		
+		th.start();
+	}
+	
+	private void asyncConnect(boolean startRecording) throws IOException {
 		int serviceDisconveryRetries = 0;
 		synchronized (BLUETOOTH_SERVICE_OPEN_MUTEX) {
 			while (!connectionIsClosing) {
@@ -90,13 +129,21 @@ public class DeviceConnection {
 					}
 					
 					Log.d(Constants.TAG, "Connecting to device");
+					if (this.socket==null) {
+						this.socket = createSocket(device.getDevice());
+					}
+					
 					this.socket.connect();
 					socketIsOpen = true;
 					Log.d(Constants.TAG, "Device connected.");
 					
+					if (startRecording) {
+						startRecording();
+					}
+					
 					return;
 				} catch (IOException ioe) {
-					if (ioe.getMessage().equalsIgnoreCase("Service discovery failed") && serviceDisconveryRetries<1000) {
+					if (IGNORABLE_ERRORS.contains(ioe.getMessage()) && serviceDisconveryRetries<1000) {
 						++serviceDisconveryRetries;
 						try {
 							Thread.sleep(1000L);
@@ -120,6 +167,7 @@ public class DeviceConnection {
 		stopRecording();
 		try {
 			this.socket.close();
+			this.socket = null;
 			socketIsOpen = false;
 		} catch (IOException e) {
 			Log.e(Constants.TAG, "Error while closing socket to device: "+device.getDevice().getName(), e);
@@ -132,15 +180,19 @@ public class DeviceConnection {
 
 	public void startRecording() {
 		try {
-			msgQueue = new TwoWayBlockingQueue<ParsedMsg>(BUFFERED_MSG_COUNT) {
-				@Override
-				protected ParsedMsg getNewInstance() {
-					return new ParsedMsg(BUFFER_MSG_LENGTH);
+			while (msgQueue.peekFilledInstance()!=null) {
+				try {
+					ParsedMsg msg = msgQueue.takeFilledInstance();
+					msgQueue.returnEmptyInstance(msg);
+				} catch (InterruptedException e) {
+					// ignore
 				}
-			};
+			}
+			msgQueue.assertAllAvailable();
 			openWriter();
-			this.messageReceiverThread = new MessageReceiverThread(msgQueue, binder, writerThread);
-			this.parserThread = new ParserThread("ParserThread:"+device.getDevice().getName(), MARKER, this, socket.getInputStream(), msgQueue);
+			this.messageReceiverThread = new MessageReceiverThread(context, this, msgQueue, binder, writer);
+			this.parserThread = new ParserThread(context, "ParserThread:"+device.getDevice().getName(), MARKER, 
+					binder, this, socket.getInputStream(), msgQueue);
 			recording = true;
 		} catch (IOException e) {
 			Log.e(Constants.TAG, "Error while initializing recording: "+device.getDevice().getName(), e);
@@ -163,7 +215,6 @@ public class DeviceConnection {
 			this.messageReceiverThread = null;
 		}
 		closeWriter();
-		msgQueue = null;
 	}
 	
 	public boolean isRecording() {
@@ -173,16 +224,16 @@ public class DeviceConnection {
 	private void openWriter() throws IOException {
 		this.deviceFile = FileUtils.getFileForDevice(device.getDevice().getName());
 		FileUtils.ensureParentFolderExists(deviceFile);
-		this.writerThread = new WriterThread(this, deviceFile);
+		this.writer = new Writer(this, deviceFile);
 	}
 	
 	private void closeWriter() {
-		if (this.writerThread != null) {
+		if (this.writer != null) {
 			Log.d(Constants.TAG, "Closing file writer");
 			if (deviceFile.exists())
 				displayMsgFromSepThread("Data saved at " + deviceFile);
-			this.writerThread.quit();
-			this.writerThread = null;
+			this.writer.close();
+			this.writer = null;
 		}
 	}
 	

@@ -1,5 +1,6 @@
 package au.csiro.umran.test.readblue;
 
+import android.content.Context;
 import android.util.Log;
 
 /**
@@ -8,10 +9,12 @@ import android.util.Log;
  */
 public abstract class QuitableThread extends Thread {
 	
+	private Context context;
 	private boolean quit;
 	
-	public QuitableThread(String name) {
+	public QuitableThread(Context context, String name) {
 		super(name);
+		this.context = context;
 		this.quit = false;
 	}
 	
@@ -38,12 +41,18 @@ public abstract class QuitableThread extends Thread {
 	
 	@Override
 	public void run() {
-		Log.d(Constants.TAG, this.getName()+" thread started.");
-		while (!this.quit) {
-			doAction();
-			Thread.yield();
+		CustomUncaughtExceptionHandler.setInterceptHandler(context, this);
+		
+		try {
+			Log.d(Constants.TAG, this.getName()+" thread started.");
+			while (!this.quit) {
+				doAction();
+				Thread.yield();
+			}
+		} finally {
+			doFinalize();
 		}
-		doFinalize();
+		
 		Log.d(Constants.TAG, this.getName()+" thread finished.");
 	}
 	

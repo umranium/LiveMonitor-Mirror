@@ -20,6 +20,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
@@ -46,7 +50,7 @@ public class ReadBlueService extends Service {
 		
 		@Override
 		public boolean isScanningEnabled() {
-			return scanningEnabled;
+			return scanningEnabled && !anyDeviceConnected();
 		}
 		
 		@Override
@@ -129,9 +133,21 @@ public class ReadBlueService extends Service {
 			}
 			
 		}
+		
+		@Override
+		public void playSoundAlert() {
+			mainLooperHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					ReadBlueService.this.playSoundAlert();
+				}
+			});
+		}
 	}
 	
 	private InternReadBlueServiceBinder binder = new InternReadBlueServiceBinder();
+	
+	private AudioManager audioManager;
 	
 	private boolean scanningEnabled;
 	private boolean scanning;
@@ -163,6 +179,11 @@ public class ReadBlueService extends Service {
 			this.scanningEnabled = false;
 			binder.addMessage("Device does not support bluetooth");
 		}
+		
+		this.audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		this.audioManager.setStreamVolume(Constants.ALERT_STREAM_TYPE, audioManager.getStreamMaxVolume(Constants.ALERT_STREAM_TYPE), 0);
+
+		CustomUncaughtExceptionHandler.setInterceptHandler(this, Thread.currentThread());
 	}
 	
 	@Override
@@ -186,6 +207,13 @@ public class ReadBlueService extends Service {
 		return binder;
 	}
 	
+	@Override
+	public void onStart(Intent intent, int startId) {
+		super.onStart(intent, startId);
+		
+		CustomUncaughtExceptionHandler.setInterceptHandler(this, Thread.currentThread());
+	}
+	
 	private void startService() {
 		Intent intent = new Intent(this, ReadBlueService.class);
 		this.startService(intent);
@@ -198,6 +226,7 @@ public class ReadBlueService extends Service {
 		this.stopSelf();
 		this.serviceStarted = false;
 		Log.d(Constants.TAG, "Service stopped");
+		System.gc();
 	}
 
 	synchronized
@@ -284,6 +313,15 @@ public class ReadBlueService extends Service {
 		return false;
 	}
 	
+//	private boolean anyDeviceRecording() {
+//		for (ConnectableDevice device:connectableDevices) {
+//			if (device.isRecording()) {
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
+	
 	private void toggleDeviceConnection(ConnectableDevice connectableDevice) {
 		synchronized (connectableDevice) {
 			if (this.scanning) {
@@ -305,6 +343,29 @@ public class ReadBlueService extends Service {
 		}
 		
 	}
+	
+	private void playSoundAlert() {
+		Uri alert = RingtoneManager.getDefaultUri(Constants.ALERT_SOUND_TYPE);
+		if (alert == null) {
+			Log.e(Constants.TAG, "No default URI found for alert sound type "+Constants.ALERT_SOUND_TYPE);
+			return;
+		}
+
+		try {
+			MediaPlayer player = new MediaPlayer();
+			player.setDataSource(this, alert);
+			player.setAudioStreamType(Constants.ALERT_STREAM_TYPE);
+			player.setLooping(false);
+			player.prepare();
+			player.start();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	// Create a BroadcastReceiver for ACTION_FOUND
 	private final BroadcastReceiver deviceScanningFoundReceiver = new BroadcastReceiver() {
@@ -316,7 +377,7 @@ public class ReadBlueService extends Service {
 				// Get the BluetoothDevice object from the Intent
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 				
-				ConnectableDevice connectableDevice = new ConnectableDevice(bluetoothAdapter, device);
+				ConnectableDevice connectableDevice = new ConnectableDevice(ReadBlueService.this, bluetoothAdapter, device);
 				binder.addMessage("Device Found: " + connectableDevice.toString());
 
 				if (device.getBondState() == BluetoothDevice.BOND_BONDED) {

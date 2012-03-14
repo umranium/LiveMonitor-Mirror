@@ -123,7 +123,10 @@ public class CircularByteBuffer {
     /**
      * Copies bytes of given length, from the circular buffer,
      * to the output array given 
-     * 
+     * <p>
+     * See: {@link CircularByteBuffer#copyOut(int)} </br>
+     * See: {@link CircularByteBuffer#copyOut()} </br>
+     * </p>
      * @param output array to write bytes to
      * @param length maximum number of bytes to write to output array 
      * @return number of bytes actually written
@@ -143,6 +146,41 @@ public class CircularByteBuffer {
         }
         
         return length;
+    }
+    
+    /**
+     * Copies bytes of given length from the circular buffer.
+     * The length of the returned byte array, is either the
+     * available bytes, or the given length, which ever is less. 
+     * <p>
+     * See: {@link CircularByteBuffer#copyOut(byte[], int)} </br>
+     * See: {@link CircularByteBuffer#copyOut()} </br>
+     * </p>
+     * @param length the length to be copied out
+     * @return an array containing length bytes
+     */
+    public byte[] copyOut(int length) {
+        if (length>contentLength)
+            length = contentLength;
+        
+    	byte[] b = new byte[length];
+    	
+    	copyOut(b, length);
+    	
+    	return b;
+    }
+    
+    /**
+     * Copies all available bytes from the circular buffer. 
+     * <p>
+     * See: {@link CircularByteBuffer#copyOut(byte[], int)} </br>
+     * See: {@link CircularByteBuffer#copyOut(int)} </br>
+     * </p>
+     * @param length the length to be copied out
+     * @return an array containing length bytes
+     */
+    public byte[] copyOut() {
+        return copyOut(contentLength);
     }
     
     /**
@@ -228,5 +266,6 @@ public class CircularByteBuffer {
             writeLocation -= array.length;
         contentLength += numBytes;
     }
+     
     
 }
