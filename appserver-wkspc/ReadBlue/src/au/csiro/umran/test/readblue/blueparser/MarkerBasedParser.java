@@ -138,9 +138,10 @@ public class MarkerBasedParser implements Parser {
 					binder.playSoundAlert();
 					Log.w(Constants.TAG, errmsg, e);
 					binder.addMessage("Connection from "+this.deviceConnection.getConnectableDevice().getDevice().getName()+" lost.");
+					boolean isCalibrating = this.deviceConnection.isCalibrating();
 					this.deviceConnection.close();
 					binder.addMessage("Attempting to reconnect to "+this.deviceConnection.getConnectableDevice().getDevice().getName());
-					this.deviceConnection.connect(true);
+					this.deviceConnection.connect(true,isCalibrating);
 				} 
 			}
 		}
@@ -160,7 +161,11 @@ public class MarkerBasedParser implements Parser {
 	private void readFromStream() throws IOException {
 		//	get number of bytes readable from the stream
 		int available = inputStream.available();
-				
+		
+		if (available==0 && latestReadTimestamp>0 && System.currentTimeMillis()-latestReadTimestamp>3000L) {
+			Log.e(Constants.TAG, "Not receiving any data from:" +deviceName);
+		}
+		
 		//	make sure we have enough space to write bytes into the buffer
 		if (available>0)
 			inputBuffer.ensureWritableSpace(available);

@@ -139,7 +139,9 @@ public class LiveMonitorService extends Service {
 		@Override
 		public void onSystemMessage(String msg) {
 			synchronized (systemMessageMutex) {
-				String lines[] = msg.replace("\t", "        ").split("\n");
+				msg = msg.replace("\t", "        ");
+				String lines[];// = new String[] {msg};
+				lines = msg.split("\n");
 				for (String line:lines) {
 					systemMessages.addMessage(line);
 				}

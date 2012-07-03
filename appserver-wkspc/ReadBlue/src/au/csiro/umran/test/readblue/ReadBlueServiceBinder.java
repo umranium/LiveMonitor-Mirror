@@ -12,9 +12,12 @@ public interface ReadBlueServiceBinder {
 	boolean isScanning();
 	Object getWaitForScanningMutex();
 	
+	void startCalibration();
 	void startRecording();
 	void stopRecording();
 	
+	boolean isAnyConnected();
+	boolean isAnyRecording();
 	
 	List<ConnectableDevice> getConnectableDevices();
 	void toggleDeviceConnection(ConnectableDevice device);
@@ -24,5 +27,8 @@ public interface ReadBlueServiceBinder {
 	void addMessage(String msg);
 	
 	void playSoundAlert();
-
+	void vibrate();
+	
+	void setMarker(String s);
+	
 }

@@ -76,7 +76,113 @@ public class NoActivityRestartImpl implements UploaderThread {
 	private CharSequence timestampToDate(long timestamp)
 	{
 		return TIMESTAMP_FORMAT.format(new Date(timestamp));
-	}	
+	}
+	
+	
+	class ConnectionFaultController {
+		final Object prevExceptionMutex = new Object();
+		final Object stopSemaphore = new Object();
+		final Object attemptConnectionSemaphore = new Object();
+		
+		ActivityUploader activityUploader;
+		Class<?> prevExceptionClass = null;
+		long lastConnectionAttemptTime = 0;
+		
+		public ConnectionFaultController(ActivityUploader activityUploader) {
+			this.activityUploader = activityUploader;
+		}
+		
+		/**
+		 * Returns whether or not an attempt should be made to connect (after a connection error occurs)
+		 */
+		public boolean attemptConnection(int helperIndex) {
+			boolean logResult = false;
+			try {
+				if (prevExceptionClass==null ||
+						System.currentTimeMillis()-lastConnectionAttemptTime>Constants.INTERVAL_RETRY_UPLOAD) {
+					synchronized (attemptConnectionSemaphore) {
+						long now = System.currentTimeMillis();
+//						Log.d(Constants.TAG, "Update Helper "+helperIndex+
+//								": attemptConnection: (prevExceptionClass==null)="+
+//								(prevExceptionClass==null)+
+//								" (now-lastConnectionAttemptTime>Constants.INTERVAL_RETRY_UPLOAD)="+
+//								(now-lastConnectionAttemptTime>Constants.INTERVAL_RETRY_UPLOAD));
+						if (prevExceptionClass==null ||
+								now-lastConnectionAttemptTime>Constants.INTERVAL_RETRY_UPLOAD) {
+							lastConnectionAttemptTime = now;
+							return logResult=true;
+						} else {
+							return logResult=false;
+						}
+					}
+				} else {
+					return logResult=false;
+				}
+			} finally {
+//				Log.d(Constants.TAG, "Helper Index: "+helperIndex+": attemptConnection = "+logResult);
+			}
+		}
+		
+		public void clearPrevException(int helperIndex) {
+			synchronized (prevExceptionMutex) {
+				if (prevExceptionClass!=null) {
+					prevExceptionClass = null;
+					
+//					Log.d(Constants.TAG, "Helper Index: "+helperIndex+
+//							": cleared exception");
+				}
+			}
+		}
+		
+		public void displayPrevException(String msg, Exception e) {
+			synchronized (prevExceptionMutex) {
+				if (prevExceptionClass==null || !prevExceptionClass.equals(e.getClass())) {
+					Log.e(Constants.TAG, msg, e);
+					serviceMsgHandler.onSystemMessage(msg+": "+e.getMessage()+"\nRetrying shortly");
+					prevExceptionClass = e.getClass();
+				}
+			}
+		}
+		
+		public void doMainStop() {
+			try {
+				synchronized (stopSemaphore) {
+					stopSemaphore.wait();
+				}
+			} catch (InterruptedException ex) {
+				//	ignore
+			}
+		}
+		
+		public void doUpdateStop(int updaterIndex) {
+			try {
+				long startTime = System.currentTimeMillis();
+				
+				//	wait until either uploading stops, or the exception is cleared, or for the required duration 
+				while (activityUploader.isRunning &&
+						System.currentTimeMillis()-startTime<Constants.INTERVAL_RETRY_UPLOAD &&
+						prevExceptionClass!=null) {
+					synchronized (stopSemaphore) {
+						stopSemaphore.wait(1000L);
+					}
+					
+//					Log.d(Constants.TAG, "Helper Index: "+updaterIndex+
+//							": woke up to check status. Time-ready?="+
+//							(!(System.currentTimeMillis()-startTime<Constants.INTERVAL_RETRY_UPLOAD))+
+//							", prev-Ex-cleared?="+(!(prevExceptionClass!=null))
+//							);
+				}
+			} catch (InterruptedException ex) {
+				//	ignore
+			}
+		}
+		
+		public void notifyStop() {
+			synchronized (stopSemaphore) {
+				stopSemaphore.notifyAll();
+			}
+		}
+	}
 	
 	/**
 	 * The master thread for uploading an activity.
@@ -98,20 +204,19 @@ public class NoActivityRestartImpl implements UploaderThread {
 		private Long activityId = null;
 		public boolean isRunning = false;
 		private ActivityUploaderHelper[] helpers = null;
-		private Object stopSemaphore = new Object();
+		private ConnectionFaultController controller;
 		
 		public ActivityUploader() {
 			super("ActivityMaster");
 			
 			uniqueToken = phoneInfo.getIMEI()+":"+Long.toHexString(System.currentTimeMillis());
+			controller = new ConnectionFaultController(this);
 		}
 		
 		public void quit() {
 			Log.d(Constants.TAG, "Uploader thread quiting");
 			isRunning = false;
-			synchronized (stopSemaphore) {
-				stopSemaphore.notifyAll();
-			}
+			controller.notifyStop();
 		}
 		
 		public ActivityDetails queryLatestActivity() throws IOException, MapMyMapsException {
@@ -149,7 +254,7 @@ public class NoActivityRestartImpl implements UploaderThread {
 			try {
 				while (isRunning && pointsToUpload.isEmpty()) {
 					try {
-						grabData(DATA_WAIT, pointsToUpload, sensorDataToUpload);
+						grabData(DATA_WAIT, pointsToUpload, sensorDataToUpload, true);
 					} catch (InterruptedException e) {
 						// ignore
 					}
@@ -158,7 +263,6 @@ public class NoActivityRestartImpl implements UploaderThread {
 				
 				serviceMsgHandler.onSystemMessage("Attempting to start MapMyTracks Activity");
 				activityId = null;
-				Class<?> prevExceptionClass = null;
 				long latestStartAttemptTime = 0;
 				while (isRunning && activityId==null) {
 					try {
@@ -191,20 +295,10 @@ public class NoActivityRestartImpl implements UploaderThread {
 										uniqueToken
 								);
 						}
+						controller.clearPrevException(-1);
 					} catch (Exception e) {
-						Log.d(Constants.TAG, "Error while starting MapMyTracks Activity", e);
-						if (prevExceptionClass==null || !prevExceptionClass.equals(e.getClass())) {
-							serviceMsgHandler.onSystemMessage("Error starting activity: "+e.getMessage()+", retrying shortly");
-							prevExceptionClass = e.getClass();
-						}
-						
-						try {
-							synchronized (stopSemaphore) {
-								stopSemaphore.wait(Constants.INTERVAL_RETRY_UPLOAD);	//	60s
-							}
-						} catch (InterruptedException ex) {
-							//	ignore
-						}
+						controller.displayPrevException("Error while starting MapMyTracks Activity", e);
+						controller.doUpdateStop(-1);
 					}
 				}
 				
@@ -238,18 +332,17 @@ public class NoActivityRestartImpl implements UploaderThread {
 //				}
 			}
 			
-			if (isRunning) {
-				Log.d(Constants.TAG, "Uploader: waiting for stop signal");
-				try {
-					synchronized (stopSemaphore) {
-						stopSemaphore.wait();
-					}
-				} catch (InterruptedException e) {
-				}
+			Log.d(Constants.TAG, "Uploader: waiting for stop signal");
+			while (isRunning) {
+				controller.doMainStop();
+			}
+			
+			if (helpers!=null) {
 				//	interrupt helper functions,
 				//		isRunning should have been set to false by now
 				for (int i=0; i<NUM_HELPER_THREADS; ++i) {
-					helpers[i].interrupt();
+					if (helpers[i]!=null)
+						helpers[i].interrupt();
 				}
 			}
 			
@@ -276,23 +369,20 @@ public class NoActivityRestartImpl implements UploaderThread {
 		
 	}
 	
-	private Class<?> prevExceptionClass = null;
-	private final Object prevExceptionMutex = new Object();
-	
 	class ActivityUploaderHelper extends Thread {
 		
 		private int helperIndex;
-		private ActivityUploader uploaderHelper;
+		private ActivityUploader uploader;
 		private MapMyTracksInterfaceApi mapMyTracksInterfaceApi;
 		private List<Location> pointsToUpload = new ArrayList<Location>();
 		private List<SensorDataSet> sensorDataToUpload = new ArrayList<SensorDataSet>();
 		
 		public ActivityUploaderHelper(
 				int helperIndex,
-				ActivityUploader uploaderHelper,
+				ActivityUploader uploader,
 				List<SensorDataSet> sensorDataToUpload) {
 			this.helperIndex = helperIndex;
-			this.uploaderHelper = uploaderHelper;
+			this.uploader = uploader;
 			if (sensorDataToUpload!=null) {
 				this.sensorDataToUpload.addAll(sensorDataToUpload);
 			}
@@ -312,24 +402,36 @@ public class NoActivityRestartImpl implements UploaderThread {
 			
 			StringBuilder msgBuilder = new StringBuilder();
 			
-			while (uploaderHelper.isRunning) {
+			while (uploader.isRunning) {
 				try {
 					if (pointsToUpload.isEmpty()) {
-						grabData(DATA_WAIT, pointsToUpload, sensorDataToUpload);
+						grabData(DATA_WAIT, pointsToUpload, sensorDataToUpload, true);
+					}
+					while (pointsToUpload.size()<Constants.DATAPOINTS_UPLOADED_PER_BATCH) {
+						if (!grabData(DATA_WAIT, pointsToUpload, sensorDataToUpload, false))
+							break;
 					}
 					
 					try {
+						Log.d(Constants.TAG, "Helper Index: "+helperIndex+": Attempting activity update.");
 						mapMyTracksInterfaceApi.updateActivity(
-								uploaderHelper.activityId,
+								uploader.activityId,
 								pointsToUpload,
 								sensorDataToUpload
 								);
 						
-						Location lp = pointsToUpload.get(pointsToUpload.size()-1);
+						{
+							boolean first = true;
+							for (Location lp:pointsToUpload) {
+								Log.d(Constants.TAG, "Helper Index: "+helperIndex+": Uploaded "+lp.getTime());
+								if (first)
+									first = false;
+								else
+									msgBuilder.append("\n");
+								msgBuilder.append("Uploaded: "+timestampToDate(lp.getTime()));
+							}
+						}
 						
-						Log.d(Constants.TAG, "Helper Index: "+helperIndex+": Uploading "+lp.getTime());
-						
-						msgBuilder.append("Uploaded: "+timestampToDate(lp.getTime()));
 						if (!sensorDataToUpload.isEmpty()) {
 							SensorDataSet sd = sensorDataToUpload.get(0); 
 							msgBuilder.append(": HR=").append(!sd.hasHeartRate()?"null":String.format("%02d", sd.getHeartRate().getValue()))
@@ -348,31 +450,21 @@ public class NoActivityRestartImpl implements UploaderThread {
 						pointsToUpload.clear();
 						sensorDataToUpload.clear();
 						
-						prevExceptionClass = null;
+						uploader.controller.clearPrevException(helperIndex);
 					} catch (Exception e) {
-						synchronized (prevExceptionMutex) {
-							if (prevExceptionClass==null || !prevExceptionClass.equals(e.getClass())) {
-								Log.e(Constants.TAG, "Error Updating Server", e);
-								serviceMsgHandler.onSystemMessage("Error Updating Server: "+e.getMessage()+"\nRetrying shortly");
-								prevExceptionClass = e.getClass();
-							}
-						}
-						
-						try {
-							synchronized (uploaderHelper.stopSemaphore) {
-								uploaderHelper.stopSemaphore.wait(Constants.INTERVAL_RETRY_UPLOAD);	//	60s
-							}
-						} catch (InterruptedException ex) {
+						uploader.controller.displayPrevException("Error Updating Server", e);
+						while (uploader.isRunning && !uploader.controller.attemptConnection(helperIndex)) {
+							uploader.controller.doUpdateStop(helperIndex);
 						}
 					}
 				} catch (Exception e) {
-					Log.d(Constants.TAG, "Helper interrupted while fetching data", e);
+					Log.d(Constants.TAG, "Helper "+helperIndex+" interrupted while fetching data", e);
 					// ignored
 				}
 			}
 			
 			mapMyTracksInterfaceApi.shutdown();
-			Log.d(Constants.TAG, "Helper "+helperIndex+": Exiting");		
+			Log.d(Constants.TAG, "Helper Index "+helperIndex+": Exiting");		
 		}
 
 	}
@@ -384,14 +476,21 @@ public class NoActivityRestartImpl implements UploaderThread {
 		sample.sensorData.clear();
 	}
 	
-	private void grabData(long waitDuration, List<Location> pointsToUpload, List<SensorDataSet> sensorDataToUpload) throws InterruptedException
+	private boolean grabData(long waitDuration, List<Location> pointsToUpload, List<SensorDataSet> sensorDataToUpload, boolean wait) throws InterruptedException
 	{
 		Sample sample = null;
 		try {
-			sample = samplingQueue.takeFilledInstance(waitDuration);
-			addData(pointsToUpload, sensorDataToUpload, sample);
-			samplingQueue.returnEmptyInstance(sample);
+			if (wait)
+				sample = samplingQueue.takeFilledInstance(waitDuration);
+			else
+				sample = samplingQueue.takeFilledInstanceIfAvail();
+			boolean gotSample = sample!=null;
+			if (gotSample) {
+				addData(pointsToUpload, sensorDataToUpload, sample);
+				samplingQueue.returnEmptyInstance(sample);
+			}
 			sample = null;
+			return gotSample;
 //			while (true) {
 //				sample = samplingQueue.takeFilledInstanceIfAvail();
 //				if (sample!=null) {

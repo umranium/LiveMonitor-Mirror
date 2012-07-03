@@ -33,13 +33,19 @@ public class Writer {
 		}
 	}
 	
-	public void writeToFile(ParsedMsg msg) throws IOException {
+	public void writeToFile(ParsedMsg msg, String marker) throws IOException {
 		this.writer.append(Long.toString(msg.time));
 		for (int i=0; i<msg.msgLen; ++i) {
 			this.writer.append(',');
 			this.writer.append(Integer.toString(msg.msg[i] & 0xFF));
 		}
-		this.writer.append('\n');
+		this.writer.append(",\"");
+		this.writer.append(marker);
+		this.writer.append("\"\n");
 	}
 	
+	public void writeToFile(String text, String marker) throws IOException {
+		this.writer.append(text+","+marker);
+		this.writer.append('\n');
+	}
 }

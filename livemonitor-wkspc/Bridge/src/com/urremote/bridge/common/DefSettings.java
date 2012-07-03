@@ -75,7 +75,7 @@ public class DefSettings {
 		StringBuilder builder = new StringBuilder();
 		boolean first = true;
 		for (TagOptions tag:getTagOptions(state))
-			if (!tag.tag.isEmpty()) {
+			if (!(tag.tag.length()==0)) {
 				if (first)
 					first = false;
 				else

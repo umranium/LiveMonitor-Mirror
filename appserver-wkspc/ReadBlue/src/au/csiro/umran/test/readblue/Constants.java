@@ -20,7 +20,15 @@ public class Constants {
 	
 	public static final String PATH_SD_CARD_APP_LOC = Environment.getExternalStorageDirectory() + File.separator + "Bridge";
 	
-	public static final int ALERT_SOUND_TYPE = RingtoneManager.TYPE_ALARM;
+	public static final int ALERT_LONG_SOUND_TYPE = RingtoneManager.TYPE_ALARM;
+	public static final int ALERT_SHORT_SOUND_TYPE = RingtoneManager.TYPE_NOTIFICATION;
 	public static final int ALERT_STREAM_TYPE = AudioManager.STREAM_NOTIFICATION;
+	
+	public static final int[] POSIBLE_DEVICE_FREQUENCIES = new int[] {100,250,500}; 
+	public static final long MIN_TIME_FOR_FREQ_DET = 5000L; // ms
+	
+	public static final double MIN_SD_CALIBRATION_MOVEMENT = 1.0; // ms
+	public static final int DURATION_CALIBARATION = 2000; // ms
+	
 	
 }

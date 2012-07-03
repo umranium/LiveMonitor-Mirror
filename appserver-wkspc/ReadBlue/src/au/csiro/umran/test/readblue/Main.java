@@ -21,6 +21,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Spinner;
 
 public class Main extends Activity {
 	
@@ -28,8 +29,11 @@ public class Main extends Activity {
 	
 	private Button btnStartScan;
 	private Button btnStopScan;
+	private Button btnStartCalibration;
 	private Button btnStartRecording;
 	private Button btnStopRecording;
+	private Spinner spnMarker;
+	private Button btnSetMarker;
 	private ListView lstMessages;
 	private ArrayAdapter<SystemMessage> lstMessagesAdapter;
 	private ListView lstConnectableDevices;
@@ -68,6 +72,21 @@ public class Main extends Activity {
 			}
 		});
 
+		btnStartCalibration = (Button) findViewById(R.id.btn_start_calibration);
+		btnStartCalibration.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (serviceBinder!=null) {
+					handler.post(new Runnable() {
+						public void run() {
+							if (serviceBinder!=null)
+								serviceBinder.startCalibration();
+						}
+					});
+				}
+			}
+		});
+		
 		btnStartRecording = (Button) findViewById(R.id.btn_start_record);
 		btnStartRecording.setOnClickListener(new OnClickListener() {
 			@Override
@@ -92,6 +111,31 @@ public class Main extends Activity {
 						public void run() {
 							if (serviceBinder!=null)
 								serviceBinder.stopRecording();
+						}
+					});
+				}
+			}
+		});
+		
+		spnMarker = (Spinner)findViewById(R.id.spn_marker);
+		spnMarker.setPrompt("Select Marker");
+		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+	            this, R.array.markers, android.R.layout.simple_spinner_item);
+	    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+	    spnMarker.setAdapter(adapter);
+	    
+	    btnSetMarker = (Button) findViewById(R.id.btn_set_marker);
+		btnSetMarker.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (serviceBinder!=null) {
+					handler.post(new Runnable() {
+						public void run() {
+							if (spnMarker.getSelectedItemPosition()==0)
+								return;
+							
+							if (serviceBinder!=null)
+								serviceBinder.setMarker(spnMarker.getSelectedItem().toString());
 						}
 					});
 				}
@@ -337,13 +381,25 @@ public class Main extends Activity {
 									(ConnectableDevice)lstConnectableDevicesAdapter.getItem(
 											lstConnectableDevices.getCount()-1));
 						}
+						
+						lstConnectableDevicesAdapter.notifyDataSetChanged();
+						
+						boolean hasItems = lstConnectableDevicesAdapter.getCount()>0;
+						boolean anyConnected = serviceBinder.isAnyConnected();
+						boolean anyRecording = serviceBinder.isAnyRecording();
+						btnStartRecording.setEnabled(hasItems && anyConnected);
+						btnStartCalibration.setEnabled(hasItems && anyConnected);
+						btnStopRecording.setEnabled(hasItems && anyRecording);
+						spnMarker.setEnabled(hasItems && anyRecording);
+						btnSetMarker.setEnabled(hasItems && anyRecording);
+						
+					} else {
+						btnStartRecording.setEnabled(false);
+						btnStartCalibration.setEnabled(false);
+						btnStopRecording.setEnabled(false);
+						spnMarker.setEnabled(false);
+						btnSetMarker.setEnabled(false);
 					}
-					
-					lstConnectableDevicesAdapter.notifyDataSetChanged();
-					
-					boolean hasItems = lstConnectableDevicesAdapter.getCount()>0;
-					btnStartRecording.setEnabled(hasItems);
-					btnStopRecording.setEnabled(hasItems);
 					
 					onScanningStateChanged();
 				}

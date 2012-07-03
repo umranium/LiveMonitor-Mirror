@@ -18,6 +18,13 @@
         android:layout_marginRight="10px" >
 
         <Button
+            android:id="@+id/btn_start_calibration"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Start Calibration" />
+
+        <Button
             android:id="@+id/btn_start_record"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -30,6 +37,29 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Stop Recording" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/LinearLayout02"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10px"
+        android:layout_marginRight="10px" >
+
+        <Spinner
+            android:id="@+id/spn_marker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"/>
+
+        <Button
+            android:id="@+id/btn_set_marker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Use"
+            android:width="100dp" />
+
     </LinearLayout>
 
     <LinearLayout android:layout_height="wrap_content" android:id="@+id/linearLayout3" android:layout_width="fill_parent">
@@ -38,4 +68,5 @@
     <LinearLayout android:layout_height="fill_parent" android:layout_width="fill_parent" android:id="@+id/LinearLayout2">
         <ListView android:layout_width="fill_parent" android:layout_height="fill_parent" android:id="@+id/lst_messages" android:transcriptMode="alwaysScroll" android:stackFromBottom="true" android:layout_margin="2px" android:animationCache="true" android:clickable="false"></ListView>
     </LinearLayout>
+
 </LinearLayout>

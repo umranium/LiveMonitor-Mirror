@@ -14,13 +14,15 @@ public class Constants {
 	
 	public static final String BRIDGE_PACKAGE = "com.urremote.bridge";
 	
-	public static final boolean IS_TESTING = false;
+	public static final boolean IS_TESTING = true;
 	
 	public static final long MONITORING_INTERVAL = 1000L;
 	
 	public static final int MINIMUM_RECORDING_DISTANCE = 5;
 	
 	public static final int MINIMUM_BATTERY = 5;
+	
+	public static final int DATAPOINTS_UPLOADED_PER_BATCH = 5;
 	
 	public static final String STD_DATE_FORMAT = "dd-MM-yyyy";
 	public static final String STD_TIME_FORMAT = "HH-mm-ss";
@@ -31,7 +33,7 @@ public class Constants {
 	
 	public static final int TIMEOUT_SOCKET = 0; //infinite //60*1000;
 	public static final int TIMEOUT_CONNECTION = 0; //infinite //60*1000;
-	public static final long INTERVAL_RETRY_UPLOAD = IS_TESTING?(10*1000L):(60*1000L);
+	public static final long INTERVAL_RETRY_UPLOAD = IS_TESTING?(60*1000L):(5*1000L);
 	public static final long DURATION_WAIT_FOR_STABLE_CONNECTION = 4*60*1000L;
 	
 	public static final String MY_TRACKS_PACKAGE = "com.google.android.maps.mytracks";

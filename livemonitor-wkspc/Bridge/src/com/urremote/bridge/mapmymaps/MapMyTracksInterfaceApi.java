@@ -400,7 +400,7 @@ public class MapMyTracksInterfaceApi {
 		}
 		updateActivityParamsMap.update("points", locBuilder.toString());
 		
-		if (sensorDatas!=null && !sensorDatas.isEmpty()) {
+		if (sensorDatas!=null && !(sensorDatas.isEmpty())) {
 			StringBuilder hrBuilder = new StringBuilder();
 			StringBuilder cadBuilder = new StringBuilder();
 			StringBuilder pwrBuilder = new StringBuilder();

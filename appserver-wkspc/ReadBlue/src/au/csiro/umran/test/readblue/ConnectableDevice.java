@@ -65,13 +65,13 @@ public class ConnectableDevice {
 		return connection==null?"not connected":connection.getConnectionState();
 	}
 	
-	public void startRecording() {
-		if (connection!=null)
-			connection.startRecording();
+	public void startRecording(boolean doCalibration) {
+		if (connection!=null && !connection.isRecording())
+			connection.startRecording(doCalibration);
 	}
 	
 	public void stopRecording() {
-		if (connection!=null)
+		if (connection!=null && connection.isRecording())
 			connection.stopRecording();
 	}
 	
@@ -81,7 +81,6 @@ public class ConnectableDevice {
 		if (isConnected()) {
 			connectionState = " ["+getConnectionState()+"]";
 		}
-		return String.format("%-15s (%18s)", device.getName(),
-				device.getAddress())+connectionState;
+		return device.getName()+connectionState;
 	}
 }

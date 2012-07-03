@@ -34,10 +34,12 @@ public class DeviceConnection {
 	private boolean connectionIsClosing;
 	private File deviceFile;
 	private boolean recording = false;
+	private boolean calibration = false;
 	private ParsedMsgQueue msgQueue;
 	private ParserThread parserThread;
 	private MessageReceiverThread messageReceiverThread;
 	private Writer writer;
+	private String marker;
 	
 	public DeviceConnection(Context context, ReadBlueServiceBinder binder, ConnectableDevice device) {
 		this.context = context;
@@ -47,7 +49,7 @@ public class DeviceConnection {
 		this.deviceFile = null;
 		this.writer = null;
 		this.msgQueue = new ParsedMsgQueue();
-
+		this.marker = "";
 	}
 	
 	@Override
@@ -63,6 +65,12 @@ public class DeviceConnection {
 	public ConnectableDevice getConnectableDevice() {
 		return device;
 	}
+	
+	public void setMarker(String marker) {
+		this.marker = marker;
+		if (messageReceiverThread!=null)
+			messageReceiverThread.setMarker(marker);
+	}
 
 	public String getConnectionState() {
 		if (connectionIsClosing) {
@@ -74,13 +82,17 @@ public class DeviceConnection {
 		} else {
 			if (socketIsOpen) {
 				if (recording)
-					return "recording"+((parserThread!=null)?(":"+parserThread.getParser().getLastestReadTime()):"");
+					return ((parserThread!=null)?(parserThread.getParser().getLastestReadTime()+"-"+marker):"recording");
 				else
 					return "connected";
 			} else {
 				return "connecting";
 			}
 		}
+	}
+	
+	public boolean isCalibrating() {
+		return calibration;
 	}
 	
 	private static BluetoothSocket createSocket(BluetoothDevice device) throws IOException {
@@ -96,10 +108,10 @@ public class DeviceConnection {
 	}
 	
 	public void connect() {
-		connect(false);
+		connect(false,false);
 	}
 	
-	public void connect(final boolean startRecording) {
+	public void connect(final boolean startRecording, final boolean doCalibration) {
 		Thread th = new Thread("AsyncConnectThread") {
 			public void run() {
 				CustomUncaughtExceptionHandler.setInterceptHandler(context, this);
@@ -107,7 +119,7 @@ public class DeviceConnection {
 				connectionIsClosing = false;
 				
 				try {
-					asyncConnect(startRecording);
+					asyncConnect(startRecording,doCalibration);
 				} catch (IOException e) {
 					Log.e(Constants.TAG, "Error while trying to establish connection to device", e);
 					binder.addMessage("Error: "+e.getMessage());
@@ -118,7 +130,7 @@ public class DeviceConnection {
 		th.start();
 	}
 	
-	private void asyncConnect(boolean startRecording) throws IOException {
+	private void asyncConnect(boolean startRecording, boolean doCalibration) throws IOException {
 		int serviceDisconveryRetries = 0;
 		synchronized (BLUETOOTH_SERVICE_OPEN_MUTEX) {
 			while (!connectionIsClosing) {
@@ -134,11 +146,20 @@ public class DeviceConnection {
 					}
 					
 					this.socket.connect();
+					
+					if (this.socket.getInputStream()==null) {
+						this.socket.close();
+						this.socket = null;
+						continue;
+					}
+					
 					socketIsOpen = true;
 					Log.d(Constants.TAG, "Device connected.");
 					
+					refreshConnectableDeviceAdapter();
+					
 					if (startRecording) {
-						startRecording();
+						startRecording(doCalibration);
 					}
 					
 					return;
@@ -166,9 +187,11 @@ public class DeviceConnection {
 		
 		stopRecording();
 		try {
-			this.socket.close();
-			this.socket = null;
-			socketIsOpen = false;
+			if (this.socket!=null) {
+				this.socket.close();
+				this.socket = null;
+				socketIsOpen = false;
+			}
 		} catch (IOException e) {
 			Log.e(Constants.TAG, "Error while closing socket to device: "+device.getDevice().getName(), e);
 		}
@@ -177,8 +200,8 @@ public class DeviceConnection {
 		refreshConnectableDeviceAdapter();
 
 	}
-
-	public void startRecording() {
+	
+	public void startRecording(boolean doCalibration) {
 		try {
 			while (msgQueue.peekFilledInstance()!=null) {
 				try {
@@ -189,11 +212,13 @@ public class DeviceConnection {
 				}
 			}
 			msgQueue.assertAllAvailable();
-			openWriter();
-			this.messageReceiverThread = new MessageReceiverThread(context, this, msgQueue, binder, writer);
+			openWriter(doCalibration);
+			this.messageReceiverThread = new MessageReceiverThread(context, this, msgQueue, binder, writer, doCalibration, marker);
 			this.parserThread = new ParserThread(context, "ParserThread:"+device.getDevice().getName(), MARKER, 
 					binder, this, socket.getInputStream(), msgQueue);
-			recording = true;
+			this.calibration = doCalibration;
+			this.recording = true;
+			refreshConnectableDeviceAdapter();
 		} catch (IOException e) {
 			Log.e(Constants.TAG, "Error while initializing recording: "+device.getDevice().getName(), e);
 			this.close();
@@ -206,6 +231,7 @@ public class DeviceConnection {
 	
 	public void stopRecording() {
 		recording = false;
+		calibration = false;
 		if (this.parserThread!=null) {
 			this.parserThread.quit();
 			this.parserThread = null;
@@ -215,14 +241,15 @@ public class DeviceConnection {
 			this.messageReceiverThread = null;
 		}
 		closeWriter();
+		refreshConnectableDeviceAdapter();
 	}
 	
 	public boolean isRecording() {
 		return recording;
 	}
 	
-	private void openWriter() throws IOException {
-		this.deviceFile = FileUtils.getFileForDevice(device.getDevice().getName());
+	private void openWriter(boolean doCalibration) throws IOException {
+		this.deviceFile = FileUtils.getFileForDevice(doCalibration, device.getDevice().getName());
 		FileUtils.ensureParentFolderExists(deviceFile);
 		this.writer = new Writer(this, deviceFile);
 	}

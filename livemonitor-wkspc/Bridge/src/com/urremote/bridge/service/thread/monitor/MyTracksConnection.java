@@ -183,7 +183,10 @@ public class MyTracksConnection {
 						}
 					} else {
 						if (shouldBeRecording) {
-							serviceMsgHandler.onSystemMessage("MyTracks is not Recording.\nRe-Requesting MyTracks to start Recording.");
+							serviceMsgHandler.onSystemMessage(
+									"MyTracks is not recording. " +
+									"Please enable sharing in MyTracks. " +
+									"Go to Menu > More > Settings > Sharing > Allow access");
 							mytracks.startNewTrack();
 							requestedTrackRecording = true;
 						}

@@ -20,4 +20,8 @@ public class ByteUtils {
 		return builder.toString();
 	}
 	
+	public static int unsignedByteToInt(byte b) {
+		return (int)b & 0xFF;
+	}
+	
 }

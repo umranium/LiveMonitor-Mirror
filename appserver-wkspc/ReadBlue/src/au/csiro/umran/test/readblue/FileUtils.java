@@ -30,10 +30,11 @@ public class FileUtils {
 		return fmt.format(new Date(time)).replaceAll("[\\W]+", "_");
 	}
 	
-	public static File getFileForDevice(String name) {
+	public static File getFileForDevice(boolean calibration, String name) {
 		File extern = Environment.getExternalStorageDirectory();
 		String path = extern.getAbsolutePath()+File.separator+
 				"ReadBlue"+File.separator+
+				(calibration?"Calibration_":"")+
 				deviceNameToFileName(name)+"_"+timeToFileName(System.currentTimeMillis())+".csv";
 		return new File(path);
 	}

@@ -27,6 +27,7 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Vibrator;
 import android.util.Log;
 import android.widget.Adapter;
 import au.csiro.umran.test.readblue.utils.TwoWayBlockingQueue;
@@ -45,6 +46,10 @@ public class ReadBlueService extends Service {
 				eventHandler.onScanningStateChanged();
 				eventHandler.onConnectableDevicesUpdated();
 				eventHandler.onMessagesUpdated();
+			} else {
+				if (!anyDeviceConnected() && !serviceStarted) {
+					stopService();
+				}
 			}
 		}
 		
@@ -69,9 +74,16 @@ public class ReadBlueService extends Service {
 		}
 		
 		@Override
+		public void startCalibration() {
+			for (ConnectableDevice device:connectableDevices) {
+				device.startRecording(true);
+			}
+		}
+		
+		@Override
 		public void startRecording() {
 			for (ConnectableDevice device:connectableDevices) {
-				device.startRecording();
+				device.startRecording(false);
 			}
 		}
 		
@@ -80,6 +92,16 @@ public class ReadBlueService extends Service {
 			for (ConnectableDevice device:connectableDevices) {
 				device.stopRecording();
 			}
+		}
+		
+		@Override
+		public boolean isAnyConnected() {
+			return anyDeviceConnected();
+		}
+		
+		@Override
+		public boolean isAnyRecording() {
+			return anyDeviceRecording();
 		}
 
 		@Override
@@ -143,11 +165,30 @@ public class ReadBlueService extends Service {
 				}
 			});
 		}
+		
+		@Override
+		public void vibrate() {
+			mainLooperHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					ReadBlueService.this.vibrate();
+				}
+			});
+		}
+		
+		@Override
+		public void setMarker(String s) {
+			for (ConnectableDevice device:connectableDevices) {
+				if (device.isConnected())
+					device.getConnection().setMarker(s);
+			}
+		}
 	}
 	
 	private InternReadBlueServiceBinder binder = new InternReadBlueServiceBinder();
 	
 	private AudioManager audioManager;
+	private Vibrator vibrator;
 	
 	private boolean scanningEnabled;
 	private boolean scanning;
@@ -168,6 +209,11 @@ public class ReadBlueService extends Service {
 		super.onCreate();
 		Log.d(Constants.TAG, "Service created");
 		
+		this.audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		this.audioManager.setStreamVolume(Constants.ALERT_STREAM_TYPE, audioManager.getStreamMaxVolume(Constants.ALERT_STREAM_TYPE), 0);
+		
+		this.vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE); 
+		
 		this.scanningEnabled = true;
 		this.scanning = false;
 		this.connectableDevices = new ArrayList<ConnectableDevice>();
@@ -180,9 +226,6 @@ public class ReadBlueService extends Service {
 			binder.addMessage("Device does not support bluetooth");
 		}
 		
-		this.audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-		this.audioManager.setStreamVolume(Constants.ALERT_STREAM_TYPE, audioManager.getStreamMaxVolume(Constants.ALERT_STREAM_TYPE), 0);
-
 		CustomUncaughtExceptionHandler.setInterceptHandler(this, Thread.currentThread());
 	}
 	
@@ -313,14 +356,14 @@ public class ReadBlueService extends Service {
 		return false;
 	}
 	
-//	private boolean anyDeviceRecording() {
-//		for (ConnectableDevice device:connectableDevices) {
-//			if (device.isRecording()) {
-//				return true;
-//			}
-//		}
-//		return false;
-//	}
+	private boolean anyDeviceRecording() {
+		for (ConnectableDevice device:connectableDevices) {
+			if (device.isRecording()) {
+				return true;
+			}
+		}
+		return false;
+	}
 	
 	private void toggleDeviceConnection(ConnectableDevice connectableDevice) {
 		synchronized (connectableDevice) {
@@ -345,9 +388,9 @@ public class ReadBlueService extends Service {
 	}
 	
 	private void playSoundAlert() {
-		Uri alert = RingtoneManager.getDefaultUri(Constants.ALERT_SOUND_TYPE);
+		Uri alert = RingtoneManager.getDefaultUri(Constants.ALERT_LONG_SOUND_TYPE);
 		if (alert == null) {
-			Log.e(Constants.TAG, "No default URI found for alert sound type "+Constants.ALERT_SOUND_TYPE);
+			Log.e(Constants.TAG, "No default URI found for alert sound type "+Constants.ALERT_LONG_SOUND_TYPE);
 			return;
 		}
 
@@ -365,6 +408,10 @@ public class ReadBlueService extends Service {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	private void vibrate() {
+		this.vibrator.vibrate(1000L);
 	}
 
 	// Create a BroadcastReceiver for ACTION_FOUND

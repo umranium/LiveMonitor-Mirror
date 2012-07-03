@@ -255,29 +255,30 @@ public class Main extends Activity {
     	super.onStart();
 		Log.d(Constants.TAG, this.getClass().getSimpleName()+":onStart()");
     	
-        SharedPreferences preferences = this.getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
-    	boolean accountSettingsAvailable = preferences.getBoolean(Constants.KEY_ACCOUNT_SETTINGS_AVAILABLE, false);
-    	boolean activitySettingsAvailable = preferences.getBoolean(Constants.KEY_ACTIVITY_SETTINGS_AVAILABLE, false);
-    	if (!accountSettingsAvailable && !accountSettingsAvailable) {
-    		showAccountSettings(true);
-    	} else
-	    	if (!accountSettingsAvailable) {
-	    		showAccountSettings(false);
-	    	} else
-		    	if (!activitySettingsAvailable) {
-		    		showActivitySettings();
-		    	}
-        
-    	
-//    	latencyTestThread = new LatencyTestThread();
-//    	latencyTestThread.start();
-    	
     	if (!MyTracksConnection.isMyTracksInstalled(this)) {
     		createMyTracksMarketAlert();
     	} else
 	    	if (!MyTracksConnection.hasMyTracksPermission(this)) {
 	    		createMyTracksPermissionAlert();
 	    	}
+	    	else {
+	            SharedPreferences preferences = this.getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
+	        	boolean accountSettingsAvailable = preferences.getBoolean(Constants.KEY_ACCOUNT_SETTINGS_AVAILABLE, false);
+	        	boolean activitySettingsAvailable = preferences.getBoolean(Constants.KEY_ACTIVITY_SETTINGS_AVAILABLE, false);
+	        	if (!accountSettingsAvailable && !accountSettingsAvailable) {
+	        		showAccountSettings(true);
+	        	} else
+	    	    	if (!accountSettingsAvailable) {
+	    	    		showAccountSettings(false);
+	    	    	} else
+	    		    	if (!activitySettingsAvailable) {
+	    		    		showActivitySettings();
+	    		    	}
+	    	}
+        
+    	
+//    	latencyTestThread = new LatencyTestThread();
+//    	latencyTestThread.start();
     	
     }
     
@@ -569,10 +570,11 @@ public class Main extends Activity {
 	
 	private void createMyTracksMarketAlert() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage("This application requires Google My Tracks to be installed.\n" +
-				"Go to the market to install?")
+		builder.setMessage(
+				"Google My Tracks must be installed prior to installing this application.\n" +
+				"Go to Play Store to install?")
 				.setCancelable(false)
-				.setPositiveButton("Install",
+				.setPositiveButton("Play Store",
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
 								showMyTracksMarket();
@@ -590,18 +592,19 @@ public class Main extends Activity {
 	
 	private void createMyTracksPermissionAlert() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage("This application requires Google My Tracks permissions which haven't been granted.\n" +
-				"This could be a result of installing MyTracks AFTER "+getString(R.string.app_name)+".\n" +
-				"Please reinstall "+getString(R.string.app_name)+" to fix this issue."
+		builder.setMessage(
+				"This application requires Google My Tracks permissions which haven't been granted.\n" +
+				"This could be a result of installing MyTracks AFTER this application.\n" +
+				"Please uninstall this application then reinstall."
 				)
 				.setCancelable(false)
-				.setPositiveButton("Reinstall",
+				.setPositiveButton("Play Store",
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int id) {
 							showBridgeMarket();
 						}
 					})
-				.setNegativeButton("Not Now", new DialogInterface.OnClickListener() {
+				.setNegativeButton("Exit", new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int id) {
 							Main.this.finish();
 						}
